@@ -37,7 +37,7 @@ TestCase {
         compare(PanelRouting.pickHost(rows, "DP-2"), "first");
     }
 
-    function test_primaryOnlyBarRemainsReachableFromOtherOutputs() {
+    function test_removedOutputFallsBackToRemainingBar() {
         compare(PanelRouting.pickHost([
             {
                 host: "primary",
@@ -46,6 +46,48 @@ TestCase {
             }
         ], "DP-2"), "primary");
         compare(PanelRouting.pickHost([], "DP-2"), null);
+    }
+
+    function test_numberedShortcutsDoNotCountOtherMonitorInstances() {
+        const rows = [
+            {
+                host: {
+                    moduleName: "clock"
+                },
+                screenName: "DP-1",
+                visible: true,
+                x: 900
+            },
+            {
+                host: {
+                    moduleName: "audio"
+                },
+                screenName: "DP-2",
+                visible: true,
+                x: 1000
+            },
+            {
+                host: {
+                    moduleName: "audio"
+                },
+                screenName: "DP-1",
+                visible: true,
+                x: 800
+            },
+            {
+                host: {
+                    moduleName: "clock"
+                },
+                screenName: "DP-2",
+                visible: true,
+                x: 1100
+            }
+        ];
+        compare(PanelRouting.panelIdAt(rows, 1, "DP-2"), "audio");
+        compare(PanelRouting.panelIdAt(rows, 2, "DP-2"), "clock");
+        compare(PanelRouting.panelIdAt(rows, 3, "DP-2"), "");
+        compare(PanelRouting.panelIdAt(rows, 1, "DP-1"), "audio");
+        compare(PanelRouting.panelIdAt(rows, 2, "DP-1"), "clock");
     }
 
     function test_numberedShortcutsFollowVisibleOrder() {

@@ -13,7 +13,6 @@ Item {
     property real uiScale: 1
     property real rightHitPadding: 0
     property bool compact: false
-    property bool active: true
     property int itemRevision: 0
     readonly property var tray: itemFor("omarchy.tray")
     readonly property var clock: itemFor("omarchy.clock")
@@ -78,7 +77,7 @@ Item {
 
     StatusWidgetModel {
         id: widgetModel
-        config: root.active ? root.barConfig : ({})
+        config: root.barConfig
         registry: root.barWidgetRegistry
     }
 

@@ -158,7 +158,12 @@ defaults with that entry's inline values.
 
 Model rows use stable widget/occurrence keys. Reordering moves existing rows;
 settings edits update them in place. Removing a layout entry or disabling its
-plugin destroys its slot. Widgets instantiate only on the status screen.
+plugin destroys its slot. Each screen owns its own status widgets and tray
+drawer, created and destroyed with its bar surface. Tray entries share
+Quickshell's system tray service; native widget panels anchor to their local
+control. Named panel shortcuts close an existing panel first, otherwise they
+open on the focused screen. Numbered shortcuts count visible panels only on
+that screen, in visual order.
 Multiple instances are allowed only when the registry metadata permits them.
 
 `StatusWidgetSlot.qml` chooses a compact presentation for familiar widgets and

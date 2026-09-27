@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Displayed the tray, status widgets, and clock on every monitor.
 - Loaded configured Omarchy widgets dynamically in layout order, including third-party widgets.
 - Shared status-control focus, hover, and panel underline behavior across native controls and tray items.
 - Preserved open widget panels when their settings or order change.

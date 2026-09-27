@@ -81,7 +81,9 @@ omarchy bar reset
   The final status control reaches the right edge.
 
 The bar appears at the bottom of each screen. Tasks include all workspaces on
-that screen. Status controls appear on the first screen reported by Omarchy.
+that screen. The tray, status controls, and clock appear on every screen.
+Panels open beside the control you click; panel shortcuts use the focused screen
+unless they are closing a panel that is already open.
 
 ## Places in Start
 

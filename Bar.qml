@@ -824,12 +824,8 @@ Item {
         RightStatus {
             id: rightStatus
 
-            readonly property bool primary: Quickshell.screens.length === 0 || barWindow.screen === Quickshell.screens[0]
-
-            width: primary ? implicitWidth : 0
+            width: implicitWidth
             height: implicitHeight
-            visible: primary
-            active: primary
             anchors.right: parent.right
             anchors.rightMargin: Math.round(5 * root.barScale)
             rightHitPadding: anchors.rightMargin

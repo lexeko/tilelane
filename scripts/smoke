@@ -45,5 +45,20 @@ if [[ "$surface_count" -ne "$monitor_count" ]]; then
   exit 1
 fi
 
+reference_widgets=""
+while IFS= read -r monitor; do
+  state="$(omarchy-shell tilelane statusState "$monitor")"
+  if ! jq -e --arg screen "$monitor" '.present and .screen == $screen' <<<"$state" >/dev/null; then
+    printf 'smoke: missing status area on %s\n' "$monitor" >&2
+    exit 1
+  fi
+  widgets="$(omarchy-shell tilelane statusWidgets "$monitor" | jq -c '[.[].id]')"
+  if [[ -n "$reference_widgets" && "$widgets" != "$reference_widgets" ]]; then
+    printf 'smoke: configured status widgets differ on %s\n' "$monitor" >&2
+    exit 1
+  fi
+  reference_widgets="$widgets"
+done < <(hyprctl monitors -j | jq -r '.[].name')
+
 printf 'smoke: pass (%s shell process, %s monitor surface(s), %spx bottom reservation)\n' \
   "${#shell_pids[@]}" "$surface_count" "$expected_height"
