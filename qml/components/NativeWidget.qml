@@ -9,16 +9,15 @@ StatusControl {
     property var registry: null
     property var settings: ({})
     property string fallbackEntryPoint: ""
-    // Optional presentation adjustments for existing icon-only widgets.
-    property real visualScale: 1
-    property real visualVerticalOffset: 0
-    property bool iconOnly: false
     readonly property bool available: nativeHost.available && nativeHost.implicitWidth > 0
-    readonly property real contentScale: Math.min(visualScale, px(32) / Math.max(1, nativeHost.implicitHeight))
+    // Native widgets include the bar's vertical padding in their implicit
+    // height. Fit the full bar, not the smaller hover/underline rectangle.
+    readonly property real availableHeight: bar && bar.barHeight > 0 ? bar.barHeight : height
+    readonly property real contentScale: Math.min(1, availableHeight / Math.max(1, nativeHost.implicitHeight))
 
     nativeInput: true
     opened: nativeHost.opened
-    implicitWidth: available ? (iconOnly ? px(30) : Math.max(px(30), nativeHost.implicitWidth * contentScale)) : 0
+    implicitWidth: available ? Math.max(px(30), nativeHost.implicitWidth * contentScale) : 0
     accessibleName: nativeHost.entry && nativeHost.entry.metadata ? String(nativeHost.entry.metadata.displayName || moduleName) : moduleName
     activation: function (button) {
         return nativeHost.trigger(button);
@@ -34,7 +33,6 @@ StatusControl {
         width: implicitWidth
         height: implicitHeight
         anchors.centerIn: parent
-        anchors.verticalCenterOffset: root.visualVerticalOffset
         scale: root.contentScale
         moduleName: root.moduleName
         registry: root.registry

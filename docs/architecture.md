@@ -168,6 +168,10 @@ and the accent underline. Application tray entries use the same control.
 Pointer clicks do not assign keyboard focus. Native components retain their
 own mouse and wheel handlers; the generic host does not replace their internal
 controls or promise to override styling drawn by the plugin itself.
+Native visuals retain their intrinsic size when they fit the full bar height;
+only taller widgets scale down proportionally. Their height includes native
+button padding, so fitting them into Tilelane's smaller hover rectangle would
+also shrink the icon. Sizing has no per-plugin overrides.
 
 `HostedBarWidget.qml` loads widget implementations from the injected registry
 and supplies `bar`, `moduleName`, and per-instance `settings`. Agents,

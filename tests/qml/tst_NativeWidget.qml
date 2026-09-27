@@ -56,7 +56,7 @@ TestCase {
             property int wheels: 0
             property int lastButton: -1
             implicitWidth: settings.wide ? 180 : 120
-            implicitHeight: 32
+            implicitHeight: settings.contentHeight || 32
             function open() {
                 opened = true;
             }
@@ -100,6 +100,7 @@ TestCase {
     }
 
     function init() {
+        fakeBar.barHeight = 44;
         registry.widgets = {
             "example.unfamiliar": {
                 component: pluginComponent,
@@ -153,6 +154,26 @@ TestCase {
         verify(widget.indicatorVisible);
         item.close();
         verify(!widget.indicatorVisible);
+    }
+
+    function test_nativeBarPaddingDoesNotShrinkContent() {
+        widget.settings = {
+            contentHeight: 44
+        };
+        compare(widget.contentScale, 1);
+        compare(widget.width, 120);
+        widget.settings = {
+            contentHeight: 88
+        };
+        compare(widget.contentScale, 0.5);
+        compare(widget.width, 60);
+        fakeBar.barHeight = 88;
+        compare(widget.contentScale, 1);
+        compare(widget.width, 120);
+        widget.settings = {
+            contentHeight: 32
+        };
+        compare(widget.contentScale, 1);
     }
 
     function test_disableUnloadsAndReenableLoadsReplacement() {

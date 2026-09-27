@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import qs.Commons as Commons
 
 Item {
     id: root
@@ -126,9 +125,6 @@ Item {
             bar: root.bar
             uiScale: root.uiScale
             rightHitPadding: root.rightHitPadding
-            iconOnly: root.widgetId === "omarchy.dropbox" || root.widgetId === "omarchy.system-update"
-            visualScale: root.widgetId === "omarchy.dropbox" ? root.uiScale * 20 * 0.67 / Commons.Style.space(12) : root.widgetId === "omarchy.system-update" ? root.uiScale * 20 * 0.67 / Commons.Style.font.caption : 1
-            visualVerticalOffset: root.widgetId === "omarchy.system-update" ? root.uiScale : 0
             fallbackEntryPoint: root.widgetId === "omarchy.dropbox" ? "Panel.qml" : root.widgetId === "omarchy.system-update" ? "SystemUpdate.qml" : ""
         }
     }
