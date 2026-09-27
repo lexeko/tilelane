@@ -97,6 +97,7 @@ TestCase {
         moduleName: "example.unfamiliar"
         registry: registry
         bar: fakeBar
+        rightHitPadding: 5
     }
 
     function init() {
@@ -174,6 +175,24 @@ TestCase {
             contentHeight: 32
         };
         compare(widget.contentScale, 1);
+    }
+
+    function test_nativeInputAndExtendedEdgesShareHoverFeedback() {
+        widget.settings = {
+            contentHeight: 44
+        };
+        mouseMove(testCase, 30, 47);
+        verify(widget.tooltipHovered);
+        mouseClick(testCase, 30, 47, Qt.RightButton);
+        compare(plugin().lastButton, Qt.RightButton);
+        compare(plugin().clicks, 1);
+        mouseMove(testCase, 134, 47);
+        verify(widget.tooltipHovered);
+        mouseClick(testCase, 134, 47);
+        compare(plugin().clicks, 2);
+        verify(widget.opened);
+        mouseMove(testCase, 136, 49);
+        verify(!widget.tooltipHovered);
     }
 
     function test_disableUnloadsAndReenableLoadsReplacement() {

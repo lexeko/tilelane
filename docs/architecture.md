@@ -208,6 +208,9 @@ match existing command descriptions. Tilelane does not write keybindings.
 It clips horizontal click bounds to the visible task or tray viewport.
 Start also reaches the left edge. The clock reaches the right edge.
 The host's panel overlay can forward clicks to these same areas.
+Status hover feedback follows the extended hit area too, including native
+widgets that retain their own mouse handlers. Padding comes from the current
+layout, so changing widget order or size keeps edge interaction intact.
 
 ## Files and settings
 

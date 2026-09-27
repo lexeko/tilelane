@@ -12,12 +12,28 @@ TestCase {
     property int clicks: 0
     property int lastButton: 0
 
+    QtObject {
+        id: fakeBar
+        property real barHeight: 44
+        property color statusHoverFill: "#334455"
+        function registerClickTarget(target) {
+        }
+        function unregisterClickTarget(target) {
+        }
+        function showTooltip(target, text) {
+        }
+        function hideTooltip(target) {
+        }
+    }
+
     StatusControl {
         id: control
         x: 10
         y: 10
         width: 60
         height: 32
+        bar: fakeBar
+        rightHitPadding: 5
         activation: function (button) {
             testCase.clicks++;
             testCase.lastButton = button;
@@ -77,6 +93,21 @@ TestCase {
         mouseClick(control, 20, 16, Qt.MiddleButton);
         compare(lastButton, Qt.MiddleButton);
         verify(!control.activeFocus);
+    }
+
+    function test_edgeHoverAndClicksIncludeBottomRightPadding() {
+        mouseMove(testCase, 74, 47);
+        verify(control.tooltipHovered);
+        compare(control.color, fakeBar.statusHoverFill);
+        mouseClick(testCase, 74, 47);
+        compare(clicks, 1);
+        mouseClick(testCase, 74, 47);
+        compare(clicks, 2);
+        verify(!control.opened);
+        mouseMove(testCase, 76, 49);
+        verify(!control.tooltipHovered);
+        mouseClick(testCase, 76, 49);
+        compare(clicks, 2);
     }
 
     function test_trayPressActionRunsOnceAndKeepsWheelInput() {

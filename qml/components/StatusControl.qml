@@ -50,10 +50,6 @@ Rectangle {
     Accessible.description: accessibleDescription
     Accessible.onPressAction: activate(Qt.LeftButton)
 
-    HoverHandler {
-        id: hover
-    }
-
     Rectangle {
         z: 100
         visible: root.indicatorVisible
@@ -67,6 +63,12 @@ Rectangle {
 
     BarMouseArea {
         id: pointer
+
+        // Match hover feedback to the full hit area, including screen edges.
+        // A handler still observes native widgets that own their mouse input.
+        HoverHandler {
+            id: hover
+        }
 
         z: root.nativeInput ? -1 : 10
         bar: root.bar
