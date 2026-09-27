@@ -581,6 +581,19 @@ Item {
             return JSON.stringify(records);
         }
 
+        function workspaceIndicatorState(screenName: string): string {
+            const switcher = root.workspaceSwitcherFor(screenName);
+            return JSON.stringify(switcher ? {
+                "present": true,
+                "monitorName": switcher.monitorName,
+                "activeWorkspaceId": switcher.activeWorkspaceId,
+                "text": switcher.activeWorkspaceText,
+                "hint": switcher.hintText
+            } : {
+                "present": false
+            });
+        }
+
         function workspaceAction(id: string): string {
             return globalWorkspaces.activate(Number(id)) ? "queued" : "unsupported";
         }

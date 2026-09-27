@@ -16,6 +16,10 @@ Item {
         return Hyprland.workspaces.values || [];
     }
 
+    function activeIdForMonitor(monitorName) {
+        return WorkspaceLogic.activeIdForMonitor(sourceValues(), monitorName);
+    }
+
     function indexForId(id) {
         for (let index = 0; index < workspaces.count; index++) {
             if (workspaces.get(index).id === Number(id))
@@ -88,6 +92,28 @@ Item {
         id: workspaces
 
         dynamicRoles: true
+    }
+
+    Timer {
+        id: monitorRefresh
+
+        interval: 25
+        onTriggered: {
+            Hyprland.refreshWorkspaces();
+            Hyprland.refreshMonitors();
+        }
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            // A workspace move emits intermediate focus events before the
+            // final monitor assignments. Quickshell can retain that earlier
+            // active workspace, so refresh once after the move event burst.
+            if (event.name === "moveworkspace" || event.name === "moveworkspacev2")
+                monitorRefresh.restart();
+        }
     }
 
     Connections {

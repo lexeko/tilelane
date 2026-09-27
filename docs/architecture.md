@@ -83,6 +83,19 @@ journal and can restore them.
 
 ## Workspace switching
 
+Each workspace button displays the active workspace on its own monitor.
+The fan highlight and initial keyboard selection use the same monitor-local
+workspace. Moving focus between monitors does not change either indicator.
+Workspace activity and monitor assignments come from the shared model's
+Hyprland signals; a missing monitor has no active indicator.
+Workspace moves can leave Quickshell's cached active workspace at an
+intermediate focus event. The model coalesces move events for 25 ms, then
+refreshes workspace and monitor state through Quickshell's compositor socket.
+This is event-triggered and adds no polling or helper process.
+With multiple screens connected, the fan hint also shows the configured
+shortcuts for moving the current workspace to another monitor. This extra
+hint disappears when only one screen remains.
+
 Workspace actions use `Hyprland.dispatch()` with validated Lua commands.
 The tested Quickshell workspace helper emitted an older command grammar that
 Hyprland rejected. Tilelane accepts numbered targets from 1 through 10.

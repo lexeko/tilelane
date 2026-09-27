@@ -32,6 +32,18 @@ function sourceFor(values, id) {
     return null;
 }
 
+function activeIdForMonitor(values, monitorName) {
+    if (!monitorName)
+        return 0;
+    values = values || [];
+    for (let index = 0; index < values.length; index++) {
+        const workspace = values[index];
+        if (workspace && workspace.active === true && workspace.monitor && workspace.monitor.name === monitorName)
+            return Math.max(0, Number(workspace.id) || 0);
+    }
+    return 0;
+}
+
 function records(values, focusedId, defaultCount) {
     const result = [];
     const ids = workspaceIds(values, defaultCount);

@@ -17,10 +17,14 @@ Item {
     property int hoveredWorkspace: 0
     property int keyboardIndex: 0
     readonly property var anchorWindow: root.QsWindow.window
-    readonly property int activeWorkspaceId: workspaceModel.focusedId
+    readonly property string monitorName: anchorWindow && anchorWindow.screen ? String(anchorWindow.screen.name || "") : ""
+    readonly property int activeWorkspaceId: {
+        workspaceModel.revision;
+        return workspaceModel.activeIdForMonitor(monitorName);
+    }
     readonly property string activeWorkspaceText: activeWorkspaceId > 0 ? String(activeWorkspaceId) : ""
     readonly property bool tooltipHovered: buttonMouse.containsMouse
-    readonly property string hintText: HintLogic.workspace(bar ? bar.shortcut("Switch to workspace 1") : "")
+    readonly property string hintText: HintLogic.workspace(bar ? bar.shortcut("Switch to workspace 1") : "", Quickshell.screens.length, bar ? [bar.shortcut("Move workspace to left monitor"), bar.shortcut("Move workspace to right monitor"), bar.shortcut("Move workspace to up monitor"), bar.shortcut("Move workspace to down monitor")] : [])
     readonly property var workspaceIds: {
         workspaceModel.revision;
         return workspaceModel.ids();
@@ -34,7 +38,7 @@ Item {
     readonly property real bladeStrokeWidth: Math.max(1, Math.round(px(1)))
     readonly property real bladeBaseWidth: (width - Math.max(0, workspaceIds.length - 1) * bladeBaseGap) / Math.max(1, workspaceIds.length)
     readonly property real fanPadding: px(8)
-    readonly property real fanHeight: px(190)
+    readonly property real fanHeight: Math.max(px(190), bladeHeight + workspaceHint.implicitHeight + px(16))
     readonly property real baseRowWidth: width
     readonly property real baseStartX: fanPadding + bladeWidth / 2 - bladeBaseWidth / 2
     readonly property real pivotX: baseStartX + baseRowWidth / 2
@@ -354,7 +358,7 @@ Item {
                     required property int modelData
                     readonly property var workspace: root.workspaceById(modelData)
                     readonly property bool occupied: workspace ? workspace.occupied === true : false
-                    readonly property bool focused: workspace ? workspace.focused === true : false
+                    readonly property bool focused: modelData === root.activeWorkspaceId
                     readonly property bool urgent: workspace ? workspace.urgent === true : false
                     readonly property bool hovered: root.hoveredWorkspace === modelData || root.expanded && root.keyboardIndex === index && root.activeFocus
                     readonly property real targetAngle: root.bladeAngle(index, root.workspaceIds.length)

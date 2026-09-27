@@ -98,7 +98,31 @@ function tray(label) {
     return String(label || "Tray application");
 }
 
-function workspace(shortcut) {
+function workspaceMoveShortcuts(shortcuts) {
+    var groups = [];
+    var arrows = { "Left": "←", "Right": "→", "Up": "↑", "Down": "↓" };
+    (shortcuts || []).forEach(function (shortcut) {
+        if (!shortcut)
+            return;
+        var split = shortcut.lastIndexOf(" + ");
+        var prefix = split < 0 ? "" : shortcut.slice(0, split + 3);
+        var key = shortcut.slice(split < 0 ? 0 : split + 3);
+        key = arrows[key] || key;
+        var group = groups.filter(function (item) { return item.prefix === prefix; })[0];
+        if (!group) {
+            group = { "prefix": prefix, "keys": [] };
+            groups.push(group);
+        }
+        if (group.keys.indexOf(key) === -1)
+            group.keys.push(key);
+    });
+    return groups.map(function (group) { return group.prefix + group.keys.join("/"); }).join(", ");
+}
+
+function workspace(shortcut, monitorCount, moveShortcuts) {
     var family = String(shortcut || "").replace(/\s*\+\s*1$/, " + 1, 2, …");
-    return withShortcut("Switch workspace", family);
+    var hint = withShortcut("Switch workspace", family);
+    if (monitorCount > 1)
+        hint += "\n" + withShortcut("Move current workspace to a different monitor", workspaceMoveShortcuts(moveShortcuts));
+    return hint;
 }
