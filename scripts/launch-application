@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+mode="${1:-}"
+control_reported="${2:-0}"
+desktop_file_id="${3:-}"
+expected_window_id="${4:-}"
+web_app_host="${5:-}"
+run_in_terminal="${6:-0}"
+place_uri="${7:-}"
+
+valid_text() {
+  local value="$1"
+  local allow_empty="${2:-0}"
+  ((allow_empty == 1)) || [[ -n "$value" ]] || return 1
+  ((${#value} <= 2048)) || return 1
+  [[ "$value" != *$'\n'* && "$value" != *$'\r'* ]]
+}
+
+if [[ "$mode" != "normal" && "$mode" != "auto" && "$mode" != "floating" ]]; then
+  exit 2
+fi
+[[ "$control_reported" == "0" || "$control_reported" == "1" ]] || exit 2
+[[ "$run_in_terminal" == "0" || "$run_in_terminal" == "1" ]] || exit 2
+valid_text "$desktop_file_id" || exit 2
+valid_text "$expected_window_id" 1 || exit 2
+valid_text "$web_app_host" 1 || exit 2
+valid_text "$place_uri" 1 || exit 2
+
+if [[ -n "$place_uri" ]]; then
+  expected_window_id="org.gnome.Nautilus"
+  web_app_host=""
+  run_in_terminal=0
+fi
+
+control_is_down() {
+  local expression result
+  expression='local keys={29,97,37,105,"Control_L","Control_R","CTRL_L","CTRL_R"}; for _,key in ipairs(keys) do local ok,down=pcall(hl.is_key_down,key); if ok and down then return true end end; return false'
+  result="$(hyprctl repl "$expression" 2>/dev/null || true)"
+  [[ "${result,,}" == "true" ]]
+}
+
+if [[ "$mode" == "auto" ]]; then
+  if [[ "$control_reported" == "1" ]] || control_is_down; then
+    mode="floating"
+  else
+    mode="normal"
+  fi
+fi
+
+if [[ "$mode" == "normal" ]]; then
+  if [[ -n "$place_uri" ]]; then
+    exec uwsm-app -- nautilus --new-window -- "$place_uri"
+  fi
+  exec uwsm-app -- gtk-launch "$desktop_file_id"
+fi
+
+if [[ "$run_in_terminal" == "1" ]] && command -v xdg-terminal-exec >/dev/null 2>&1; then
+  terminal_id="$(xdg-terminal-exec --print-id 2>/dev/null || true)"
+  terminal_id="${terminal_id%%:*}"
+  if valid_text "$terminal_id" 1 && [[ -n "$terminal_id" ]]; then
+    expected_window_id="$terminal_id"
+  fi
+fi
+
+shell_quote() {
+  local value="${1//\'/\'\"\'\"\'}"
+  printf "'%s'" "$value"
+}
+
+lua_quote() {
+  local value="${1//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  printf '"%s"' "$value"
+}
+
+before_addresses=""
+if command -v jq >/dev/null 2>&1; then
+  before_json="$(hyprctl -j clients 2>/dev/null || true)"
+  before_addresses="$(jq -ce '[.[] | .address? // empty]' <<<"$before_json" 2>/dev/null || true)"
+fi
+
+command="exec uwsm-app -- gtk-launch $(shell_quote "$desktop_file_id")"
+if [[ -n "$place_uri" ]]; then
+  command="exec uwsm-app -- nautilus --new-window -- $(shell_quote "$place_uri")"
+fi
+launch_result="$(hyprctl eval "hl.exec_cmd($(lua_quote "$command"), { float = true })" 2>&1)" || exit 1
+case "${launch_result,,}" in
+  *error* | *failed* | *invalid*) exit 1 ;;
+esac
+
+[[ -n "$before_addresses" ]] || exit 0
+normalized_expected="${expected_window_id,,}"
+normalized_expected="${normalized_expected%.desktop}"
+normalized_desktop="${desktop_file_id,,}"
+normalized_desktop="${normalized_desktop%.desktop}"
+normalized_host="${web_app_host,,}"
+
+for ((attempt = 0; attempt < 40; attempt++)); do
+  clients="$(hyprctl -j clients 2>/dev/null || true)"
+  match="$(jq -r --argjson before "$before_addresses" --arg expected "$normalized_expected" --arg desktop "$normalized_desktop" --arg host "$normalized_host" '
+    def normalized: ascii_downcase | sub("\\.desktop$"; "");
+    def webmatch($value; $host):
+      if $host == "" then false else
+        ($value | ascii_downcase) as $candidate
+        | ["brave-", "chromium-", "google-chrome-", "microsoft-edge-", "opera-", "vivaldi-", "helium-"]
+        | any(.[]; . as $prefix | $candidate | startswith($prefix + $host + "__"))
+      end;
+    [.[]
+      | select((.address // "") as $address | ($before | index($address) | not))
+      | (.class // "") as $class
+      | (.initialClass // "") as $initial
+      | select(($expected != "" and (($class | normalized) == $expected or ($initial | normalized) == $expected))
+          or ($class | normalized) == $desktop or ($initial | normalized) == $desktop
+          or webmatch($class; $host) or webmatch($initial; $host))]
+    | sort_by(.focusHistoryID // 999999)
+    | .[0] // empty
+    | if . == "" then empty else [.address, (.floating == true)] | @tsv end
+  ' <<<"$clients" 2>/dev/null || true)"
+  if [[ -n "$match" ]]; then
+    IFS=$'\t' read -r address already_floating <<<"$match"
+    [[ "$already_floating" == "true" ]] && exit 0
+    [[ "$address" =~ ^0x[0-9a-fA-F]{1,16}$ ]] || exit 0
+    hyprctl dispatch "hl.dsp.window.float({ action = \"enable\", window = \"address:$address\" })" >/dev/null 2>&1 || true
+    exit 0
+  fi
+  sleep 0.1
+done
+
+exit 0

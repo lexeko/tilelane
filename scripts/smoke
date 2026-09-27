@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+plugin_id="io.github.lexeko.tilelane"
+expected_height="${TILELANE_EXPECTED_HEIGHT:-44}"
+
+if ! command -v jq >/dev/null 2>&1; then
+  printf 'smoke: jq is required\n' >&2
+  exit 2
+fi
+
+if [[ "$(omarchy-shell shell ping 2>/dev/null)" != "ok" ]]; then
+  printf 'smoke: omarchy-shell is not reachable\n' >&2
+  exit 1
+fi
+
+plugin="$(omarchy plugin list --json | jq -c --arg id "$plugin_id" '.[] | select(.id == $id)')"
+if [[ -z "$plugin" ]]; then
+  printf 'smoke: %s is not discovered\n' "$plugin_id" >&2
+  exit 1
+fi
+if [[ "$(jq -r '.active' <<<"$plugin")" != "true" ]]; then
+  printf 'smoke: %s is not the active bar; refusing to change user configuration\n' "$plugin_id" >&2
+  printf 'Activate it with: omarchy bar use %s\nRun this check, then restore with: omarchy bar reset\n' "$plugin_id" >&2
+  exit 1
+fi
+
+mapfile -t shell_pids < <(pgrep -x quickshell || true)
+if ((${#shell_pids[@]} != 1)); then
+  printf 'smoke: expected exactly one Quickshell process, found %d\n' "${#shell_pids[@]}" >&2
+  exit 1
+fi
+
+monitor_count="$(hyprctl monitors -j | jq 'length')"
+bad_reservations="$(hyprctl monitors -j | jq --argjson height "$expected_height" \
+  '[.[] | select(.reserved != [0, 0, 0, $height]) | {name, reserved}]')"
+if [[ "$bad_reservations" != "[]" ]]; then
+  printf 'smoke: unexpected monitor reservations: %s\n' "$bad_reservations" >&2
+  exit 1
+fi
+
+surface_count="$(hyprctl layers -j | jq '[.. | objects | select(.namespace? == "tilelane-bar")] | length')"
+if [[ "$surface_count" -ne "$monitor_count" ]]; then
+  printf 'smoke: expected %s Tilelane surfaces, found %s\n' "$monitor_count" "$surface_count" >&2
+  exit 1
+fi
+
+printf 'smoke: pass (%s shell process, %s monitor surface(s), %spx bottom reservation)\n' \
+  "${#shell_pids[@]}" "$surface_count" "$expected_height"

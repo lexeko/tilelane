@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+desktop_names="${1:-}"
+declare -A seen_ids
+
+desktop_matches() {
+  local list="$1"
+  local desktop_name
+  local entry
+  local -a desktops
+  local -a entries
+
+  IFS=: read -ra desktops <<<"$desktop_names"
+  IFS=';' read -ra entries <<<"$list"
+  for desktop_name in "${desktops[@]}"; do
+    [[ -n "$desktop_name" ]] || continue
+    for entry in "${entries[@]}"; do
+      [[ -n "$entry" ]] || continue
+      [[ "$entry" == "$desktop_name" ]] && return 0
+    done
+  done
+  return 1
+}
+
+desktop_id() {
+  local root="$1"
+  local file="$2"
+  local relative="${file#"$root"/}"
+  relative="${relative%.desktop}"
+  printf '%s\n' "${relative//\//-}"
+}
+
+is_hidden() {
+  local file="$1"
+  local in_entry=false
+  local hidden=false
+  local only_show_in=""
+  local not_show_in=""
+  local line
+  local key
+  local value
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%$'\r'}"
+    if [[ "$line" == \[*\] ]]; then
+      [[ "$line" == '[Desktop Entry]' ]] && in_entry=true || in_entry=false
+      continue
+    fi
+    [[ "$in_entry" == true && "$line" == *=* ]] || continue
+    key="${line%%=*}"
+    value="${line#*=}"
+    case "$key" in
+      Hidden | NoDisplay)
+        [[ "${value,,}" == true ]] && hidden=true
+        ;;
+      OnlyShowIn)
+        only_show_in="$value"
+        ;;
+      NotShowIn)
+        not_show_in="$value"
+        ;;
+    esac
+  done <"$file"
+
+  [[ "$hidden" == true ]] && return 0
+  [[ -n "$only_show_in" ]] && ! desktop_matches "$only_show_in" && return 0
+  [[ -n "$not_show_in" ]] && desktop_matches "$not_show_in" && return 0
+  return 1
+}
+
+scan_directory() {
+  local directory="$1"
+  local file
+  local id
+
+  [[ -d "$directory" ]] || return 0
+  while IFS= read -r -d '' file; do
+    id="$(desktop_id "$directory" "$file")"
+    [[ -n "$id" && -z "${seen_ids[$id]+present}" ]] || continue
+    seen_ids[$id]=1
+    is_hidden "$file" && printf '%s\n' "$id"
+  done < <(find "$directory" -type f -name '*.desktop' -print0 2>/dev/null | sort -z)
+}
+
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+scan_directory "$data_home/applications"
+
+IFS=: read -ra data_directories <<<"${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+for data_directory in "${data_directories[@]}"; do
+  [[ -n "$data_directory" ]] && scan_directory "$data_directory/applications"
+done
+
+scan_directory "$HOME/.nix-profile/share/applications"

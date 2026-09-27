@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+pid="${1:-}"
+[[ "$pid" =~ ^[1-9][0-9]*$ ]] || exit 2
+[[ -d "/proc/$pid" ]] || exit 0
+
+owns_terminal=false
+for info in "/proc/$pid"/fdinfo/*; do
+  if [[ -r "$info" ]] && grep -q '^tty-index:' "$info" 2>/dev/null; then
+    owns_terminal=true
+    break
+  fi
+done
+[[ "$owns_terminal" == true ]] || exit 0
+printf '%s\n' '__tilelane_terminal_host__'
+
+declare -A seen=()
+declare -A names=()
+queue=("$pid")
+head=0
+
+while ((head < ${#queue[@]} && ${#seen[@]} < 128)); do
+  current="${queue[$head]}"
+  head=$((head + 1))
+  [[ -n "${seen[$current]:-}" ]] && continue
+  seen[$current]=1
+
+  if [[ "$current" != "$pid" && -e "/proc/$current/exe" ]]; then
+    executable="$(readlink "/proc/$current/exe" 2>/dev/null || true)"
+    executable="${executable% (deleted)}"
+    name="${executable##*/}"
+    if [[ -n "$name" && -z "${names[$name]:-}" ]]; then
+      names[$name]=1
+      printf '%s\n' "$name"
+    fi
+  fi
+
+  for task in "/proc/$current"/task/*; do
+    [[ -r "$task/children" ]] || continue
+    read -r -a children <"$task/children" || true
+    for child in "${children[@]}"; do
+      if [[ "$child" =~ ^[1-9][0-9]*$ && -z "${seen[$child]:-}" && ${#queue[@]} -lt 128 ]]; then
+        queue+=("$child")
+      fi
+    done
+  done
+done

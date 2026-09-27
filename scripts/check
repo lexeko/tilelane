@@ -1,0 +1,382 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+omarchy_root="${OMARCHY_PATH:-/usr/share/omarchy}"
+failures=0
+qmlformat_bin="qmlformat"
+qmllint_bin="qmllint"
+if [[ -x /usr/lib/qt6/bin/qmlformat ]]; then
+  qmlformat_bin="/usr/lib/qt6/bin/qmlformat"
+fi
+if [[ -x /usr/lib/qt6/bin/qmllint ]]; then
+  qmllint_bin="/usr/lib/qt6/bin/qmllint"
+fi
+
+run_check() {
+  local label="$1"
+  shift
+  printf '[check] %s\n' "$label"
+  if ! "$@"; then
+    failures=$((failures + 1))
+  fi
+}
+
+check_no_symlinks() {
+  local found
+  found="$(find "$repo_dir" -path "$repo_dir/.git" -prune -o -type l -print)"
+  if [[ -n "$found" ]]; then
+    printf 'Repository symlinks are forbidden:\n%s\n' "$found" >&2
+    return 1
+  fi
+}
+
+check_qml_format() {
+  local file formatted
+  while IFS= read -r file; do
+    formatted="$(mktemp)"
+    if ! "$qmlformat_bin" "$file" >"$formatted"; then
+      rm -f -- "$formatted"
+      return 1
+    fi
+    if ! cmp -s -- "$file" "$formatted"; then
+      printf 'QML formatting differs: %s\n' "$file" >&2
+      diff -u -- "$file" "$formatted" || true
+      rm -f -- "$formatted"
+      return 1
+    fi
+    rm -f -- "$formatted"
+  done < <(find "$repo_dir" -type f -name '*.qml' -print | sort)
+}
+
+check_qml_lint() {
+  local files=()
+  mapfile -t files < <(find "$repo_dir" -path "$repo_dir/tests" -prune -o -type f -name '*.qml' -print | sort)
+  "$qmllint_bin" -I "$omarchy_root/shell" "${files[@]}"
+}
+
+check_qml_tests() {
+  local runner="qmltestrunner"
+  if [[ -x /usr/lib/qt6/bin/qmltestrunner ]]; then
+    runner="/usr/lib/qt6/bin/qmltestrunner"
+  fi
+  QT_QPA_PLATFORM=offscreen QSG_RHI_BACKEND=software \
+    "$runner" -input "$repo_dir/tests/qml" -import "$repo_dir" -o -,txt
+}
+
+check_pointer_focus_policy() {
+  local file
+  for file in \
+    "$repo_dir/qml/components/StartButton.qml" \
+    "$repo_dir/qml/components/TaskButton.qml" \
+    "$repo_dir/qml/components/PinnedLauncher.qml" \
+    "$repo_dir/qml/components/TrayArea.qml" \
+    "$repo_dir/qml/components/PanelControls.qml" \
+    "$repo_dir/qml/components/Clock.qml"; do
+    if rg -q 'forceActiveFocus\(' "$file"; then
+      printf 'Pointer-activated bar control forces keyboard focus: %s\n' "$file" >&2
+      return 1
+    fi
+    if ! rg -q 'activeFocusOnTab: true' "$file"; then
+      printf 'Keyboard focus support is missing from bar control: %s\n' "$file" >&2
+      return 1
+    fi
+  done
+}
+
+check_task_menu_policy() {
+  local bar="$repo_dir/Bar.qml"
+  local menu="$repo_dir/qml/components/TaskContextMenu.qml"
+  local task_button="$repo_dir/qml/components/TaskButton.qml"
+  local pinned_launcher="$repo_dir/qml/components/PinnedLauncher.qml"
+  if ! rg -q 'Ui\.KeyboardPanel' "$menu" || ! rg -q 'focusTarget: menuFocus' "$menu"; then
+    printf 'Task context menu is missing keyboard-capable outside-click dismissal\n' >&2
+    return 1
+  fi
+  if rg -q 'border\.width:.*currentIndex' "$menu"; then
+    printf 'Task context menu selection has an unintended focus frame\n' >&2
+    return 1
+  fi
+  for target in "$task_button" "$pinned_launcher"; do
+    if ! rg -q 'function triggerPress\(button\)' "$target" || ! rg -q 'bar\.registerClickTarget\(root\)' "$target"; then
+      printf 'Task menu trigger is missing one-click bar popout handoff: %s\n' "$target" >&2
+      return 1
+    fi
+  done
+  for action in launch-floating maximize minimize float close; do
+    if ! rg -q '"action": "'"$action"'"' "$menu"; then
+      printf 'Task context menu is missing action: %s\n' "$action" >&2
+      return 1
+    fi
+  done
+  if ! rg -q 'bar\.shortcut\("Full width"\)' "$menu" || ! rg -q 'bar\.shortcut\("Toggle window floating/tiling"\)' "$menu" || ! rg -q 'bar\.shortcut\("Close window"\)' "$menu"; then
+    printf 'Window action shortcuts are not derived from live Omarchy bindings\n' >&2
+    return 1
+  fi
+  if ! rg -q '"maximize", "float", "close"' "$bar"; then
+    printf 'Window action IPC does not expose the menu action set for verification\n' >&2
+    return 1
+  fi
+}
+
+check_omarchy_menu_entry_policy() {
+  local bar="$repo_dir/Bar.qml"
+  local start_menu="$repo_dir/qml/components/StartMenu.qml"
+  if rg -q 'userDisplayName' "$start_menu"; then
+    printf 'Start menu still exposes the low-value user-name heading\n' >&2
+    return 1
+  fi
+  if ! rg -q 'text: "Omarchy menu"' "$start_menu" || ! rg -q 'bar\.openOmarchyMenu\("root"\)' "$start_menu"; then
+    printf 'Start menu is missing its explicit Omarchy menu action\n' >&2
+    return 1
+  fi
+  if ! rg -q 'shell\.summon\("omarchy\.menu"' "$bar" || ! rg -q '"menu": String\(menu \|\| "root"\)' "$bar"; then
+    printf 'Omarchy menu entry does not use the native plugin lifecycle\n' >&2
+    return 1
+  fi
+  if ! rg -q 'model: root\.indicatorSlotCount' "$start_menu" || ! rg -q 'indicatorHover\.hovered \? Commons\.Color\.menu\.selectedBackground' "$start_menu" || ! rg -q 'blocking: false' "$start_menu"; then
+    printf 'Start menu native indicators are missing per-item hover feedback\n' >&2
+    return 1
+  fi
+}
+
+check_branding_refresh_policy() {
+  local branding="$repo_dir/qml/models/Branding.qml"
+  if ! rg -q 'watchChanges: true' "$branding" || ! rg -q 'onFileChanged: reload\(\)' "$branding"; then
+    printf 'Start-button branding does not refresh when Omarchy artwork changes\n' >&2
+    return 1
+  fi
+}
+
+check_places_policy() {
+  local menu="$repo_dir/qml/components/StartMenu.qml"
+  local model="$repo_dir/qml/models/PlacesModel.qml"
+  if ! rg -q 'placeRowHeight: px\(38\)' "$menu"; then
+    printf 'Start menu Places rows do not use the compact height\n' >&2
+    return 1
+  fi
+  if ! rg -q '"name": "Trash"' "$model" || ! rg -q '"uri": "trash:///"' "$model" || ! rg -q '"iconName": "user-trash-symbolic"' "$model"; then
+    printf 'Start menu Places model is missing the Files Trash location\n' >&2
+    return 1
+  fi
+  if ! rg -q 'text: "System"' "$menu" || ! rg -q 'Accessible\.name: "System"' "$menu" || rg -q 'Power controls' "$menu"; then
+    printf 'Start menu footer does not use Omarchy System naming\n' >&2
+    return 1
+  fi
+}
+
+check_pin_surface_independence() {
+  local bar="$repo_dir/Bar.qml"
+  local model="$repo_dir/qml/models/PinnedApplications.qml"
+  local start_menu="$repo_dir/qml/components/StartMenu.qml"
+  local start_logic="$repo_dir/qml/StartLogic.js"
+  if ! rg -q 'settingsKey: "tilelanePins"' "$bar" || ! rg -q 'settingsKey: "tilelaneStartPins"' "$bar" || ! rg -q 'settings.setValue' "$model"; then
+    printf 'Pin models do not use independent inline settings\n' >&2
+    return 1
+  fi
+  if ! rg -Uq 'StartMenu \{[\s\S]*?pinnedApplications: startPinnedApplications' "$bar" || ! rg -Uq 'TaskLane \{[\s\S]*?pinnedApplications: taskbarPinnedApplications' "$bar"; then
+    printf 'Pin models are not wired to their independent surfaces\n' >&2
+    return 1
+  fi
+  if ! rg -q 'to Start|from Start' "$start_menu" || ! rg -q 'Change Start menu pins' "$start_menu"; then
+    printf 'Start pin actions do not identify their scope\n' >&2
+    return 1
+  fi
+  if ! rg -q 'openingPinnedIds = pinnedApplications\.pins\.slice\(0\)' "$start_menu" || ! rg -q 'StartLogic\.pinnedFirst\(applicationCatalog\.search\(search\.text\), openingPinnedIds\)' "$start_menu" || ! rg -q 'function pinnedFirst\(entries, pinnedIds\)' "$start_logic"; then
+    printf 'Start pins do not lead the next opening in stored pin order\n' >&2
+    return 1
+  fi
+  if ! rg -Fq 'appRow.pinned ? "\uDB81\uDC03" : "\uDB82\uDD31"' "$start_menu" || ! rg -q 'appRow\.pinned \? Commons\.Color\.accent' "$start_menu"; then
+    printf 'Start pin controls do not use the expected icons and accent color\n' >&2
+    return 1
+  fi
+}
+
+check_task_lane_overflow_policy() {
+  local lane="$repo_dir/qml/components/TaskLane.qml"
+  local scroll_button="$repo_dir/qml/components/TaskScrollButton.qml"
+  local task_button="$repo_dir/qml/components/TaskButton.qml"
+  local pinned_launcher="$repo_dir/qml/components/PinnedLauncher.qml"
+  local catalog="$repo_dir/qml/models/ApplicationCatalog.qml"
+  local tray="$repo_dir/qml/components/TrayArea.qml"
+  if ! rg -Uq 'Row \{[[:space:]]+id: laneRow[\s\S]*?Row \{[[:space:]]+id: pinRow[\s\S]*?Item \{[[:space:]]+id: taskArea[\s\S]*?Flickable \{[[:space:]]+id: taskViewport' "$lane"; then
+    printf 'Taskbar pins are not structurally separated from the active-task viewport\n' >&2
+    return 1
+  fi
+  if [[ "$(rg -c 'TaskScrollButton \{' "$lane")" -ne 2 ]] || ! rg -q 'visible: taskArea\.overflowing' "$lane" || ! rg -q 'Earlier tasks' "$lane" || ! rg -q 'More tasks' "$lane"; then
+    printf 'Active-task overflow does not expose bounded left/right controls\n' >&2
+    return 1
+  fi
+  if ! rg -q 'bar\.showTooltip' "$scroll_button"; then
+    printf 'Task overflow controls are missing hover guidance\n' >&2
+    return 1
+  fi
+  if ! rg -q 'height: implicitHeight' "$lane" || ! rg -q 'implicitHeight: buttonHeight' "$scroll_button" || ! rg -q 'font\.pixelSize: Commons\.Style\.bar\.iconFont' "$repo_dir/qml/components/OverflowIcon.qml" || rg -q 'Font\.DemiBold' "$scroll_button"; then
+    printf 'Fixed pins or task overflow controls have drifted from native alignment and sizing\n' >&2
+    return 1
+  fi
+  if ! rg -q 'function presentationForId\(desktopId\)' "$catalog" || ! rg -q 'applicationCatalog\.presentationForId\(desktopId\)' "$pinned_launcher" || ! rg -q 'applicationIndexRevision;' "$pinned_launcher" || rg -q 'onEntered: if \(root\.bar && root\.entry\)' "$pinned_launcher"; then
+    printf 'Pinned launchers do not retain menu-identical presentation and hints across catalog refreshes\n' >&2
+    return 1
+  fi
+  if ! rg -q 'root\.windowActive \|\| contextMenu\.open' "$task_button" || ! rg -Uq 'visible: contextMenu\.open[\s\S]*?height: root\.px\(2\)' "$pinned_launcher" || ! rg -Uq 'visible: trayMenu\.open[\s\S]*?height: root\.px\(2\)' "$tray"; then
+    printf 'Menu-bearing taskbar items do not expose the open-menu underline\n' >&2
+    return 1
+  fi
+}
+
+check_workspace_spacing_policy() {
+  local bar="$repo_dir/Bar.qml"
+  local uses
+  uses="$(rg -c 'anchors\.leftMargin: root\.sectionGap' "$bar")"
+  if ! rg -q 'sectionGap: Math\.round\(12 \* barScale\)' "$bar" || [[ "$uses" -ne 2 ]]; then
+    printf 'Workspace switcher does not share one equal left/right gap token\n' >&2
+    return 1
+  fi
+}
+
+check_terminal_identity_retry_policy() {
+  local model="$repo_dir/qml/models/WindowModel.qml"
+  local probe="$repo_dir/scripts/window-application-identities"
+  if ! rg -q '__tilelane_terminal_host__' "$probe" || ! rg -q 'maxIdentityProbeAttempts: 4' "$model" || ! rg -q 'WindowState\.retryTerminalProbe\(result, identityProbeAttempts, maxIdentityProbeAttempts\)' "$model"; then
+    printf 'Terminal identity discovery is missing its bounded startup-race retry\n' >&2
+    return 1
+  fi
+}
+
+check_floating_launch_policy() {
+  local catalog="$repo_dir/qml/models/ApplicationCatalog.qml"
+  local start_menu="$repo_dir/qml/components/StartMenu.qml"
+  local pinned_launcher="$repo_dir/qml/components/PinnedLauncher.qml"
+  local helper="$repo_dir/scripts/launch-application"
+  if ! rg -q 'launchFromPointer\(desktopId, modifiers\)' "$catalog" || ! rg -q 'launchWithHelper\(request, "floating", true\)' "$catalog"; then
+    printf 'Application catalog is missing normal/floating launch separation\n' >&2
+    return 1
+  fi
+  if ! rg -q 'launchSelection\(\(event\.modifiers & Qt\.ControlModifier\) !== 0\)' "$start_menu" || ! rg -q 'launchFromPointer\(appRow\.modelData, modifiers\)' "$start_menu"; then
+    printf 'Start applications are missing Ctrl+Click or Ctrl+Enter floating launch\n' >&2
+    return 1
+  fi
+  if ! rg -q 'controlOnPress' "$pinned_launcher" || ! rg -q 'applicationCatalog\.launchFromPointer' "$pinned_launcher"; then
+    printf 'Pinned taskbar launchers are missing Ctrl+Click floating launch\n' >&2
+    return 1
+  fi
+  if ! rg -q 'hl\.exec_cmd.*float = true' "$helper" || ! rg -q 'hl\.is_key_down' "$helper"; then
+    printf 'Floating launch helper is missing bounded Hyprland launch/modifier handling\n' >&2
+    return 1
+  fi
+}
+
+check_bar_hint_policy() {
+  local bar="$repo_dir/Bar.qml"
+  local catalog="$repo_dir/qml/models/ShortcutCatalog.qml"
+  local hint="$repo_dir/qml/components/BarHint.qml"
+  local target
+  if ! rg -q 'id: shortcutCatalog' "$bar" || ! rg -q 'host\.showFor\(target, text, delay\)' "$bar"; then
+    printf 'Bar is missing its shared hint host or shortcut catalog\n' >&2
+    return 1
+  fi
+  if ! rg -q '"omarchy", "menu", "keybindings", "--print"' "$catalog" || ! rg -q 'watchChanges: true' "$catalog"; then
+    printf 'Hint shortcuts are not derived from the live Omarchy keybinding source\n' >&2
+    return 1
+  fi
+  if ! rg -q 'mask: Region \{\}' "$hint" || ! rg -q 'showDelay\.restart\(\)' "$hint"; then
+    printf 'Shared bar hints are not delayed and input-transparent\n' >&2
+    return 1
+  fi
+  for target in StartButton PinnedLauncher TaskButton TrayArea PanelControls Clock NativeStatusItem PowerControl; do
+    if ! rg -q 'bar\.showTooltip' "$repo_dir/qml/components/$target.qml"; then
+      printf 'Actionable bar control is missing hover guidance: %s\n' "$target" >&2
+      return 1
+    fi
+  done
+  if ! rg -q 'HintBubble \{' "$repo_dir/qml/components/WorkspaceSwitcher.qml"; then
+    printf 'Workspace fan is missing shortcut guidance\n' >&2
+    return 1
+  fi
+  if ! rg -Uq 'BarHint \{[[:space:]]*id: startHint[[:space:]]+barWindow: root' "$repo_dir/qml/components/StartMenu.qml" || rg -Uq 'Popup \{[[:space:]]*id: startHint' "$repo_dir/qml/components/StartMenu.qml"; then
+    printf 'Start hints do not use the persistent window-lifecycle-safe host\n' >&2
+    return 1
+  fi
+  if ! rg -q 'function indicatorHintFor\(index\)' "$repo_dir/qml/components/StartMenu.qml" || ! rg -q 'startHint\.showFor\(indicatorFrame, indicatorFrame\.hintText, 500\)' "$repo_dir/qml/components/StartMenu.qml"; then
+    printf 'Start-header indicators are missing state-aware hints\n' >&2
+    return 1
+  fi
+  if rg -q 'HintLogic\.startApplication|startHint\.showFor\(appRow|startHint\.hideFor\(appRow' "$repo_dir/qml/components/StartMenu.qml" "$repo_dir/qml/HintLogic.js"; then
+    printf 'Start application rows contain unwanted hover hints\n' >&2
+    return 1
+  fi
+  if ! rg -q 'hintText: root\.bar \? root\.bar\.shortcut\("System menu"\) : ""' "$repo_dir/qml/components/StartMenu.qml" || rg -q 'HintLogic\.withShortcut\("System"' "$repo_dir/qml/components/StartMenu.qml"; then
+    printf 'Start System hint is not limited to its configured hotkey\n' >&2
+    return 1
+  fi
+  if ! rg -q 'onBackingWindowVisibleChanged:' "$repo_dir/qml/components/StartMenu.qml" || [[ "$(rg -c 'hoverEnabled: root\.open && root\.hoverReady' "$repo_dir/qml/components/StartMenu.qml")" -lt 5 ]] || [[ "$(rg -c 'enabled: root\.open && root\.hoverReady' "$repo_dir/qml/components/StartMenu.qml")" -lt 2 ]]; then
+    printf 'Start hover tracking is not reset across menu open/close cycles\n' >&2
+    return 1
+  fi
+  if ! rg -q '"Applications & places"' "$repo_dir/qml/components/StartButton.qml" || rg -q 'Apps menu' "$repo_dir/qml/components/StartButton.qml"; then
+    printf 'Start button hint does not use the concise Tilelane label\n' >&2
+    return 1
+  fi
+  if ! rg -q 'Qt\.formatDateTime\(clock\.date, "dddd, MMMM d, yyyy, h:mm AP"\)' "$repo_dir/qml/components/Clock.qml" || ! rg -q 'return "Weather"' "$repo_dir/qml/components/NativeStatusItem.qml" || ! rg -q 'hintText: modelData\.label' "$repo_dir/qml/components/PanelControls.qml"; then
+    printf 'Clock or status hints do not use the concise information-only copy\n' >&2
+    return 1
+  fi
+  for target in PanelControls NativeStatusItem PowerControl TrayArea; do
+    if rg -q 'bar\.(shortcut|actionHint)' "$repo_dir/qml/components/$target.qml"; then
+      printf 'Taskbar tray/status hint includes a hotkey: %s\n' "$target" >&2
+      return 1
+    fi
+  done
+  if rg -q 'input:kb_options|languageSwitchShortcut' "$catalog" "$bar"; then
+    printf 'Unused language-shortcut probing remains after tray hotkeys were removed\n' >&2
+    return 1
+  fi
+  if rg -q 'Ctrl\+Click opens floating' "$repo_dir/qml/HintLogic.js" || ! rg -q '"action": "launch-floating"' "$repo_dir/qml/components/TaskContextMenu.qml"; then
+    printf 'Pinned floating launch guidance is not located in the context menu\n' >&2
+    return 1
+  fi
+}
+
+cd -- "$repo_dir" || exit 1
+
+run_check "manifest schema" omarchy plugin validate "$repo_dir"
+run_check "manifest JSON" jq -e . "$repo_dir/manifest.json"
+run_check "repository contains no symlinks" check_no_symlinks
+run_check "QML formatting" check_qml_format
+run_check "production QML lint" check_qml_lint
+run_check "QML unit tests" check_qml_tests
+run_check "minimize lifecycle regression" bash "$repo_dir/tests/test-minimize-lifecycle.sh"
+run_check "inline settings persistence" bash "$repo_dir/tests/test-settings.sh"
+run_check "Places bookmark updates" bash "$repo_dir/tests/test-places-watch.sh"
+if command -v node >/dev/null 2>&1 && command -v lua >/dev/null 2>&1; then
+  run_check "task pointer preservation" node "$repo_dir/tests/test-task-pointer.cjs"
+else
+  printf '[skip] node and lua are required for the task pointer regression\n'
+fi
+run_check "pointer and keyboard focus policy" check_pointer_focus_policy
+run_check "task menu dismissal and selection policy" check_task_menu_policy
+run_check "native Omarchy menu entry policy" check_omarchy_menu_entry_policy
+run_check "live Omarchy branding refresh policy" check_branding_refresh_policy
+run_check "Files Places policy" check_places_policy
+run_check "independent Start and taskbar pins" check_pin_surface_independence
+run_check "fixed pins and bounded active-task overflow" check_task_lane_overflow_policy
+run_check "symmetric workspace-switcher spacing" check_workspace_spacing_policy
+run_check "bounded terminal identity retry" check_terminal_identity_retry_policy
+run_check "floating application launch policy" check_floating_launch_policy
+run_check "actionable bar hint policy" check_bar_hint_policy
+run_check "floating application launch helper" "$repo_dir/tests/test-launch-application.sh"
+run_check "shell script syntax" bash -n "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh"
+
+if command -v shellcheck >/dev/null 2>&1; then
+  run_check "shell scripts" shellcheck "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh"
+else
+  printf '[skip] shellcheck is not installed; repository scripts were not shell-linted\n'
+fi
+
+if ((failures > 0)); then
+  printf '[result] %d check group(s) failed\n' "$failures" >&2
+  exit 1
+fi
+
+printf '[result] all available checks passed\n'

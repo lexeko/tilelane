@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+  <path fill="white" d="M0 0h32v32H0z"/>
+  <path fill="#f23c34" d="M32 0h32v32H32z"/>
+  <path fill="#2080e0" d="M0 32h32v32H0z"/>
+  <path fill="#20c060" fill-opacity="0.5" d="M32 32h32v32H32z"/>
+</svg>

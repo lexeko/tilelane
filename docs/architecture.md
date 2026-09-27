@@ -1,0 +1,230 @@
+# Architecture
+
+This document describes the current code. Historical measurements are in
+[performance.md](performance.md).
+
+## Omarchy integration
+
+The root manifest declares schema version 1, kind `bar`, and entry point
+`Bar.qml`. The root is a QML `Item`. Omarchy loads it into the existing shell.
+Tilelane creates one bottom `PanelWindow` for each Quickshell screen.
+
+The root accepts `omarchyPath`, `shell`, `manifest`, `pluginRegistry`,
+`barWidgetRegistry`, and `barConfig`. Omarchy supplies restricted interfaces
+and detached configuration snapshots to third-party plugins. Tilelane uses
+those interfaces for configured widgets and non-authentication menus.
+
+The host selects the full bar through `bar.id` in `shell.json`.
+`omarchy bar use io.github.lexeko.tilelane` selects Tilelane. `omarchy bar reset` selects
+the built-in bar. Omarchy handles missing or invalid bar entries and load failures.
+This fallback does not guarantee recovery from every runtime error.
+
+The contract comes from the installed `shell/README.md`, `shell.qml`, and
+`services/PluginRegistry.qml` under `/usr/share/omarchy`.
+Those packaged files are read-only references for this project.
+
+## Shared models and screen views
+
+`Bar.qml` owns one `WindowModel`, `WorkspaceModel`, `ApplicationCatalog`,
+`WindowActions`, `ShortcutCatalog`, and `TilelaneSettings`. Two `PinnedApplications`
+models keep Start and taskbar pins separate.
+
+Each screen has a window filter, task model, Start menu, workspace control,
+and tooltip window. The status group is visible only on the first Quickshell
+screen. Hosted widgets follow their own loading rules.
+
+`WindowFilter.qml` includes all workspaces on the matching monitor.
+A synthetic `FALLBACK` screen can show the global window list.
+The base bar height is 44 logical pixels. Omarchy's spacing and font scale
+can change it. Output pixel density affects image resolution, not layout twice.
+
+## Window state and ordering
+
+`WindowModel.qml` tracks `Hyprland.toplevels` and their property signals.
+It stores normalized records in one `ListModel`. A generation value rejects
+stale close events. Equal records do not advance the model revision.
+
+Window opening order comes from Hyprland's `stableId` creation counter.
+A window without that detail gets a temporary increasing order value.
+When the detail arrives, the model can correct that window's position.
+Focus, title, and minimize changes do not define task order.
+
+`TaskModel.qml` creates one row per window. It updates existing rows in place.
+This preserves button instances and the task list's scroll position.
+Pins sit outside the scrolling list. Task overflow fades cover 24 scaled pixels.
+
+A new window without a PID can request one batched toplevel refresh after
+50 ms. This uses Quickshell's Hyprland API. It is not a recurring refresh loop.
+
+## Window actions and recovery
+
+`WindowActions.qml` validates an exact window address before acting.
+Activation and restore normally use `Hyprland.dispatch()`.
+Close first tries the Wayland handle. Other actions and fallback paths use
+one detached `hyprctl eval` command.
+
+The tested Hyprland release ignored the Wayland toplevel's minimized setter.
+Tilelane therefore moves minimized windows to `special:tilelane-minimized`.
+The recovery journal records its original workspace before the move.
+The model must observe the hidden workspace before a later normal-workspace
+update can clear that record. This avoids losing the origin during an
+asynchronous minimize.
+
+Restore returns the window to its saved workspace. It does not change the
+workspace layout or force floating mode. Pointer-preserving dispatches save
+Hyprland's cursor-warp settings, suppress warping for the action, and restore
+the settings even when the dispatch fails.
+
+The journal uses `Quickshell.statePath("tilelane-minimized-v1.json")`.
+It contains a version, window addresses, and workspace names. It contains no
+titles. File writes are atomic. Normal component destruction queues restores
+for tracked windows. After a hard shell failure, the next instance reads the
+journal and can restore them.
+
+## Workspace switching
+
+Workspace actions use `Hyprland.dispatch()` with validated Lua commands.
+The tested Quickshell workspace helper emitted an older command grammar that
+Hyprland rejected. Tilelane accepts numbered targets from 1 through 10.
+Live workspace signals confirm the resulting state.
+
+## App identity and launch
+
+`ApplicationCatalog.qml` reads Quickshell's desktop-entry model.
+Explicit overrides take precedence. Other matches use terminal child names,
+desktop IDs, startup classes, known web-app hosts, and a final heuristic lookup.
+Ambiguous matches retain the terminal or browser identity.
+
+The identity helper checks whether a new window's process owns a terminal.
+It walks at most 128 descendant processes and reports executable names.
+It does not read command arguments. The first probe waits 250 ms.
+A late terminal can get one recheck. Confirmed terminal hosts can receive up
+to three retries at 350 ms intervals. Probing then stops.
+
+The catalog filters hidden desktop entries before building the Start index.
+It reads Omarchy's launcher hide list and freedesktop visibility fields.
+Opening Start filters the cached index. It does not rescan desktop files.
+Start snapshots its pin order for that opening.
+
+Normal launch uses `uwsm-app -- gtk-launch` with a resolved desktop-file ID.
+Floating launch uses the same command through Hyprland's per-launch float
+option. The helper quotes the ID for both shell and Lua syntax. It does not
+copy or rewrite a desktop file's `Exec` field.
+
+A floating launch can check for a new matching window up to 40 times.
+There is a 100 ms wait between unsuccessful checks. This is bounded polling
+after a user action. It is not idle polling, and the total time also includes
+command execution. No permanent window rule is installed.
+
+## Tray and native panels
+
+`TrayIcon.qml` tints neutral pixels in symbolic application icons. It preserves
+colored badges with the shader in `qml/shaders`. Full-color icons and native
+Omarchy controls keep their existing rendering. The shader source and build
+instructions ship with its compiled file.
+
+`TrayArea.qml` uses Quickshell's StatusNotifier model. Left-click activates
+an item or opens its menu when the item is menu-only. Right-click opens its
+context menu. Middle-click requests secondary activation. Wheel input goes
+to the tray item.
+
+The tray opens after a 200 ms hover delay and collapses after a 120 ms delay.
+Its drawer width is capped at 300 scaled pixels, or 120 in compact mode.
+Compact mode starts below 900 scaled logical pixels.
+
+`HostedBarWidget.qml` loads enabled widgets from the injected registry.
+Agents, Bluetooth, Network, Audio, and Displays load on demand and unload
+250 ms after closing. Visual widgets such as the clock and Dropbox have
+persistent hosts. Their own panels may have further loaders.
+
+If a registry entry has no component, the host can use its public `sourceDir`
+and a known entry-point filename. This handles an observed Omarchy 4.0.4
+startup issue. It does not scan for plugins or load an absent registry entry.
+
+Mouse actions retain their original button. Audio right-click calls
+`omarchy audio output volume mute-toggle` directly, without opening the mixer.
+
+The full bar implements `summonBarWidget`, `hideBarWidget`,
+`isBarWidgetOpen`, and `panelWidgetIdAt`. A host stays registered while its
+lazy panel is unloaded. Standard shell shortcuts can therefore open it before
+its first mouse click. Routing prefers an open panel, then the focused output.
+Numbered shortcuts count visible panels in horizontal order.
+
+Shortcut labels come from `omarchy menu keybindings --print`. The catalog reads
+them at startup and refreshes when the watched user bindings change. Labels
+match existing command descriptions. Tilelane does not write keybindings.
+
+`BarMouseArea.qml` extends each control's clickable area to the bottom edge.
+It clips horizontal click bounds to the visible task or tray viewport.
+Start also reaches the left edge. The clock reaches the right edge.
+The host's panel overlay can forward clicks to these same areas.
+
+## Files and settings
+
+| Path                                                 | Use                                                |
+| ---------------------------------------------------- | -------------------------------------------------- |
+| `Quickshell.statePath("tilelane-minimized-v1.json")` | Minimize recovery journal                          |
+| Omarchy `shell.json`                                 | Active bar, widgets, Tilelane pins and preferences |
+| `$XDG_CONFIG_HOME/tilelane/pins.json`                | Read once for legacy preferences, never written    |
+
+`XDG_CONFIG_HOME` defaults to `~/.config`.
+Tilelane uses inline fields on the `bar` entry: `tilelanePins`,
+`tilelaneStartPins`, `tilelaneIdentityOverrides`, and `reducedMotion`.
+`tilelaneSettingsVersion: 1` records initialization. The injected `barConfig`
+snapshot supplies current values. Saves use the scoped
+`shell.mutateShellConfig()` callback, which lets the host persist bar changes.
+Tilelane does not write `shell.json` directly or start a process to save pins.
+Each action changes only its own field and preserves other bar and shell settings.
+
+On first use, Tilelane reads identity overrides and reduced motion from the
+old pin file. Existing inline values take precedence. Old pins are not imported.
+Once initialized, Tilelane no longer reads the old file. Invalid legacy
+preferences block initialization and report an error rather than being discarded.
+Invalid inline fields use safe defaults without rewriting the stored data.
+Valid fields remain usable. An unsupported settings version blocks writes.
+
+Start always includes Home, Recent, Starred, Network, and Trash. It adds
+bookmarks from `$XDG_CONFIG_HOME/gtk-3.0/bookmarks`, the file used by Files.
+Bookmark labels and order follow that file. Duplicate URIs appear once.
+Tilelane only reads bookmarks; users manage them in Files.
+It falls back to `~/.gtk-bookmarks` when the GTK 3 bookmark file is unavailable.
+File watchers reload bookmark and directory files before updating the Places
+model. An empty GTK bookmark file means no bookmarks; it does not trigger the
+legacy fallback.
+
+`$XDG_CONFIG_HOME/user-dirs.dirs` supplies folder paths for icons such as
+Documents and Downloads. It does not add places to the list.
+
+Branding comes from Omarchy's user config directory. The launcher hide list
+comes from `$OMARCHY_PATH/default/omarchy/launcher.hides`.
+The shortcut catalog watches `~/.config/hypr/bindings.lua`.
+
+## Processes and commands
+
+| Owner                        | Trigger and work                                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `WindowActions.qml`          | A window action or unload can run a validated `hyprctl eval`.                                                           |
+| `WindowModel.qml`            | New windows can run `scripts/window-application-identities` with bounded retries.                                       |
+| `ApplicationCatalog.qml`     | Startup and catalog changes can run `scripts/hidden-desktop-entries`.                                                   |
+| `ApplicationCatalog.qml`     | App launch uses `uwsm-app`, `gtk-launch`, or `scripts/launch-application`.                                              |
+| `scripts/launch-application` | Can query Ctrl state, call `xdg-terminal-exec --print-id`, dispatch a floating launch, and check new clients with `jq`. |
+| `ShortcutCatalog.qml`        | Startup and a binding-file change run `omarchy menu keybindings --print`.                                               |
+| `ApplicationCatalog.qml`     | Opening a place uses the launch helper to run `uwsm-app -- nautilus --new-window`. Ctrl requests floating.              |
+| `PanelControls.qml`          | Audio right-click runs Omarchy's output mute command.                                                                   |
+| `Bar.qml` and hosted widgets | Native widget actions can run their configured commands through `Commons.Util.execDetached`.                            |
+
+The three runtime helper scripts require Bash and standard system utilities.
+There is no installer hook, downloaded runtime code, compiled helper, privilege
+request, or Tilelane-owned service. Hosted Omarchy widgets keep their upstream
+refresh schedules and command behavior. A process-free claim would be false.
+
+A resident helper would need a specific capability, measurements, and a
+packaging review. The current implementation does not require one.
+
+## Diagnostics
+
+The `tilelane` IPC target returns counts, revisions, workspace placement,
+control state, and targeted action results. It omits titles, command lines,
+account data, and registry source paths. Address lookup needs a supplied PID
+or app ID. Window state and actions need a supplied address.
+These commands run in the user's session. They are not an authorization layer.

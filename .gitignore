@@ -1,0 +1,20 @@
+# Editors and local tooling
+.idea/
+.vscode/
+*.swp
+*~
+
+# Quickshell/runtime output
+*.qmlc
+*.jsc
+*.log
+.cache/
+build/
+result/
+
+# Test output (golden references remain tracked)
+tests/output/
+tests/tmp/
+
+# Build output
+target/
