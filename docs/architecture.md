@@ -30,8 +30,13 @@ Those packaged files are read-only references for this project.
 models keep Start and taskbar pins separate.
 
 Each screen has a window filter, task model, Start menu, workspace control,
-and tooltip window. The status group is visible only on the first Quickshell
-screen. Hosted widgets follow their own loading rules.
+status group, and tooltip window. Hosted widgets follow their own loading rules.
+
+Start briefly acquires exclusive keyboard focus when opening, then uses
+on-demand focus so other monitors can receive pointer events. Transparent
+dismissal surfaces on the other screens close Start on an outside press
+without taking keyboard focus. Closing removes those surfaces and clears the
+menu's input region immediately, even while its visual fade-out continues.
 
 `WindowFilter.qml` includes all workspaces on the matching monitor.
 A synthetic `FALLBACK` screen can show the global window list.

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed Start dismissal when clicking outside on another monitor.
 - Displayed the tray, status widgets, and clock on every monitor.
 - Loaded configured Omarchy widgets dynamically in layout order, including third-party widgets.
 - Shared status-control focus, hover, and panel underline behavior across native controls and tray items.

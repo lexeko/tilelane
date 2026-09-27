@@ -18,6 +18,7 @@ PanelWindow {
     property var bar: null
     property var barWidgetRegistry: null
     property bool open: false
+    property bool focusPrimed: false
     property bool hoverReady: false
     property real uiScale: 1
     property real barHeight: 44
@@ -207,6 +208,11 @@ PanelWindow {
             show();
     }
 
+    function beginFocusPrime() {
+        if (open && backingWindowVisible)
+            focusPrimeTimer.restart();
+    }
+
     screen: targetScreen
     visible: open || reveal > 0.01
     color: "transparent"
@@ -221,9 +227,25 @@ PanelWindow {
 
     WlrLayershell.namespace: "tilelane-start-menu"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // Acquire keyboard focus on open/reopen, then release the compositor-wide
+    // pointer grab so outside clicks can reach the other monitors.
+    WlrLayershell.keyboardFocus: open ? (focusPrimed ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive) : WlrKeyboardFocus.None
+
+    mask: Region {
+        width: root.open ? root.width : 0
+        height: root.open ? root.height : 0
+    }
+
+    onOpenChanged: {
+        focusPrimed = false;
+        if (open)
+            beginFocusPrime();
+        else
+            focusPrimeTimer.stop();
+    }
 
     onBackingWindowVisibleChanged: {
+        beginFocusPrime();
         if (!backingWindowVisible || !open) {
             hoverReady = false;
             return;
@@ -232,6 +254,44 @@ PanelWindow {
             if (root.open && root.backingWindowVisible)
                 root.hoverReady = true;
         });
+    }
+
+    Timer {
+        id: focusPrimeTimer
+        interval: 75
+        onTriggered: if (root.open)
+            root.focusPrimed = true
+    }
+
+    Variants {
+        model: root.open ? Quickshell.screens : []
+
+        delegate: Component {
+            PanelWindow {
+                required property var modelData
+
+                screen: modelData
+                visible: root.open && !!root.screen && modelData.name !== root.screen.name
+                color: "transparent"
+                exclusionMode: ExclusionMode.Ignore
+                WlrLayershell.namespace: "tilelane-start-dismiss"
+                WlrLayershell.layer: WlrLayer.Overlay
+                WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+
+                anchors {
+                    top: true
+                    right: true
+                    bottom: true
+                    left: true
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.AllButtons
+                    onPressed: root.close()
+                }
+            }
+        }
     }
 
     Behavior on reveal {
@@ -267,13 +327,16 @@ PanelWindow {
 
         MouseArea {
             anchors.fill: parent
-            onClicked: root.close()
+            enabled: root.open
+            acceptedButtons: Qt.AllButtons
+            onPressed: root.close()
         }
     }
 
     Rectangle {
         id: menuCard
 
+        enabled: root.open
         width: root.menuWidth
         height: root.menuHeight
         anchors.left: parent.left
@@ -293,6 +356,17 @@ PanelWindow {
             onClicked: function (event) {
                 event.accepted = true;
             }
+        }
+
+        // During the brief Exclusive phase, a click from another monitor can
+        // arrive with translated coordinates. Dismiss rather than launch an
+        // app, while leaving keyboard search available immediately.
+        MouseArea {
+            z: 1
+            anchors.fill: parent
+            enabled: root.open && !root.focusPrimed
+            acceptedButtons: Qt.AllButtons
+            onPressed: root.close()
         }
 
         Column {
