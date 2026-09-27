@@ -30,6 +30,14 @@ After installing and selecting Tilelane, run `./scripts/smoke`.
 For input or window behavior, also test the affected action in the live bar.
 Tray rendering changes need the [shader rendering tests](qml/shaders/README.md).
 
+For widget integration, `tests/fixtures/dynamic-widget` provides a plugin with
+a custom entry point, configurable label, and native panel. Install a copy in
+the user plugin directory and enable `local.tilelane-dynamic-test` to check
+discovery, settings updates, ordering, and removal in the live bar. Remove the
+fixture with `omarchy plugin remove local.tilelane-dynamic-test --yes` afterward.
+The automated checks also exercise manifest loading in an isolated, headless
+Quickshell process without changing the desktop configuration.
+
 Documentation-only changes need a link and factual review, not UI tests.
 
 ## Reference

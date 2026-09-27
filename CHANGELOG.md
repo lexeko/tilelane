@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Loaded configured Omarchy widgets dynamically in layout order, including third-party widgets.
+- Shared status-control focus, hover, and panel underline behavior across native controls and tray items.
+- Preserved open widget panels when their settings or order change.
 - Added a bottom taskbar inside the existing Omarchy shell process.
 - Added one task per window, pins, Start search, Files places, and a workspace fan.
 - Added desktop-entry icons and bounded terminal-app and web-app matching.

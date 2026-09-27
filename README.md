@@ -78,7 +78,7 @@ omarchy bar reset
 - Use search in Start to find and launch apps. Hover hints show how to pin apps
   or open apps and folders in floating windows.
 - Taskbar controls accept clicks down to the bottom edge. Start reaches the left edge.
-  The clock reaches the right edge.
+  The final status control reaches the right edge.
 
 The bar appears at the bottom of each screen. Tasks include all workspaces on
 that screen. Status controls appear on the first screen reported by Omarchy.
@@ -107,8 +107,24 @@ omarchy bar set omarchy.clock format 'h:mm AP'
 ```
 
 Use `omarchy plugin enable` and `omarchy plugin disable` for optional widgets.
-Tilelane has a fixed set and order of controls. It does not render every widget
-or reproduce arbitrary changes to the stock bar's layout or position.
+Configured bar widgets appear automatically in the right-hand status area.
+Tilelane follows the order within Omarchy's left, center, and right sections,
+combining them in that order. Move a widget or change its settings with Omarchy:
+
+```sh
+omarchy bar move omarchy.clock --section right --index 0
+omarchy bar set omarchy.clock format 'h:mm AP'
+```
+
+Changes apply without restarting the shell. Start, the workspace switcher,
+and the task list stay in their Tilelane positions; the standard menu,
+workspace, and indicator widgets are already represented there or inside Start.
+Application tray icons continue to appear automatically in the tray drawer.
+
+Existing status controls share Tilelane's hover, keyboard-focus, and panel
+underline styling. Other plugins keep their own visual content and mouse
+actions inside the shared host, so their internal styling may differ.
+The bar stays at the bottom of the screen.
 
 Tilelane saves taskbar pins, Start pins, identity overrides, and reduced motion
 in Omarchy's `~/.config/omarchy/shell.json`. Changes apply without a restart.

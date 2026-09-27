@@ -71,13 +71,12 @@ check_pointer_focus_policy() {
     "$repo_dir/qml/components/TaskButton.qml" \
     "$repo_dir/qml/components/PinnedLauncher.qml" \
     "$repo_dir/qml/components/TrayArea.qml" \
-    "$repo_dir/qml/components/PanelControls.qml" \
-    "$repo_dir/qml/components/Clock.qml"; do
+    "$repo_dir/qml/components/StatusControl.qml"; do
     if rg -q 'forceActiveFocus\(' "$file"; then
       printf 'Pointer-activated bar control forces keyboard focus: %s\n' "$file" >&2
       return 1
     fi
-    if ! rg -q 'activeFocusOnTab: true' "$file"; then
+    if ! rg -q 'activeFocusOnTab:' "$file"; then
       printf 'Keyboard focus support is missing from bar control: %s\n' "$file" >&2
       return 1
     fi
@@ -219,7 +218,7 @@ check_task_lane_overflow_policy() {
     printf 'Pinned launchers do not retain menu-identical presentation and hints across catalog refreshes\n' >&2
     return 1
   fi
-  if ! rg -q 'root\.windowActive \|\| contextMenu\.open' "$task_button" || ! rg -Uq 'visible: contextMenu\.open[\s\S]*?height: root\.px\(2\)' "$pinned_launcher" || ! rg -Uq 'visible: trayMenu\.open[\s\S]*?height: root\.px\(2\)' "$tray"; then
+  if ! rg -q 'root\.windowActive \|\| contextMenu\.open' "$task_button" || ! rg -Uq 'visible: contextMenu\.open[\s\S]*?height: root\.px\(2\)' "$pinned_launcher" || ! rg -Uq 'opened: trayMenu\.open' "$tray"; then
     printf 'Menu-bearing taskbar items do not expose the open-menu underline\n' >&2
     return 1
   fi
@@ -284,7 +283,7 @@ check_bar_hint_policy() {
     printf 'Shared bar hints are not delayed and input-transparent\n' >&2
     return 1
   fi
-  for target in StartButton PinnedLauncher TaskButton TrayArea PanelControls Clock NativeStatusItem PowerControl; do
+  for target in StartButton PinnedLauncher TaskButton TrayArea StatusControl; do
     if ! rg -q 'bar\.showTooltip' "$repo_dir/qml/components/$target.qml"; then
       printf 'Actionable bar control is missing hover guidance: %s\n' "$target" >&2
       return 1
@@ -318,11 +317,11 @@ check_bar_hint_policy() {
     printf 'Start button hint does not use the concise Tilelane label\n' >&2
     return 1
   fi
-  if ! rg -q 'Qt\.formatDateTime\(clock\.date, "dddd, MMMM d, yyyy, h:mm AP"\)' "$repo_dir/qml/components/Clock.qml" || ! rg -q 'return "Weather"' "$repo_dir/qml/components/NativeStatusItem.qml" || ! rg -q 'hintText: modelData\.label' "$repo_dir/qml/components/PanelControls.qml"; then
+  if ! rg -q 'Qt\.formatDateTime\(clock\.date, "dddd, MMMM d, yyyy, h:mm AP"\)' "$repo_dir/qml/components/Clock.qml" || ! rg -q 'return "Weather"' "$repo_dir/qml/components/NativeStatusItem.qml" || ! rg -q 'hintText: label' "$repo_dir/qml/components/PanelControl.qml"; then
     printf 'Clock or status hints do not use the concise information-only copy\n' >&2
     return 1
   fi
-  for target in PanelControls NativeStatusItem PowerControl TrayArea; do
+  for target in PanelControl NativeStatusItem PowerControl TrayArea; do
     if rg -q 'bar\.(shortcut|actionHint)' "$repo_dir/qml/components/$target.qml"; then
       printf 'Taskbar tray/status hint includes a hotkey: %s\n' "$target" >&2
       return 1
@@ -349,6 +348,7 @@ run_check "QML unit tests" check_qml_tests
 run_check "minimize lifecycle regression" bash "$repo_dir/tests/test-minimize-lifecycle.sh"
 run_check "inline settings persistence" bash "$repo_dir/tests/test-settings.sh"
 run_check "Places bookmark updates" bash "$repo_dir/tests/test-places-watch.sh"
+run_check "native widget manifest loading" bash "$repo_dir/tests/test-widget-manifest.sh"
 if command -v node >/dev/null 2>&1 && command -v lua >/dev/null 2>&1; then
   run_check "task pointer preservation" node "$repo_dir/tests/test-task-pointer.cjs"
 else
@@ -366,10 +366,10 @@ run_check "bounded terminal identity retry" check_terminal_identity_retry_policy
 run_check "floating application launch policy" check_floating_launch_policy
 run_check "actionable bar hint policy" check_bar_hint_policy
 run_check "floating application launch helper" "$repo_dir/tests/test-launch-application.sh"
-run_check "shell script syntax" bash -n "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh"
+run_check "shell script syntax" bash -n "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-widget-manifest.sh"
 
 if command -v shellcheck >/dev/null 2>&1; then
-  run_check "shell scripts" shellcheck "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh"
+  run_check "shell scripts" shellcheck "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-widget-manifest.sh"
 else
   printf '[skip] shellcheck is not installed; repository scripts were not shell-linted\n'
 fi

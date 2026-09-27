@@ -3,16 +3,18 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import qs.Commons as Commons
 
-Rectangle {
+StatusControl {
     id: root
+
+    opened: nativeHost.opened
+    accessibleName: presentation === "text" ? "Keyboard layout " + statusText : "Weather"
+    accessibleDescription: presentation === "text" ? "Switch keyboard layout" : "Open weather"
 
     required property string moduleName
     required property string presentation
     property var registry: null
-    property var bar: null
     property var settings: ({})
     property string fallbackEntryPoint: ""
-    property real uiScale: 1
     readonly property real targetIconSize: uiScale * 20 * 0.67
     readonly property var statusOwner: presentation === "text" ? nativeHost.hostItem : findLabeledModule(nativeHost.hostItem, 0)
     readonly property string statusText: {
@@ -23,8 +25,7 @@ Rectangle {
         return String(statusOwner.label || "");
     }
     readonly property bool statusVisible: nativeHost.available && statusText !== "" && (root.moduleName !== "omarchy.keyboard-layout" || statusOwner.multipleLayouts === true)
-    readonly property bool tooltipHovered: pointer.containsMouse
-    readonly property string hintText: {
+    hintText: {
         if (root.moduleName === "omarchy.keyboard-layout")
             return "Language: " + root.statusText;
         return "Weather";
@@ -50,7 +51,11 @@ Rectangle {
         return null;
     }
 
-    function activate(button) {
+    function nativeState() {
+        return nativeHost.capabilityState();
+    }
+
+    activation: function (button) {
         const item = nativeHost.hostItem;
         if (!item)
             return false;
@@ -76,19 +81,11 @@ Rectangle {
     implicitHeight: uiScale * 32
     width: visible ? implicitWidth : 0
     height: implicitHeight
-    radius: uiScale * 4
-    color: pointer.pressed ? Commons.Style.pressedFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : pointer.containsMouse || activeFocus ? Commons.Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : "transparent"
-    activeFocusOnTab: true
-
-    Accessible.role: Accessible.Button
-    Accessible.name: presentation === "text" ? "Keyboard layout " + statusText : "Weather"
-    Accessible.description: presentation === "text" ? "Switch keyboard layout" : "Open weather"
-    Accessible.onPressAction: activate(Qt.LeftButton)
 
     HostedBarWidget {
         id: nativeHost
 
-        clickTarget: pointer
+        clickTarget: root.clickTarget
 
         anchors.fill: parent
         moduleName: root.moduleName
@@ -111,16 +108,6 @@ Rectangle {
         renderType: Text.NativeRendering
     }
 
-    Rectangle {
-        visible: nativeHost.opened || root.activeFocus
-        width: Math.max(root.uiScale * 10, Math.round(parent.width * 0.55))
-        height: root.uiScale * 2
-        radius: height / 2
-        color: Commons.Color.accent
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-    }
-
     OpticalStatusGlyph {
         visible: root.presentation === "icon"
         anchors.centerIn: parent
@@ -131,31 +118,4 @@ Rectangle {
         opticalSize: root.targetIconSize
         sourceFontSize: Math.max(32, root.uiScale * 64)
     }
-
-    BarMouseArea {
-        id: pointer
-
-        bar: root.bar
-        forwardPress: function (button) {
-            return root.activate(button);
-        }
-
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onEntered: if (root.bar)
-            root.bar.showTooltip(root, root.hintText)
-        onExited: if (root.bar)
-            root.bar.hideTooltip(root)
-        onClicked: function (event) {
-            if (root.bar)
-                root.bar.hideTooltip(root);
-            root.activate(event.button);
-        }
-    }
-
-    Keys.onSpacePressed: activate(Qt.LeftButton)
-    Keys.onReturnPressed: activate(Qt.LeftButton)
-    Keys.onEnterPressed: activate(Qt.LeftButton)
 }

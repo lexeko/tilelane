@@ -5,13 +5,15 @@ import Quickshell.Services.UPower
 import "../StatusLogic.js" as StatusLogic
 import qs.Commons as Commons
 
-Rectangle {
+StatusControl {
     id: root
 
-    property var bar: null
+    opened: nativeHost.opened
+    accessibleName: "Battery " + percentage + "%"
+    accessibleDescription: "Open power panel"
+
     property var barWidgetRegistry: null
     property var nativeSettings: ({})
-    property real uiScale: 1
     readonly property var device: UPower.displayDevice
     readonly property bool configured: barWidgetRegistry && barWidgetRegistry.widgets && barWidgetRegistry.widgets["omarchy.power"] !== undefined
     readonly property bool batteryPresent: !!device && device.isPresent
@@ -30,14 +32,9 @@ Rectangle {
     readonly property string icon: StatusLogic.batteryIcon(batteryPresent, batteryFraction, charging, fullyCharged, thresholdActive)
     readonly property int percentage: Math.round(batteryFraction * 100)
     readonly property bool showPercentage: nativeSettings && nativeSettings.showPercentage === true
-    readonly property bool tooltipHovered: pointer.containsMouse
-    readonly property string hintText: "Battery " + percentage + "%"
+    hintText: "Battery " + percentage + "%"
 
-    function px(value) {
-        return value * uiScale;
-    }
-
-    function activate(button) {
+    activation: function (button) {
         return nativeHost.trigger(button);
     }
 
@@ -49,23 +46,12 @@ Rectangle {
     }
 
     visible: configured && batteryPresent && icon !== ""
-    width: visible ? Math.max(px(30), powerContent.implicitWidth + px(12)) : 0
-    height: px(32)
-    radius: px(4)
-    color: nativeHost.opened ? Commons.Style.selectedAccentFill : pointer.pressed ? Commons.Style.pressedFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : pointer.containsMouse || activeFocus ? Commons.Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : "transparent"
-    border.color: Commons.Color.accent
-    border.width: activeFocus ? Math.max(1, Math.round(px(1))) : 0
-    activeFocusOnTab: visible
-
-    Accessible.role: Accessible.Button
-    Accessible.name: "Battery " + percentage + "%"
-    Accessible.description: "Open power panel"
-    Accessible.onPressAction: activate(Qt.LeftButton)
+    implicitWidth: visible ? Math.max(px(30), powerContent.implicitWidth + px(12)) : 0
 
     HostedBarWidget {
         id: nativeHost
 
-        clickTarget: pointer
+        clickTarget: root.clickTarget
 
         anchors.fill: parent
         moduleName: "omarchy.power"
@@ -118,32 +104,4 @@ Rectangle {
             renderType: Text.NativeRendering
         }
     }
-
-    BarMouseArea {
-        id: pointer
-
-        bar: root.bar
-        forwardPress: function (button) {
-            return root.activate(button);
-        }
-
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onEntered: if (root.bar)
-            root.bar.showTooltip(root, root.hintText)
-        onExited: if (root.bar)
-            root.bar.hideTooltip(root)
-        onClicked: function (event) {
-            if (root.bar)
-                root.bar.hideTooltip(root);
-            root.forceActiveFocus();
-            root.activate(event.button);
-        }
-    }
-
-    Keys.onSpacePressed: activate(Qt.LeftButton)
-    Keys.onReturnPressed: activate(Qt.LeftButton)
-    Keys.onEnterPressed: activate(Qt.LeftButton)
 }

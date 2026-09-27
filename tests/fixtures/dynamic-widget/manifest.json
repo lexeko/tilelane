@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "local.tilelane-dynamic-test",
+  "name": "Tilelane dynamic widget test",
+  "version": "0.1.0",
+  "author": "Alexey Konoplev",
+  "license": "MIT",
+  "description": "Fixture for testing a previously unknown bar widget.",
+  "kinds": ["bar-widget"],
+  "entryPoints": {"barWidget": "views/Widget.qml"},
+  "barWidget": {
+    "displayName": "Dynamic test",
+    "category": "Test",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {"label": "Dynamic test"}
+  }
+}

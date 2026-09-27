@@ -145,14 +145,39 @@ The tray opens after a 200 ms hover delay and collapses after a 120 ms delay.
 Its drawer width is capped at 300 scaled pixels, or 120 in compact mode.
 Compact mode starts below 900 scaled logical pixels.
 
-`HostedBarWidget.qml` loads enabled widgets from the injected registry.
-Agents, Bluetooth, Network, Audio, and Displays load on demand and unload
+`StatusWidgetModel.qml` joins the configured left, center, and right sections
+into the right-hand status area, retaining the order within each section.
+It includes only entries present in the injected `barWidgetRegistry`. The
+standard menu, workspace, and indicator entries are excluded because Tilelane
+supplies those surfaces itself. A registry entry alone does not add an icon;
+the widget must also be configured in the layout. Settings merge registry
+defaults with that entry's inline values.
+
+Model rows use stable widget/occurrence keys. Reordering moves existing rows;
+settings edits update them in place. Removing a layout entry or disabling its
+plugin destroys its slot. Widgets instantiate only on the status screen.
+Multiple instances are allowed only when the registry metadata permits them.
+
+`StatusWidgetSlot.qml` chooses a compact presentation for familiar widgets and
+uses `NativeWidget.qml` for any other registered component. `StatusControl.qml`
+owns hover/press backgrounds, keyboard activation, accessible names, hints,
+and the accent underline. Application tray entries use the same control.
+Pointer clicks do not assign keyboard focus. Native components retain their
+own mouse and wheel handlers; the generic host does not replace their internal
+controls or promise to override styling drawn by the plugin itself.
+
+`HostedBarWidget.qml` loads widget implementations from the injected registry
+and supplies `bar`, `moduleName`, and per-instance `settings`. Agents,
+Bluetooth, Network, Audio, Displays, and Power load on demand and unload
 250 ms after closing. Visual widgets such as the clock and Dropbox have
 persistent hosts. Their own panels may have further loaders.
 
-If a registry entry has no component, the host can use its public `sourceDir`
-and a known entry-point filename. This handles an observed Omarchy 4.0.4
-startup issue. It does not scan for plugins or load an absent registry entry.
+If a registry entry has no component, known presentations retain their fallback
+entry point. For an unfamiliar widget, the host reads the declared `barWidget`
+entry point from `manifest.json` under the registry's public `sourceDir`.
+It watches that file and rejects absolute paths and parent traversal. This
+handles an observed Omarchy 4.0.4 startup issue without assuming a filename,
+scanning plugin directories, polling, or loading an absent registry entry.
 
 Mouse actions retain their original button. Audio right-click calls
 `omarchy audio output volume mute-toggle` directly, without opening the mixer.
@@ -223,7 +248,7 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 | `scripts/launch-application` | Can query Ctrl state, call `xdg-terminal-exec --print-id`, dispatch a floating launch, and check new clients with `jq`. |
 | `ShortcutCatalog.qml`        | Startup and a binding-file change run `omarchy menu keybindings --print`.                                               |
 | `ApplicationCatalog.qml`     | Opening a place uses the launch helper to run `uwsm-app -- nautilus --new-window`. Ctrl requests floating.              |
-| `PanelControls.qml`          | Audio right-click runs Omarchy's output mute command.                                                                   |
+| `PanelControl.qml`           | Audio right-click runs Omarchy's output mute command.                                                                   |
 | `Bar.qml` and hosted widgets | Native widget actions can run their configured commands through `Commons.Util.execDetached`.                            |
 
 The three runtime helper scripts require Bash and standard system utilities.
@@ -237,7 +262,7 @@ packaging review. The current implementation does not require one.
 ## Diagnostics
 
 The `tilelane` IPC target returns counts, revisions, workspace placement,
-control state, and targeted action results. It omits titles, command lines,
+control state, configured widget IDs/order, and targeted action results. It omits titles, command lines,
 account data, and registry source paths. Address lookup needs a supplied PID
 or app ID. Window state and actions need a supplied address.
 These commands run in the user's session. They are not an authorization layer.

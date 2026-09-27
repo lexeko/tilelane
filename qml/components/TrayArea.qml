@@ -190,18 +190,26 @@ Item {
 
                 model: root.activeItems
 
-                delegate: Item {
+                delegate: StatusControl {
                     id: trayItem
 
                     required property var modelData
                     readonly property string accessibleLabel: String(modelData.tooltipTitle || modelData.title || modelData.id || "Tray application")
-                    readonly property bool tooltipHovered: trayMouse.containsMouse
-                    readonly property string hintText: HintLogic.tray(accessibleLabel)
-                    readonly property bool exposed: root.expanded && x >= trayViewport.contentX && x + width <= trayViewport.contentX + trayViewport.width + 0.5
-
+                    bar: root.bar
+                    uiScale: root.uiScale
+                    hintText: HintLogic.tray(accessibleLabel)
+                    accessibleName: accessibleLabel
+                    accessibleDescription: modelData.hasMenu ? "Tray application; context menu available" : "Tray application"
+                    opened: trayMenu.open
+                    pressActionButtons: Qt.RightButton
+                    activation: function (button) {
+                        return triggerPress(button);
+                    }
+                    wheelAction: function (event) {
+                        modelData.scroll(event.angleDelta.y, false);
+                    }
                     width: root.slotWidth
                     height: root.hitSize
-                    activeFocusOnTab: true
 
                     function activatePrimary() {
                         if (modelData.onlyMenu && modelData.hasMenu)
@@ -235,20 +243,6 @@ Item {
                         return false;
                     }
 
-                    function syncClickRegistration() {
-                        if (!root.bar)
-                            return;
-                        if (exposed)
-                            root.bar.registerClickTarget(trayItem);
-                        else
-                            root.bar.unregisterClickTarget(trayItem);
-                    }
-
-                    onExposedChanged: syncClickRegistration()
-                    Component.onCompleted: syncClickRegistration()
-                    Component.onDestruction: if (root.bar)
-                        root.bar.unregisterClickTarget(trayItem)
-
                     function openContextMenu() {
                         if (!modelData.hasMenu)
                             return false;
@@ -256,32 +250,11 @@ Item {
                         return true;
                     }
 
-                    Accessible.role: Accessible.Button
-                    Accessible.name: accessibleLabel
-                    Accessible.description: modelData.hasMenu ? "Tray application; context menu available" : "Tray application"
-                    Accessible.onPressAction: activatePrimary()
-
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: root.px(4)
-                        color: trayMouse.pressed ? Commons.Style.pressedFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : trayMouse.containsMouse || trayItem.activeFocus ? Commons.Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : "transparent"
-                    }
-
                     TrayIcon {
                         anchors.centerIn: parent
                         source: trayItem.modelData.icon
                         iconSize: root.px(20) * 0.67
                         foreground: Commons.Color.bar.text
-                    }
-
-                    Rectangle {
-                        visible: trayMenu.open || trayItem.activeFocus
-                        width: Math.max(root.px(10), Math.round(parent.width * 0.55))
-                        height: root.px(2)
-                        radius: height / 2
-                        color: Commons.Color.accent
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.bottom: parent.bottom
                     }
 
                     TrayContextMenu {
@@ -310,40 +283,6 @@ Item {
                         }
                     }
 
-                    BarMouseArea {
-                        id: trayMouse
-
-                        bar: root.bar
-                        forwardPress: function (button) {
-                            return trayItem.triggerPress(button);
-                        }
-
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                        cursorShape: Qt.PointingHandCursor
-                        onEntered: if (root.bar)
-                            root.bar.showTooltip(trayItem, trayItem.hintText)
-                        onExited: if (root.bar)
-                            root.bar.hideTooltip(trayItem)
-                        onPressed: function (event) {
-                            if (event.button === Qt.RightButton) {
-                                trayItem.triggerPress(event.button);
-                                event.accepted = true;
-                            }
-                        }
-                        onClicked: function (event) {
-                            if (event.button !== Qt.RightButton)
-                                trayItem.triggerPress(event.button);
-                        }
-                        onWheel: function (wheel) {
-                            trayItem.modelData.scroll(wheel.angleDelta.y, false);
-                        }
-                    }
-
-                    Keys.onSpacePressed: activatePrimary()
-                    Keys.onReturnPressed: activatePrimary()
-                    Keys.onEnterPressed: activatePrimary()
                     Keys.onMenuPressed: {
                         trayItem.openContextMenu();
                     }

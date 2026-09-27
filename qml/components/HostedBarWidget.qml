@@ -22,12 +22,13 @@ Item {
     property var registeredBar: null
     property var registeredItem: null
     readonly property var entry: registry && registry.widgets ? registry.widgets[moduleName] : null
+    readonly property string sourceDir: entry && entry.metadata ? String(entry.metadata.sourceDir || "") : ""
+    readonly property string manifestEntryPoint: manifestLoader.item ? manifestLoader.item.entryPoint : ""
     readonly property string fallbackSource: {
-        const metadata = entry && entry.metadata ? entry.metadata : null;
-        const sourceDir = metadata ? String(metadata.sourceDir || "") : "";
-        if (!entry || entry.component || sourceDir === "" || fallbackEntryPoint === "")
+        const path = fallbackEntryPoint || manifestEntryPoint;
+        if (!entry || entry.component || sourceDir === "" || path === "")
             return "";
-        return "file://" + sourceDir + "/" + fallbackEntryPoint;
+        return "file://" + sourceDir + "/" + path;
     }
     readonly property bool hasLoadSource: !!entry && (!!entry.component || fallbackSource !== "")
     readonly property var hostItem: registryLoader.item || fallbackLoader.item
@@ -96,6 +97,8 @@ Item {
             item.bar = bar;
         if ("settings" in item)
             item.settings = settings;
+        if ("moduleName" in item)
+            item.moduleName = moduleName;
         if (alignPanelToHost)
             alignNestedPanels(item, [], 0);
         // Pointer events belong to the visible Tilelane control, including
@@ -245,6 +248,16 @@ Item {
             if (root.lazy && root.hostItem && !root.opened)
                 root.loadRequested = false;
         }
+    }
+
+    Loader {
+        id: manifestLoader
+
+        active: !!root.entry && !root.entry.component && root.sourceDir !== "" && root.fallbackEntryPoint === ""
+        source: active ? "WidgetManifest.qml" : ""
+        onLoaded: item.sourceDir = Qt.binding(function () {
+            return root.sourceDir;
+        })
     }
 
     Loader {

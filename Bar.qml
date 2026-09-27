@@ -35,6 +35,9 @@ Item {
     readonly property color barForeground: foreground
     readonly property color background: Commons.Color.bar.background
     readonly property color urgent: Commons.Color.bar.active
+    readonly property color accentColor: Commons.Color.accent
+    readonly property color statusHoverFill: Commons.Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent)
+    readonly property color statusPressedFill: Commons.Style.pressedFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent)
     readonly property string fontFamily: Commons.Style.font.family
     readonly property string position: "bottom"
     readonly property bool vertical: false
@@ -120,14 +123,19 @@ Item {
     }
 
     function switchPanelFrom(owner, direction) {
-        const candidates = hostedWidgets.filter(function (record) {
-            return record && record.item && typeof record.item.open === "function";
+        const ownerWindow = owner ? owner.QsWindow.window : null;
+        const screenName = ownerWindow && ownerWindow.screen ? String(ownerWindow.screen.name || "") : "";
+        const candidates = panelHostCandidates().filter(function (record) {
+            return record.visible && (!screenName || record.screenName === screenName);
+        });
+        candidates.sort(function (left, right) {
+            return left.x - right.x;
         });
         if (candidates.length < 2)
             return false;
         let currentIndex = -1;
         for (let index = 0; index < candidates.length; index++) {
-            if (candidates[index].item === owner) {
+            if (candidates[index].host.hostItem === owner) {
                 currentIndex = index;
                 break;
             }
@@ -135,7 +143,7 @@ Item {
         if (currentIndex < 0)
             return false;
         const step = direction < 0 ? -1 : 1;
-        const next = candidates[(currentIndex + step + candidates.length) % candidates.length].item;
+        const next = candidates[(currentIndex + step + candidates.length) % candidates.length].host;
         next.open();
         return true;
     }
@@ -656,7 +664,7 @@ Item {
 
         function trayToggle(screenName: string): string {
             const view = root.statusViewFor(screenName);
-            if (!view || view.tray.itemCount === 0)
+            if (!view || !view.tray || view.tray.itemCount === 0)
                 return "not-found";
             view.tray.toggle();
             return view.tray.expanded ? "opened" : "closed";
@@ -664,7 +672,7 @@ Item {
 
         function trayMenuOpen(screenName: string): string {
             const view = root.statusViewFor(screenName);
-            return view && view.tray.openFirstMenu() ? "opened" : "not-found";
+            return view && view.tray && view.tray.openFirstMenu() ? "opened" : "not-found";
         }
 
         function statusState(screenName: string): string {
@@ -676,55 +684,28 @@ Item {
             return JSON.stringify({
                 "present": true,
                 "screen": view.screenName,
-                "trayCount": view.tray.itemCount,
-                "trayExpanded": view.tray.expanded,
-                "panelControls": view.controls.visibleControlCount,
-                "clock": view.clock.displayText
+                "trayCount": view.tray ? view.tray.itemCount : 0,
+                "trayExpanded": !!view.tray && view.tray.expanded,
+                "panelControls": view.visibleControlCount,
+                "clock": view.clock ? view.clock.displayText : ""
             });
         }
 
-        function hostPanelToggle(id: string, screenName: string): string {
-            const allowed = ["omarchy.clock", "omarchy.agents", "omarchy.bluetooth", "omarchy.network", "omarchy.audio", "omarchy.monitor", "omarchy.power", "omarchy.dropbox"];
-            if (allowed.indexOf(id) === -1)
-                return "unsupported";
-            if (id === "omarchy.clock") {
-                const view = root.statusViewFor(screenName);
-                return view && view.clock.activate(Qt.LeftButton) ? "toggled" : "unavailable";
-            }
+        function statusWidgets(screenName: string): string {
             const view = root.statusViewFor(screenName);
-            if (id === "omarchy.dropbox")
-                return view && view.dropbox.visible && view.dropbox.activate(Qt.LeftButton) ? "toggled" : "unavailable";
-            if (id === "omarchy.power")
-                return view && view.power.visible && view.power.activate(Qt.LeftButton) ? "toggled" : "unavailable";
-            if (view && view.controls.activateTarget(id, Qt.LeftButton))
-                return "toggled";
-            return root.toggleHostPanel(id, screenName, Qt.LeftButton) ? "toggled" : "unavailable";
+            return JSON.stringify(view ? view.widgetState() : []);
+        }
+
+        function hostPanelToggle(id: string, screenName: string): string {
+            const view = root.statusViewFor(screenName);
+            return view && view.activateTarget(id, Qt.LeftButton) ? "toggled" : "unavailable";
         }
 
         function hostPanelState(id: string, screenName: string): string {
             const view = root.statusViewFor(screenName);
-            if (!view)
-                return JSON.stringify({
-                    "present": false
-                });
-            if (id === "omarchy.clock")
-                return JSON.stringify({
-                    "present": true,
-                    "available": view.clock.nativeAvailable
-                });
-            if (id === "omarchy.power") {
-                const powerState = view.power.nativeState();
-                powerState.present = true;
-                return JSON.stringify(powerState);
-            }
-            if (id === "omarchy.dropbox") {
-                const dropboxState = view.dropbox.nativeState();
-                dropboxState.present = true;
-                return JSON.stringify(dropboxState);
-            }
-            const state = view.controls.targetState(id);
-            state.present = true;
-            return JSON.stringify(state);
+            return JSON.stringify(view ? view.targetState(id) : {
+                present: false
+            });
         }
     }
 
@@ -848,17 +829,17 @@ Item {
             width: primary ? implicitWidth : 0
             height: implicitHeight
             visible: primary
+            active: primary
             anchors.right: parent.right
             anchors.rightMargin: Math.round(5 * root.barScale)
             rightHitPadding: anchors.rightMargin
             anchors.verticalCenter: parent.verticalCenter
             bar: root
             barWidgetRegistry: root.barWidgetRegistry
-            clockSettings: root.barWidgetSettings("omarchy.clock")
+            barConfig: root.barConfig
             screenName: barWindow.screen ? String(barWindow.screen.name || "") : ""
             uiScale: root.barScale
             compact: BarGeometry.statusCompact(barWindow.width, root.barScale)
-            clockFormat: String(root.barWidgetSetting("omarchy.clock", "format", "h:mm AP"))
         }
 
         TaskLane {
