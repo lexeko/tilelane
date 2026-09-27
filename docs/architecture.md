@@ -145,8 +145,11 @@ The tray opens after a 200 ms hover delay and collapses after a 120 ms delay.
 Its drawer width is capped at 300 scaled pixels, or 120 in compact mode.
 Compact mode starts below 900 scaled logical pixels.
 
-`StatusWidgetModel.qml` joins the configured left, center, and right sections
-into the right-hand status area, retaining the order within each section.
+`StatusWidgetModel.qml` joins configured widgets into the right-hand status
+area. From left to right, it places the left/right section controls, the center
+section's information widgets, and the clock in separate groups. It preserves
+configured item order within each group and keeps the clock at the right edge.
+Spacing follows these display groups rather than the source sections.
 It includes only entries present in the injected `barWidgetRegistry`. The
 standard menu, workspace, and indicator entries are excluded because Tilelane
 supplies those surfaces itself. A registry entry alone does not add an icon;

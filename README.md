@@ -108,11 +108,14 @@ omarchy bar set omarchy.clock format 'h:mm AP'
 
 Use `omarchy plugin enable` and `omarchy plugin disable` for optional widgets.
 Configured bar widgets appear automatically in the right-hand status area.
-Tilelane follows the order within Omarchy's left, center, and right sections,
-combining them in that order. Move a widget or change its settings with Omarchy:
+From left to right, Tilelane places the other controls first, then Omarchy's
+center group (such as language, weather, and updates), then the clock at the
+right edge. Item order within each group follows the configuration; the other
+controls combine the left and right sections in that order.
+Move a widget or change its settings with Omarchy:
 
 ```sh
-omarchy bar move omarchy.clock --section right --index 0
+omarchy bar move omarchy.weather --section center --index 1
 omarchy bar set omarchy.clock format 'h:mm AP'
 ```
 

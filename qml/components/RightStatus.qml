@@ -97,16 +97,17 @@ Item {
                 required property int index
                 required property string widgetId
                 required property string section
+                required property string groupName
                 required property string presentation
                 required property string settingsJson
                 property alias widget: widget
-                readonly property real sectionGap: {
+                readonly property real groupGap: {
                     widgetModel.revision;
                     root.itemRevision;
                     for (let previous = index - 1; previous >= 0; previous--) {
                         const sibling = slots.itemAt(previous);
                         if (sibling && sibling.widget.width > 0)
-                            return sibling.section !== section ? root.uiScale * 18 : 0;
+                            return sibling.groupName !== groupName ? root.uiScale * 18 : 0;
                     }
                     return 0;
                 }
@@ -120,13 +121,13 @@ Item {
                     return true;
                 }
 
-                width: widget.width > 0 ? sectionGap + widget.width : 0
+                width: widget.width > 0 ? groupGap + widget.width : 0
                 height: widget.height
                 anchors.verticalCenter: parent.verticalCenter
 
                 StatusWidgetSlot {
                     id: widget
-                    x: slot.sectionGap
+                    x: slot.groupGap
                     anchors.verticalCenter: parent.verticalCenter
                     widgetId: slot.widgetId
                     presentation: slot.presentation

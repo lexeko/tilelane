@@ -67,9 +67,9 @@ TestCase {
                 right: ["omarchy.tray", "not.installed", "test.second"]
             }
         };
-        compare(ids(), ["test.second", "test.first", "omarchy.tray"]);
-        compare(JSON.parse(widgets.model.get(1).settingsJson).label, "Custom");
-        compare(widgets.model.get(1).presentation, "native");
+        compare(ids(), ["test.second", "omarchy.tray", "test.first"]);
+        compare(JSON.parse(widgets.model.get(2).settingsJson).label, "Custom");
+        compare(widgets.model.get(2).presentation, "native");
     }
 
     function test_reorderingAndSettingsKeepInstancesAndOpenPanels() {
@@ -100,8 +100,29 @@ TestCase {
                 right: ["test.second"]
             }
         };
-        compare(delegates.itemAt(0), first);
+        compare(delegates.itemAt(1), first);
         verify(first.panelOpen);
+    }
+
+    function test_clockFollowsInformationGroupWithoutReversingItems() {
+        registry.widgets = {
+            "omarchy.clock": {},
+            "omarchy.keyboard-layout": {},
+            "omarchy.weather": {},
+            "omarchy.system-update": {},
+            "omarchy.tray": {},
+            "omarchy.power": {}
+        };
+        widgets.config = {
+            layout: {
+                center: ["omarchy.clock", "omarchy.keyboard-layout", "omarchy.weather", "omarchy.system-update"],
+                right: ["omarchy.tray", "omarchy.power"]
+            }
+        };
+        compare(ids(), ["omarchy.tray", "omarchy.power", "omarchy.keyboard-layout", "omarchy.weather", "omarchy.system-update", "omarchy.clock"]);
+        compare(widgets.model.get(0).groupName, "controls");
+        compare(widgets.model.get(2).groupName, "information");
+        compare(widgets.model.get(5).groupName, "clock");
     }
 
     function test_registryInstallDisableAndConfigRemoval() {

@@ -34,16 +34,20 @@ function records(config, registry) {
                 key: id + ":" + occurrence,
                 widgetId: id,
                 section: section,
+                groupName: id === "omarchy.clock" ? "clock" : section === "center" ? "information" : "controls",
                 presentation: presentation(id),
                 settingsJson: JSON.stringify(settings)
             });
         });
     });
-    return result;
+    // Keep configured order within each group, with the clock at the edge.
+    return ["controls", "information", "clock"].reduce(function (ordered, group) {
+        return ordered.concat(result.filter(function (record) { return record.groupName === group; }));
+    }, []);
 }
 
 function sameRecord(left, right) {
-    return left.key === right.key && left.widgetId === right.widgetId && left.section === right.section && left.presentation === right.presentation && left.settingsJson === right.settingsJson;
+    return left.key === right.key && left.widgetId === right.widgetId && left.section === right.section && left.groupName === right.groupName && left.presentation === right.presentation && left.settingsJson === right.settingsJson;
 }
 
 function manifestEntryPoint(text) {
