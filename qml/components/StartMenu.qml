@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Wayland
 import "../HintLogic.js" as HintLogic
 import "../StartLogic.js" as StartLogic
@@ -19,6 +20,9 @@ PanelWindow {
     property var barWidgetRegistry: null
     property bool open: false
     property bool focusPrimed: false
+    property bool focusAcquired: false
+    property bool dismissImmediately: false
+    readonly property bool windowActive: contentItem.Window.active
     property bool hoverReady: false
     property real uiScale: 1
     property real barHeight: 44
@@ -185,17 +189,19 @@ PanelWindow {
         openingPinnedIds = pinnedApplications.pins.slice(0);
         search.text = "";
         rebuild();
+        dismissImmediately = false;
         open = true;
         Qt.callLater(function () {
             search.forceActiveFocus();
         });
     }
 
-    function close() {
+    function close(immediate) {
         if (!open && reveal <= 0)
             return;
         hoverReady = false;
         startHint.clear();
+        dismissImmediately = immediate === true;
         open = false;
         if (bar)
             bar.releasePopout(root);
@@ -238,10 +244,25 @@ PanelWindow {
 
     onOpenChanged: {
         focusPrimed = false;
+        focusAcquired = open && windowActive;
         if (open)
             beginFocusPrime();
         else
             focusPrimeTimer.stop();
+    }
+
+    // Observe the whole window: moving focus between controls is not a handoff.
+    // Wait until this opening acquires focus before reacting to its loss.
+    onWindowActiveChanged: {
+        if (!open)
+            return;
+        if (windowActive)
+            focusAcquired = true;
+        else if (focusAcquired)
+            Qt.callLater(function () {
+                if (root.open && root.focusAcquired && !root.windowActive)
+                    root.close(true);
+            });
     }
 
     onBackingWindowVisibleChanged: {
@@ -295,9 +316,21 @@ PanelWindow {
     }
 
     Behavior on reveal {
+        enabled: !root.dismissImmediately
         NumberAnimation {
             duration: root.bar && typeof root.bar.motionDuration === "function" ? root.bar.motionDuration(140) : 140
             easing.type: Easing.OutCubic
+        }
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            // Hyprland can retain layer focus when an application maps behind
+            // Start. Release it so the new window can receive input as well.
+            if (root.open && event.name === "openwindow")
+                root.close(true);
         }
     }
 

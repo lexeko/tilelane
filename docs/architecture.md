@@ -37,6 +37,13 @@ on-demand focus so other monitors can receive pointer events. Transparent
 dismissal surfaces on the other screens close Start on an outside press
 without taking keyboard focus. Closing removes those surfaces and clears the
 menu's input region immediately, even while its visual fade-out continues.
+After acquiring focus, Start also closes immediately when its window loses
+focus to another interface or Hyprland reports a newly opened application
+window. The latter covers applications that map behind the focused layer.
+These handoffs skip the closing animation. Quick toggles remain visible, and
+moving focus between Start's controls does not dismiss it. This behavior does
+not depend on indicator IDs or commands. A background application opening a
+window also dismisses Start.
 
 `WindowFilter.qml` includes all workspaces on the matching monitor.
 A synthetic `FALLBACK` screen can show the global window list.
