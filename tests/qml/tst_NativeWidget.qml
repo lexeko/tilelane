@@ -20,6 +20,8 @@ TestCase {
         property real barHeight: 44
         property var hosts: []
         property var clickTargets: []
+        property string shownHint: ""
+        property var hintTarget: null
         function registerWidgetHost(host) {
             hosts = hosts.concat([host]);
         }
@@ -38,8 +40,16 @@ TestCase {
             });
         }
         function showTooltip(target, text) {
+            if (target.tooltipHovered) {
+                shownHint = text;
+                hintTarget = target;
+            }
         }
         function hideTooltip(target) {
+            if (hintTarget === target) {
+                shownHint = "";
+                hintTarget = null;
+            }
         }
     }
 
@@ -50,6 +60,8 @@ TestCase {
             property var bar: null
             property var settings: ({})
             property string moduleName: ""
+            property string tooltipText: ""
+            readonly property bool firstHovered: firstMouse.containsMouse
             property bool opened: false
             property int clicks: 0
             property int secondClicks: 0
@@ -73,8 +85,10 @@ TestCase {
                     toggle();
             }
             MouseArea {
+                id: firstMouse
                 width: parent.width / 2
                 height: parent.height
+                hoverEnabled: true
                 acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                 onClicked: function (mouse) {
                     plugin.triggerPress(mouse.button);
@@ -85,6 +99,7 @@ TestCase {
                 x: parent.width / 2
                 width: parent.width / 2
                 height: parent.height
+                hoverEnabled: true
                 onClicked: plugin.secondClicks++
             }
         }
@@ -101,6 +116,9 @@ TestCase {
     }
 
     function init() {
+        mouseMove(testCase, 350, 80);
+        fakeBar.shownHint = "";
+        fakeBar.hintTarget = null;
         fakeBar.barHeight = 44;
         registry.widgets = {
             "example.unfamiliar": {
@@ -112,6 +130,25 @@ TestCase {
         };
         widget.settings = {};
         tryCompare(widget, "available", true);
+    }
+
+    function test_dynamicTooltipUsesNativeTextOrRegistryLabelAcrossEdges() {
+        waitForRendering(widget);
+        mouseMove(widget, 20, 16);
+        verify(plugin().firstHovered);
+        compare(fakeBar.shownHint, "Example");
+        plugin().tooltipText = "Native live status";
+        compare(fakeBar.shownHint, "Native live status");
+        plugin().tooltipText = "Updated status";
+        compare(fakeBar.shownHint, "Updated status");
+        mouseMove(testCase, 350, 80);
+        compare(fakeBar.shownHint, "");
+        mouseMove(testCase, 134, 47);
+        compare(fakeBar.shownHint, "Updated status");
+        plugin().tooltipText = "";
+        compare(fakeBar.shownHint, "Example");
+        mouseClick(testCase, 134, 47);
+        compare(fakeBar.shownHint, "");
     }
 
     function cleanup() {

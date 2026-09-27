@@ -16,13 +16,24 @@ TestCase {
         id: fakeBar
         property real barHeight: 44
         property color statusHoverFill: "#334455"
+        property string shownHint: ""
+        property var hintTarget: null
         function registerClickTarget(target) {
         }
         function unregisterClickTarget(target) {
         }
         function showTooltip(target, text) {
+            // BarHint rejects requests before the target reports its hover.
+            if (target.tooltipHovered) {
+                shownHint = text;
+                hintTarget = target;
+            }
         }
         function hideTooltip(target) {
+            if (hintTarget === target) {
+                shownHint = "";
+                hintTarget = null;
+            }
         }
     }
 
@@ -52,11 +63,25 @@ TestCase {
     }
 
     function init() {
+        mouseMove(testCase, 200, 60);
+        control.hintText = "Example status";
+        fakeBar.shownHint = "";
+        fakeBar.hintTarget = null;
         control.opened = false;
         control.pressActionButtons = 0;
         control.wheelAction = null;
         clicks = 0;
         elsewhere.forceActiveFocus();
+    }
+
+    function test_hoverHintUsesCurrentHoverStateAtCenterAndEdge() {
+        mouseMove(control, 20, 16);
+        verify(control.tooltipHovered);
+        compare(fakeBar.shownHint, "Example status");
+        mouseMove(testCase, 200, 60);
+        compare(fakeBar.shownHint, "");
+        mouseMove(testCase, 74, 47);
+        compare(fakeBar.shownHint, "Example status");
     }
 
     function test_mousePanelLifecycleDoesNotLeaveFocusOrUnderline() {

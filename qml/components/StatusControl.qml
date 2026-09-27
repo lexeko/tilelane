@@ -19,7 +19,7 @@ Rectangle {
     property int pressActionButtons: 0
     property var wheelAction: null
     property real indicatorWidth: Math.max(px(10), Math.round(width * 0.55))
-    readonly property bool tooltipHovered: hover.hovered
+    readonly property bool tooltipHovered: hover.hovered && hover.point.position.x >= pointer.x && hover.point.position.x < pointer.x + pointer.width && hover.point.position.y >= pointer.y && hover.point.position.y < pointer.y + pointer.height
     readonly property bool indicatorVisible: opened || activeFocus
     readonly property alias clickTarget: pointer
     property color accentColor: bar && bar.accentColor !== undefined ? bar.accentColor : "white"
@@ -36,13 +36,27 @@ Rectangle {
         return typeof activation === "function" && activation(button) === true;
     }
 
+    function syncHint() {
+        if (!bar)
+            return;
+        if (tooltipHovered && hintText !== "")
+            bar.showTooltip(root, hintText);
+        else
+            bar.hideTooltip(root);
+    }
+
+    // MouseArea.entered can run before HoverHandler updates tooltipHovered.
+    // Request hints from the same state that the tooltip host validates.
+    onTooltipHoveredChanged: syncHint()
+    onHintTextChanged: syncHint()
+
     implicitWidth: px(30)
     implicitHeight: px(32)
     width: implicitWidth
     height: implicitHeight
     radius: px(4)
     border.width: 0
-    color: pointer.pressed ? pressedColor : hover.hovered || activeFocus ? hoverColor : "transparent"
+    color: pointer.pressed ? pressedColor : tooltipHovered || activeFocus ? hoverColor : "transparent"
     activeFocusOnTab: visible && enabled
 
     Accessible.role: Accessible.Button
@@ -61,14 +75,16 @@ Rectangle {
         anchors.bottom: parent.bottom
     }
 
+    // Observe as an ancestor of native input handlers, not a covering sibling.
+    // Margin reaches the edges; tooltipHovered clips it to the actual hit area.
+    HoverHandler {
+        id: hover
+        margin: Math.max(root.rightHitPadding, pointer.bottomPadding)
+        blocking: false
+    }
+
     BarMouseArea {
         id: pointer
-
-        // Match hover feedback to the full hit area, including screen edges.
-        // A handler still observes native widgets that own their mouse input.
-        HoverHandler {
-            id: hover
-        }
 
         z: root.nativeInput ? -1 : 10
         bar: root.bar
@@ -79,10 +95,6 @@ Rectangle {
         forwardPress: function (button) {
             return root.activate(button);
         }
-        onEntered: if (root.bar && root.hintText !== "")
-            root.bar.showTooltip(root, root.hintText)
-        onExited: if (root.bar)
-            root.bar.hideTooltip(root)
         onPressed: function (event) {
             if (root.pressActionButtons & event.button)
                 root.activate(event.button);

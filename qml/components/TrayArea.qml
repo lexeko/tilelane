@@ -27,6 +27,7 @@ Item {
     readonly property real itemGap: px(1)
     readonly property real slotWidth: px(30)
     readonly property real hitSize: px(32)
+    readonly property bool trayHovered: trayHover.hovered && trayHover.point.position.x >= 0 && trayHover.point.position.x < width && trayHover.point.position.y >= 0 && trayHover.point.position.y < hitSize + bottomHitPadding
     readonly property real bottomHitPadding: bar ? Math.max(0, (bar.barHeight - hitSize) / 2) : 0
     readonly property real drawerExtent: itemCount > 0 ? itemCount * slotWidth + (itemCount - 1) * itemGap : 0
     property real revealProgress: expanded ? 1 : 0
@@ -77,24 +78,21 @@ Item {
         }
     }
 
-    Item {
-        z: 1
-        width: root.width
-        height: root.hitSize + root.bottomHitPadding
+    // An ancestor observer keeps drawer tracking from covering item tooltips.
+    HoverHandler {
+        id: trayHover
+        margin: root.bottomHitPadding
+        blocking: false
+    }
 
-        HoverHandler {
-            id: trayHover
-
-            onHoveredChanged: {
-                if (hovered) {
-                    collapseTimer.stop();
-                    if (!root.expanded)
-                        openTimer.restart();
-                } else {
-                    openTimer.stop();
-                    collapseTimer.restart();
-                }
-            }
+    onTrayHoveredChanged: {
+        if (trayHovered) {
+            collapseTimer.stop();
+            if (!expanded)
+                openTimer.restart();
+        } else {
+            openTimer.stop();
+            collapseTimer.restart();
         }
     }
 
@@ -102,7 +100,7 @@ Item {
         id: openTimer
 
         interval: 200
-        onTriggered: if (trayHover.hovered && root.visible)
+        onTriggered: if (root.trayHovered && root.visible)
             root.expanded = true
     }
 
@@ -277,7 +275,7 @@ Item {
                                 root.expanded = true;
                             } else if (root.activeMenu === trayMenu) {
                                 root.activeMenu = null;
-                                if (!trayHover.hovered)
+                                if (!root.trayHovered)
                                     collapseTimer.restart();
                             }
                         }

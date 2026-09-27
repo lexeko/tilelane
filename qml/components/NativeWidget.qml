@@ -14,11 +14,13 @@ StatusControl {
     // height. Fit the full bar, not the smaller hover/underline rectangle.
     readonly property real availableHeight: bar && bar.barHeight > 0 ? bar.barHeight : height
     readonly property real contentScale: Math.min(1, availableHeight / Math.max(1, nativeHost.implicitHeight))
+    readonly property var nativeHintTarget: nativeHost.findPressTarget(nativeHost.hostItem, 0)
 
     nativeInput: true
     opened: nativeHost.opened
     implicitWidth: available ? Math.max(px(30), nativeHost.implicitWidth * contentScale) : 0
     accessibleName: nativeHost.entry && nativeHost.entry.metadata ? String(nativeHost.entry.metadata.displayName || moduleName) : moduleName
+    hintText: nativeHintTarget && String(nativeHintTarget.tooltipText || "").trim() !== "" ? String(nativeHintTarget.tooltipText) : accessibleName
     activation: function (button) {
         return nativeHost.trigger(button);
     }

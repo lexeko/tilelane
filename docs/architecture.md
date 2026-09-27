@@ -198,6 +198,10 @@ properties; changes to that contract require compatibility review.
 uses `NativeWidget.qml` for any other registered component. `StatusControl.qml`
 owns hover/press backgrounds, keyboard activation, accessible names, hints,
 and the accent underline. Application tray entries use the same control.
+Hints follow the shared hover state across the full hit area, including screen
+edges. Nonblocking observers on the control and tray ancestors preserve the
+native mouse areas' hover events. Generic widgets use their native button's tooltip text,
+falling back to the registry display name without a per-plugin label list.
 Pointer clicks do not assign keyboard focus. Native components retain their
 own mouse and wheel handlers; the generic host does not replace their internal
 controls or promise to override styling drawn by the plugin itself.
