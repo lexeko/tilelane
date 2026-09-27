@@ -178,6 +178,22 @@ open on the focused screen. Numbered shortcuts count visible panels only on
 that screen, in visual order.
 Multiple instances are allowed only when the registry metadata permits them.
 
+`StartIndicators.qml` keeps Start's indicators in configured order regardless
+of active state. It reads `items` (or the legacy `indicators` list) from the
+indicator widget's settings. An empty selection uses the ordered choices in
+the registered widget's `items` schema, matching Omarchy's all-indicators
+default without duplicating the list in Tilelane. Stable keys retain native
+instances across configuration reordering and settings edits.
+
+The row loads Omarchy's native indicator QML files from the sibling
+`indicators` directory used by Omarchy's widget, supplying the
+native `single` block, settings, bar, and refresh host. Indicator IDs cannot
+contain path separators or traversal. Native state, visuals, and actions stay
+with those components; Tilelane supplies placement and Start's hints. The
+`omarchy.indicators refresh` IPC broadcasts to every screen's row. This adapter
+depends on Omarchy's current indicator schema, source layout, and `BarIndicator`
+properties; changes to that contract require compatibility review.
+
 `StatusWidgetSlot.qml` chooses a compact presentation for familiar widgets and
 uses `NativeWidget.qml` for any other registered component. `StatusControl.qml`
 owns hover/press backgrounds, keyboard activation, accessible names, hints,

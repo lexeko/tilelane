@@ -48,12 +48,7 @@ PanelWindow {
     readonly property real placeDividerHeight: sectionGap
     readonly property real trayIconSize: px(20) * 0.67
     readonly property real indicatorScale: trayIconSize / Math.max(1, Commons.Style.font.caption)
-    readonly property int indicatorSlotCount: {
-        const item = indicatorHost.hostItem;
-        if (!item || !item.indicatorEntries || typeof item.indicatorEntries.length !== "number")
-            return 0;
-        return item.indicatorEntries.length;
-    }
+    readonly property int indicatorSlotCount: indicatorHost.count
     readonly property var indicatorSettings: {
         const configured = bar && typeof bar.barWidgetSettings === "function" ? bar.barWidgetSettings("omarchy.indicators") : {
             "id": "omarchy.indicators"
@@ -71,41 +66,12 @@ PanelWindow {
         return value * uiScale;
     }
 
-    function indicatorEntryId(entry) {
-        const item = indicatorHost.hostItem;
-        if (item && typeof item.entryId === "function")
-            return String(item.entryId(entry) || "");
-        if (typeof entry === "string")
-            return entry;
-        return entry && entry.id !== undefined ? String(entry.id || "") : "";
-    }
-
-    function visibleIndicatorIds() {
-        const item = indicatorHost.hostItem;
-        if (!item || !item.indicatorEntries)
-            return [];
-        const states = item.indicatorActiveStates || ({});
-        const ids = [];
-        for (let index = 0; index < item.indicatorEntries.length; index++) {
-            const id = indicatorEntryId(item.indicatorEntries[index]);
-            if (id !== "" && states[id] !== true)
-                ids.push(id);
-        }
-        const activeIds = item.activeIndicatorIds || [];
-        for (let index = 0; index < activeIds.length; index++) {
-            const id = String(activeIds[index] || "");
-            if (id !== "" && ids.indexOf(id) === -1)
-                ids.push(id);
-        }
-        return ids;
-    }
-
     function indicatorHintFor(index) {
-        const item = indicatorHost.hostItem;
-        const ids = visibleIndicatorIds();
-        const id = index >= 0 && index < ids.length ? ids[index] : "";
-        const active = item && item.indicatorActiveStates && item.indicatorActiveStates[id] === true;
-        return HintLogic.startIndicator(id, active);
+        return indicatorHost.hintFor(index);
+    }
+
+    function indicatorState() {
+        return indicatorHost.snapshot();
     }
 
     function rebuild() {
@@ -506,7 +472,7 @@ PanelWindow {
                     Item {
                         id: indicatorStrip
 
-                        width: indicatorHost.available ? indicatorHost.implicitWidth * root.indicatorScale : 0
+                        width: indicatorHost.implicitWidth * root.indicatorScale
                         height: root.px(32)
                         anchors.right: parent.right
                         // The native indicator delegates center their glyphs in padded
@@ -516,7 +482,7 @@ PanelWindow {
                         anchors.verticalCenter: parent.verticalCenter
                         clip: true
 
-                        HostedBarWidget {
+                        StartIndicators {
                             id: indicatorHost
 
                             width: implicitWidth
@@ -524,12 +490,9 @@ PanelWindow {
                             anchors.centerIn: parent
                             scale: root.indicatorScale
                             transformOrigin: Item.Center
-                            moduleName: "omarchy.indicators"
                             registry: root.barWidgetRegistry
                             bar: root.bar
                             settings: root.indicatorSettings
-                            fallbackEntryPoint: "Indicators.qml"
-                            showVisual: true
                         }
 
                         Row {
@@ -545,10 +508,11 @@ PanelWindow {
                                     id: indicatorFrame
 
                                     required property int index
+                                    readonly property var slot: indicatorHost.slotAt(index)
                                     readonly property string hintText: root.indicatorHintFor(index)
                                     readonly property bool tooltipHovered: indicatorHover.hovered
 
-                                    width: indicatorStrip.width / Math.max(1, indicatorHoverFrames.count)
+                                    width: slot ? slot.width * root.indicatorScale : 0
                                     height: indicatorStrip.height
                                     radius: root.px(4)
                                     color: indicatorHover.hovered ? Commons.Color.menu.selectedBackground : "transparent"

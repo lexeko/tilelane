@@ -479,6 +479,16 @@ Item {
     }
 
     IpcHandler {
+        target: "omarchy.indicators"
+
+        function refresh(): void {
+            const items = root.moduleWidgets("omarchy.indicators");
+            for (let index = 0; index < items.length; index++)
+                items[index].refresh();
+        }
+    }
+
+    IpcHandler {
         target: "tilelane"
 
         function windowCount(): string {
@@ -648,7 +658,8 @@ Item {
                 "results": menu.results.length,
                 "places": menu.placeCount,
                 "pinnedPlaces": menu.pinnedPlaceCount,
-                "searchMs": menu.lastSearchMs
+                "searchMs": menu.lastSearchMs,
+                "indicators": menu.indicatorState()
             });
         }
 
