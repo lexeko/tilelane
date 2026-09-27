@@ -15,7 +15,7 @@ trap cleanup EXIT
 
 mkdir -p "$test_dir/qml/components" "$test_dir/plugin/views"
 cp "$repo_dir/tests/quickshell/widget-manifest.qml" "$test_dir/shell.qml"
-cp "$repo_dir/qml/components/HostedBarWidget.qml" "$repo_dir/qml/components/WidgetManifest.qml" "$test_dir/qml/components/"
+cp "$repo_dir/qml/components/HostedBarWidget.qml" "$repo_dir/qml/components/WidgetManifest.qml" "$repo_dir/qml/components/HostedObjectTree.qml" "$test_dir/qml/components/"
 cp "$repo_dir/qml/StatusWidgetLogic.js" "$test_dir/qml/"
 for label in First Second; do
   cat > "$test_dir/plugin/views/$label.qml" <<QML

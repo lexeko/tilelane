@@ -216,6 +216,21 @@ Bluetooth, Network, Audio, Displays, and Power load on demand and unload
 250 ms after closing. Visual widgets such as the clock and Dropbox have
 persistent hosts. Their own panels may have further loaders.
 
+Hosted widget trees are observed when nested loaders and visual children change.
+Status discovery reads QObject `data` lists outside property bindings and then
+binds to the discovered object's status properties. URL-loaded widgets receive
+their visual parent as an initial property, letting the host observe nested IPC
+handlers before registration without asynchronous widget incubation.
+
+A bar-owned `NativeIpcRegistry` allows one enabled native handler per target,
+preferring the focused monitor and falling back to another live instance. It
+uses reversible `Binding` overrides to preserve native enabled expressions;
+native method signatures and broadcast refresh behavior stay intact. Removing
+an output or reloading a widget releases ownership before another instance
+registers. The bar unloads hosted widgets before its own destruction, keeping
+native panel theme/geometry bindings valid during teardown. This coordination
+covers hosted widgets, not the shell's own startup IPC handlers.
+
 If a registry entry has no component, known presentations retain their fallback
 entry point. For an unfamiliar widget, the host reads the declared `barWidget`
 entry point from `manifest.json` under the registry's public `sourceDir`.

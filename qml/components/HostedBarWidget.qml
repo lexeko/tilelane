@@ -21,6 +21,10 @@ Item {
     property bool pendingOpen: false
     property var registeredBar: null
     property var registeredItem: null
+    property bool unloading: false
+    property string screenName: bar && typeof bar.widgetScreenName === "function" ? bar.widgetScreenName(root) : ""
+    readonly property var nativeObjects: objectTree.objects
+    signal nativeObjectsChangedForHost
     readonly property var entry: registry && registry.widgets ? registry.widgets[moduleName] : null
     readonly property string sourceDir: entry && entry.metadata ? String(entry.metadata.sourceDir || "") : ""
     readonly property string manifestEntryPoint: manifestLoader.item ? manifestLoader.item.entryPoint : ""
@@ -91,7 +95,7 @@ Item {
 
     function configure() {
         const item = hostItem;
-        if (!item)
+        if (!item || unloading)
             return;
         if ("bar" in item)
             item.bar = bar;
@@ -132,6 +136,7 @@ Item {
         const item = hostItem;
         return {
             "moduleName": moduleName,
+            "screenName": screenName,
             "hasEntry": !!entry,
             "hasComponent": !!entry && !!entry.component,
             "available": available,
@@ -207,7 +212,10 @@ Item {
     onBarChanged: {
         configure();
         syncHostRegistration();
+        objectTree.refresh();
     }
+    onFallbackSourceChanged: if (fallbackLoader)
+        fallbackLoader.syncSource()
     onSettingsChanged: configure()
     onAlignPanelToHostChanged: configure()
     onHostItemChanged: syncRegistration()
@@ -222,8 +230,12 @@ Item {
     function finishLoading() {
         configure();
         syncRegistration();
+        objectTree.refresh();
         Qt.callLater(function () {
+            if (root.unloading)
+                return;
             root.configure();
+            objectTree.refresh();
             if (root.pendingOpen)
                 root.open();
             else if (root.pendingButton >= 0)
@@ -231,6 +243,28 @@ Item {
             if (root.lazy && root.hostItem && root.hostItem.opened !== true)
                 unloadTimer.restart();
         });
+    }
+
+    function prepareForUnload() {
+        if (unloading)
+            return;
+        unloading = true;
+        objectTree.stopped = true;
+        if (bar && bar.nativeIpcRegistry)
+            bar.nativeIpcRegistry.unregisterHost(root);
+        registryLoader.active = false;
+        fallbackLoader.active = false;
+    }
+
+    HostedObjectTree {
+        id: objectTree
+        // Initial visual parenting exposes nested Loaders before their IPC hooks.
+        objectRoot: registryLoader.children.length ? registryLoader.children[0] : fallbackMount.children.length ? fallbackMount.children[0] : null
+        onRefreshed: {
+            if (root.bar && root.bar.nativeIpcRegistry)
+                root.bar.nativeIpcRegistry.registerHost(root, objects);
+            root.nativeObjectsChangedForHost();
+        }
     }
 
     onOpenedChanged: {
@@ -270,18 +304,32 @@ Item {
         onLoaded: root.finishLoading()
     }
 
+    Item {
+        id: fallbackMount
+        anchors.fill: parent
+        opacity: root.showVisual ? 1 : 0
+    }
+
     Loader {
         id: fallbackLoader
 
         anchors.fill: parent
         active: root.loadRequested && !!root.entry && !root.entry.component && root.fallbackSource !== ""
-        source: root.fallbackSource
-        opacity: root.showVisual ? 1 : 0
+        function syncSource() {
+            if (root.fallbackSource)
+                setSource(root.fallbackSource, {
+                    parent: fallbackMount
+                });
+            else
+                source = "";
+        }
         onLoaded: root.finishLoading()
+        Component.onCompleted: syncSource()
     }
 
     Component.onCompleted: syncHostRegistration()
     Component.onDestruction: {
+        prepareForUnload();
         if (registeredBar && typeof registeredBar.unregisterWidgetHost === "function")
             registeredBar.unregisterWidgetHost(root);
         if (registeredItem && bar && typeof bar.unregisterHostedWidget === "function")

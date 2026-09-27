@@ -348,6 +348,7 @@ run_check "QML unit tests" check_qml_tests
 run_check "minimize lifecycle regression" bash "$repo_dir/tests/test-minimize-lifecycle.sh"
 run_check "inline settings persistence" bash "$repo_dir/tests/test-settings.sh"
 run_check "Places bookmark updates" bash "$repo_dir/tests/test-places-watch.sh"
+run_check "hosted widget lifecycle" bash "$repo_dir/tests/test-hosted-lifecycle.sh"
 run_check "native widget manifest loading" bash "$repo_dir/tests/test-widget-manifest.sh"
 if command -v node >/dev/null 2>&1 && command -v lua >/dev/null 2>&1; then
   run_check "task pointer preservation" node "$repo_dir/tests/test-task-pointer.cjs"
@@ -366,10 +367,10 @@ run_check "bounded terminal identity retry" check_terminal_identity_retry_policy
 run_check "floating application launch policy" check_floating_launch_policy
 run_check "actionable bar hint policy" check_bar_hint_policy
 run_check "floating application launch helper" "$repo_dir/tests/test-launch-application.sh"
-run_check "shell script syntax" bash -n "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-widget-manifest.sh"
+run_check "shell script syntax" bash -n "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-widget-manifest.sh" "$repo_dir/tests/test-hosted-lifecycle.sh"
 
 if command -v shellcheck >/dev/null 2>&1; then
-  run_check "shell scripts" shellcheck "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-widget-manifest.sh"
+  run_check "shell scripts" shellcheck "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-widget-manifest.sh" "$repo_dir/tests/test-hosted-lifecycle.sh"
 else
   printf '[skip] shellcheck is not installed; repository scripts were not shell-linted\n'
 fi

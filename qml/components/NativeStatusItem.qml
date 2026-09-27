@@ -16,7 +16,7 @@ StatusControl {
     property var settings: ({})
     property string fallbackEntryPoint: ""
     readonly property real targetIconSize: uiScale * 20 * 0.67
-    readonly property var statusOwner: presentation === "text" ? nativeHost.hostItem : findLabeledModule(nativeHost.hostItem, 0)
+    property var statusOwner: null
     readonly property string statusText: {
         if (!statusOwner)
             return "";
@@ -31,25 +31,12 @@ StatusControl {
         return "Weather";
     }
 
-    function findLabeledModule(owner, depth) {
-        if (!owner || depth > 4)
-            return null;
-        if ("moduleName" in owner && String(owner.moduleName || "") === root.moduleName && "label" in owner)
-            return owner;
-        const objects = owner.data ? owner.data : [];
-        for (let index = 0; index < objects.length; index++) {
-            const object = objects[index];
-            if (object && "item" in object && object.item) {
-                const loaded = findLabeledModule(object.item, depth + 1);
-                if (loaded)
-                    return loaded;
-            }
-            const nested = findLabeledModule(object, depth + 1);
-            if (nested)
-                return nested;
-        }
-        return null;
+    function updateStatusOwner() {
+        statusOwner = presentation === "text" ? nativeHost.hostItem : nativeHost.nativeObjects.find(object => object && object.moduleName === root.moduleName && "label" in object) || null;
     }
+
+    onPresentationChanged: updateStatusOwner()
+    onModuleNameChanged: updateStatusOwner()
 
     function nativeState() {
         return nativeHost.capabilityState();
@@ -94,6 +81,7 @@ StatusControl {
         settings: root.settings
         fallbackEntryPoint: root.fallbackEntryPoint
         alignPanelToHost: root.moduleName === "omarchy.weather"
+        onNativeObjectsChangedForHost: root.updateStatusOwner()
     }
 
     Text {

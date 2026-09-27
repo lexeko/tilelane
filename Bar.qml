@@ -59,6 +59,21 @@ Item {
     property bool centerHoverRevealSuppressed: false
     property alias windowModel: globalWindows
     property alias workspaceModel: globalWorkspaces
+    property alias nativeIpcRegistry: nativeIpc
+
+    NativeIpcRegistry {
+        id: nativeIpc
+        preferredScreenName: Hyprland.focusedMonitor ? String(Hyprland.focusedMonitor.name || "") : ""
+    }
+
+    Component.onDestruction: {
+        nativeIpc.shutdown();
+        const hosts = widgetHosts.slice();
+        for (let index = 0; index < hosts.length; index++) {
+            if (hosts[index])
+                hosts[index].prepareForUnload();
+        }
+    }
 
     function registerTooltipHost(host) {
         if (!host || tooltipHosts.indexOf(host) !== -1)
@@ -208,6 +223,11 @@ Item {
                 result.push(record.item);
         }
         return result;
+    }
+
+    function widgetScreenName(host) {
+        const window = host ? host.QsWindow.window : null;
+        return window && window.screen ? String(window.screen.name || "") : "";
     }
 
     function registerWidgetHost(host) {
