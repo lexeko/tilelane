@@ -1,29 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.1.0
 
-- Fixed Start dismissal when clicking outside on another monitor.
-- Displayed the tray, status widgets, and clock on every monitor.
-- Loaded configured Omarchy widgets dynamically in layout order, including third-party widgets.
-- Shared status-control focus, hover, and panel underline behavior across native controls and tray items.
-- Preserved open widget panels when their settings or order change.
-- Added a bottom taskbar inside the existing Omarchy shell process.
-- Added one task per window, pins, Start search, Files places, and a workspace fan.
-- Added desktop-entry icons and bounded terminal-app and web-app matching.
-- Added normal and floating launches through Omarchy's app scope.
-- Added direct tray menus, native Omarchy panels, and the clock.
-- Kept Start pins separate from taskbar pins.
-- Stored pins and preferences in Omarchy's shell settings.
-- Kept pinned apps fixed while running tasks scroll.
-- Added matching overflow controls and wider fades for clipped tasks.
-- Changed the workspace button to a smaller numbered icon with opaque fan blades.
-- Matched Start and tray menu rounding and dividers to Omarchy styling.
-- Replaced open-state frames on tray controls and the clock with underlines.
-- Fixed tray mouse-button routing and outside-click menu dismissal.
-- Added a 200 ms tray hover delay.
-- Fixed opening-order tracking and preserved task rows and scroll position.
-- Fixed minimize recovery so tiled and floating windows retain their mode.
-- Kept the pointer in place when activating tasks.
-- Extended taskbar click areas to the bottom edge. Start and clock also reach their outer screen edges.
-- Restored standard named and numbered Omarchy panel shortcuts.
-- Added keyboard actions, accessible names, reduced motion, and regression tests.
+First release.
+
+- A bottom taskbar on each monitor, inside Omarchy's existing shell process.
+- One task per window, kept in opening order across focus and minimize changes.
+- Minimize and restore that preserve tiled or floating mode and pointer position.
+- Separate taskbar and Start pins, app search, and Files bookmarks in Places.
+- Desktop-entry icons, with terminal-app and web-app matching.
+- Normal and floating launches for apps and folders.
+- Window context menus with Omarchy's shortcut hints.
+- Per-monitor workspace switching, tray icons, and configured Omarchy widgets.
+- Native panel shortcuts, with panels opening on the relevant monitor.
+- Dynamic widget loading, stable panel state during reordering, and cleanup on reload.
+- Start dismissal on outside clicks, including clicks on another monitor.
+- Omarchy themes, menu rounding, and shared hover and open-panel styling.
+- Screen-edge click areas, delayed hover drawers, and fading task overflow.
+- Keyboard navigation, accessible names, and reduced motion.
+- Pins and preferences stored in Omarchy's shell settings.

@@ -1,90 +1,77 @@
-# Performance records
+# Performance
 
-The measurements below come from development checks recorded on 2026-09-19.
-They describe the earlier build. They are not fresh measurements of every
-later change. See [Contributing](../CONTRIBUTING.md#checks) for automated checks.
+Measured on 2026-09-27 using runtime code from `f284b70`.
+The `0.1.0` release draft has the same runtime files.
+These figures describe one session, not a comparison with the stock bar.
 
-## Environment for the earlier runs
+## Environment
 
-The session used Omarchy 4.0.4-1, Hyprland 0.56.2, and Quickshell 0.3.1.
-One physical display ran at 3840 by 2160, 60 Hz, and scale 1.6.
+Omarchy 4.0.4-1, Hyprland 0.56.2, Quickshell 0.3.1, and Qt 6.11.2.
+Hyprland used its FALLBACK display at 1920 by 1080 and scale 1.
+This does not measure rendering on a physical display.
 Tilelane shared the normal Omarchy shell process and its configured widgets.
-The desktop had no UPower battery. Powerstat and Turbostat were unavailable.
 
-An earlier stock-bar `ps` sample showed about 0.8% CPU and 458096 KiB RSS.
-It was a point-in-time sample after startup. It is not comparable to the
-controlled ten-minute result below.
+No battery was present. The package energy counter required root access and
+was not read. These results establish no power or battery benefit.
 
 ## Ten-minute idle sample
 
-The test read CPU ticks and resident memory from `/proc/$pid/stat` every
-30 seconds for 600 seconds. It used `getconf CLK_TCK` and `getconf PAGESIZE`
-to convert the values.
+After a 30-second settling period, the test read CPU ticks and resident memory
+from `/proc` every five seconds for 600 seconds. No compositor events occurred
+during the sample. A few read-only diagnostic calls ran near the start.
+CPU usage below measures the whole shell as a percentage of one CPU core.
 
-| Measurement                         | Recorded result                                    |
-| ----------------------------------- | -------------------------------------------------- |
-| CPU ticks across 600 seconds        | 24                                                 |
-| Mean CPU usage for the shared shell | 0.0400% of one core                                |
-| Interval CPU range                  | 0.0000% to 0.2663%                                 |
-| Resident memory at start            | 452456 KiB                                         |
-| Resident memory at end              | 451420 KiB                                         |
-| Direct child processes              | One host plugin watcher and two clipboard watchers |
+| Measurement                    | Result                                        |
+| ------------------------------ | --------------------------------------------- |
+| Mean shared-shell CPU          | 0.038% of one core                            |
+| Resident memory at start       | 456656 KiB                                    |
+| Resident memory at end         | 454912 KiB                                    |
+| Resident memory range          | 454784 to 456912 KiB                          |
+| Direct children at each sample | One plugin watcher and two clipboard watchers |
 
-This measures the whole Omarchy shell. It does not isolate Tilelane's cost.
-It does not establish an improvement over the stock bar or a battery benefit.
-The source notes recorded these results; raw samples are not committed in this repository.
+The snapshots did not show new child processes. Five-second sampling cannot
+rule out short-lived processes between samples. Source review found no
+recurring Tilelane-owned subprocess polling. Hosted widgets keep their own
+refresh schedules.
 
-## Window events and lifecycle
+## Window lifecycle and latency
 
-A 100-cycle test opened and closed uniquely identified Foot windows.
-It reported zero failures and returned to the original model count each time.
-Shared-shell memory changed from 508392 KiB to 507676 KiB.
+All 60 test windows opened, appeared in Tilelane's model, closed, and left the
+model. Each cycle returned to the original window count. Shared-shell memory
+changed from 455932 KiB to 454912 KiB.
 
-The 95th percentile was 101 ms from process launch to model entry and 73 ms
-from close request to model removal. The first value includes process startup.
+The latency figures exclude ten warmup cycles and use the remaining 50.
+The event measurements start when the test receives Hyprland's socket event.
+They include polling and an IPC round trip to observe Tilelane's model.
+They do not measure when a frame reaches the display.
 
-A separate 50-cycle run timed Hyprland's socket events before checking the
-Tilelane model. Its 95th percentile was 48 ms for opening and 40 ms for closing.
-The diagnostic process round trip was about 29 ms and is included in those results.
-This measured model visibility, not the time when the display presented a frame.
+| Measurement                   | 95th percentile |
+| ----------------------------- | --------------- |
+| Process launch to model entry | 73.0 ms         |
+| Open event to model entry     | 36.7 ms         |
+| Close event to model removal  | 34.5 ms         |
 
 ## Panel lifecycle
 
-Twenty Audio panel cycles opened, closed, and unloaded without failure.
-The lazy loader waited 250 ms after close. No panel layer or extra child
-remained. Shared-shell memory changed from 506376 KiB to 493828 KiB.
+Audio, network, Bluetooth, display, clock, weather, and Dropbox each completed
+one warmup cycle and ten measured open/close cycles. All 77 cycles passed.
+No new shell diagnostics appeared during the window or panel tests.
 
-Current code keeps visual widget hosts loaded and unloads the five panel-only
-controls. The older result does not prove that every hosted widget unloads.
-Each native component can also have its own internal loaders and schedules.
+Resident memory rose when panels first loaded. After warmup, the end-of-round
+samples ranged from 463628 to 467964 KiB and finished at 466932 KiB.
+The samples did not show steady growth. This short run does not rule out a
+slow leak. Native widgets may keep components or caches loaded after closing.
 
-## Displays and scaling
+## Work that can start a process
 
-A temporary headless output exercised screen creation and removal.
-The earlier test used output scales 1, 1.25, 1.5, and 2.
-At the default UI scale, the bar stayed 44 logical pixels high.
-Crops measured 44, 55, 66, and 88 physical pixels in height.
-
-Removing the virtual output while Start was open left one bar and no stale
-Start window. The model count and shell process count stayed at their expected values.
-This covers virtual screen lifecycle. It does not cover physical cable events
-or suspend/resume.
-
-## Current work that can start a process
-
-The [architecture inventory](architecture.md#processes-and-commands) is the
-current source for process triggers. It includes app launch, hidden-entry scans,
-terminal identity probes, shortcut lookup, and window actions.
+The [architecture inventory](architecture.md#processes-and-commands) lists
+process triggers. These include app launch, hidden-entry scans, terminal
+identity probes, shortcut lookup, and window actions.
 
 Floating launch can poll new clients up to 40 times after a user request.
-Terminal identification allows a bounded set of startup retries.
-A new window without a PID can also request a batched native detail refresh.
-These paths were added or changed after some early measurements.
-The old claim that opening a window can never trigger a process is obsolete.
-
-Tilelane does not run a recurring idle subprocess query. Short hover,
-collapse, unload, and hint timers manage UI state. Hosted Omarchy widgets keep
-their own refresh schedules. Count those separately when attributing work.
+Terminal identification allows bounded startup retries. A window without a
+PID can request a batched detail refresh. Hover, collapse, unload, and hint
+timers manage UI state without recurring idle subprocess queries.
 
 ## Repeat the measurements
 
@@ -101,12 +88,11 @@ ps -eo pid,ppid,etimes,%cpu,rss,comm,args
 
 Process output can contain private application arguments. Review it before sharing.
 
-For a comparison, alternate stock-bar and Tilelane runs under the same conditions.
-Measure each for ten minutes. Keep raw samples and report the median across runs.
-Track both CPU ticks and direct children. State which process owns each timer or command.
+For a stock-bar comparison, alternate stock and Tilelane runs under the same
+conditions. Measure each for ten minutes and report the median across runs.
+Keep raw CPU ticks, memory samples, child processes, and compositor event counts.
+Separate process launch time from compositor-event latency.
 
-Use controlled test windows for lifecycle and latency measurements.
-Observe compositor events separately from process launch time.
-Restore the prior bar, workspace, and test output state after a live experiment.
-
-These measurements do not cover battery use, physical hot-plug, or suspend/resume.
+Use controlled test windows. Restore the prior bar, focus, and pointer after
+testing. Physical display scaling, cable events, and suspend/resume need their
+own checks. The fallback-display measurements above do not cover them.

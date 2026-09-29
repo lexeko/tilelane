@@ -1,20 +1,20 @@
 # Tilelane
 
-A tiling desktop takes some getting used to. Tilelane gives Omarchy a familiar
-taskbar and Start menu, so you can open your apps and get on with your day.
-Start with the mouse and learn at your own pace.
+A familiar taskbar and Start menu for Omarchy. Open your apps with the mouse,
+then learn Omarchy's window shortcuts from the task context menus as you go.
+Use the menu today and try a shortcut next time.
 
-Start has places for your folders, too. It picks up your bookmarks from Files,
-alongside Home, Recent, and other built-in locations. Add a bookmark in Files,
-and it appears in Start.
+Find apps in Start and pin your favorites there or on the taskbar. Each has its
+own pins. Start also has Places for your folders. It picks up your bookmarks
+from Files, alongside Home, Recent, and other built-in locations. Change a
+bookmark in Files, and Start updates automatically.
 
-Right-click a task to see its window actions, with Omarchy's shortcuts beside
-them. Use the menu today and try a shortcut next time. You don't have to learn
-them all before you settle in.
+See one task for each window, in opening order. Minimize and restore windows
+without changing their tiled or floating mode. Each monitor gets a bar with
+its own tasks and workspaces, plus tray icons and your configured Omarchy widgets.
 
-Omarchy has your everyday apps ready to go. Hyprland still handles the tiling,
-and the standard shortcuts keep working. Tilelane follows Omarchy's colors and
-fonts, too. Pick a new theme, and the bar changes with it.
+Tilelane follows your Omarchy theme and leaves Hyprland in charge of tiling.
+The standard shortcuts keep working. Pick a new theme, and the bar changes with it.
 
 ![Tilelane on Omarchy with the Start menu open](preview.png)
 
@@ -102,29 +102,49 @@ rewrite Omarchy's bindings.
 
 ## Configure
 
-Tilelane reads Omarchy's widget settings. For example:
+Tilelane follows a classic desktop taskbar layout. Start always sits at the
+far left, with the workspace switcher beside it. Pinned apps and open windows
+come next. The clock stays at the far right. Tray icons and status widgets
+sit together to the left of the clock, with small gaps between groups.
+
+You can rearrange those status widgets through Omarchy. Start, the workspace
+switcher, and the task area stay in place.
+
+Omarchy's section names describe its own bar. Tilelane fits those sections
+into this taskbar layout:
+
+- The `right` section holds the tray and controls such as Bluetooth, Network,
+  and Volume. They stay together on the right side of Tilelane.
+- The `center` section holds items such as Language, Weather, and Updates.
+  They sit between those controls and the clock. The clock goes at the far
+  right, even though Omarchy puts it in `center`.
+- The `left` section normally holds Omarchy's menu and workspaces. Tilelane
+  provides Start and its own workspace switcher instead. If you add other
+  widgets to `left`, they join the status area, before the `right` widgets.
+
+Within each group, your chosen order still applies. For example, to put
+Volume before Bluetooth:
 
 ```sh
-omarchy bar set omarchy.clock format 'h:mm AP'
+omarchy bar move omarchy.audio --section right --before omarchy.bluetooth
 ```
+
+Volume moves within the status area. Start, the workspace switcher, and the
+clock stay where they are. Omarchy's indicators appear inside Start.
 
 Use `omarchy plugin enable` and `omarchy plugin disable` for optional widgets.
-Configured bar widgets appear automatically in the right-hand status area.
-From left to right, Tilelane places the other controls first, then Omarchy's
-center group (such as language, weather, and updates), then the clock at the
-right edge. Item order within each group follows the configuration; the other
-controls combine the left and right sections in that order.
-Move a widget or change its settings with Omarchy:
+Dropbox, for example, belongs to Omarchy's `right` section by default and
+appears alongside the other controls. Application tray icons appear in the
+tray drawer. Some widgets only appear when needed, such as Power on a laptop
+with a battery or Updates when updates are available.
+
+Change a widget's settings with Omarchy too:
 
 ```sh
-omarchy bar move omarchy.weather --section center --index 1
 omarchy bar set omarchy.clock format 'h:mm AP'
 ```
 
-Changes apply without restarting the shell. Start, the workspace switcher,
-and the task list stay in their Tilelane positions; the standard menu,
-workspace, and indicator widgets are already represented there or inside Start.
-Application tray icons continue to appear automatically in the tray drawer.
+Changes apply without restarting the shell.
 
 Existing status controls share Tilelane's hover, keyboard-focus, and panel
 underline styling. Other plugins keep their own visual content and mouse

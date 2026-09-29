@@ -23,6 +23,11 @@ The contract comes from the installed `shell/README.md`, `shell.qml`, and
 `services/PluginRegistry.qml` under `/usr/share/omarchy`.
 Those packaged files are read-only references for this project.
 
+Tilelane was tested on two computers, with single-monitor and multi-monitor
+setups running Omarchy 4.0.4, Hyprland 0.56.2, and Qt 6.11.2. Testing included
+manual checks and automated regression tests. The release checks passed 168
+QML test cases, along with integration and rendering tests.
+
 ## Shared models and screen views
 
 `Bar.qml` owns one `WindowModel`, `WorkspaceModel`, `ApplicationCatalog`,

@@ -42,13 +42,10 @@ underline for active or open-menu state. Keyboard focus remains visible.
 The clickable area can be larger than the visible frame. Extending clicks to
 the screen edge does not stretch the icon, text, or underline.
 
-## Reference images
+## Project preview
 
 [The project preview](../preview.png) shows the full desktop with Tilelane's
 taskbar and Start menu open.
-
-`tests/golden/stock-current/idle-bar.png` records the installed stock bar.
-[The golden-image README](../tests/golden/README.md) records its hash.
 
 ## Earlier visual checks
 
@@ -61,10 +58,9 @@ were 8.10:1 for bar text, 6.79:1 for the accent, and 6.46:1 for urgent color.
 These values describe those colors only. They do not certify other themes
 or the entire interface's accessibility.
 
-The reference set lacks matching full Start and tray scenes in light and dark themes.
-No complete pixel-difference or SSIM result is available for those views.
-Later manual checks covered the changed controls. They do not turn the old
-reference images into a current whole-interface baseline.
+No complete pixel-difference or SSIM result is available for Start and tray
+scenes in light and dark themes. Later manual checks covered the changed
+controls, but do not establish a whole-interface visual baseline.
 
 ## Check a visual change
 
@@ -74,7 +70,7 @@ screen if the change affects layout. Check the bottom-edge hit area separately
 from the visible frame.
 
 Use the same theme, font, screen scale, and scene when comparing images.
-Record the source revision and capture conditions. Keep output images separate
-from the immutable references. Use `tests/output/` for local captures.
+Record the source revision and capture conditions. Use `tests/output/` for
+local captures.
 
 New window title bars are outside the current implementation.

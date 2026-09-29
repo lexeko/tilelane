@@ -134,7 +134,7 @@ omarchy-shell tilelane hostPanelState omarchy.audio ''
 For lazy panels, `available: false` can be normal before opening or after
 closing. `hasEntry` reports whether the registry supplies the widget.
 `configured`, `visible`, and `opened` are available for the standard panel controls.
-The clock's diagnostic response currently reports only presence and availability.
+The clock uses the same diagnostic fields as the other hosted widgets.
 
 Test the same route used by Omarchy's Audio shortcut:
 
