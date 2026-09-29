@@ -270,6 +270,7 @@ Ui.KeyboardPanel {
                     anchors.leftMargin: root.px(8)
                     width: root.px(16)
                     text: row.modelData.checkState === Qt.PartiallyChecked ? "−" : row.modelData.checkState === Qt.Checked ? row.modelData.buttonType === QsMenuButtonType.RadioButton ? "●" : "✓" : ""
+                    textFormat: Text.PlainText
                     color: Commons.Color.menu.text
                     font.family: Commons.Style.font.menuFamily
                     font.pixelSize: Commons.Style.font.body
@@ -299,6 +300,7 @@ Ui.KeyboardPanel {
                     anchors.right: parent.right
                     anchors.rightMargin: root.px(8)
                     text: "›"
+                    textFormat: Text.PlainText
                     color: Commons.Util.alpha(Commons.Color.menu.text, 0.72)
                     font.family: Commons.Style.font.menuFamily
                     font.pixelSize: Commons.Style.font.body

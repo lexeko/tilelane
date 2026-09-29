@@ -1,0 +1,63 @@
+import QtQuick
+import QtTest
+import "Commons.js" as Commons
+import "PlacesLogic.js" as PlacesLogic
+
+TestCase {
+    id: testCase
+    name: "BookmarkPlainText"
+    when: windowShown
+    visible: true
+    width: 1000
+    height: 120
+
+    QtObject {
+        id: placeRow
+        property var modelData: ({name: ""})
+    }
+    Item {
+        id: placeIcon
+        width: 18
+    }
+    Row {
+        id: row
+        width: parent.width
+        height: 40
+        spacing: 10
+        BOOKMARK_TEXT_OBJECT
+    }
+    Text {
+        id: reference
+        text: placeRow.modelData.name
+        textFormat: Text.PlainText
+        font.family: Commons.Style.font.menuFamily
+        font.pixelSize: Commons.Style.font.body
+        visible: false
+    }
+
+    function test_literalBookmark_data() {
+        return [
+            {tag: "ordinary", label: "Files & café"},
+            {tag: "bold", label: "<b>System</b>"},
+            {tag: "font", label: "<font color='red' size='7'>Warning</font>"},
+            {tag: "lineBreak", label: "Home<br>Settings"},
+            {tag: "link", label: "<a href='https://example.invalid'>Open</a>"},
+            {tag: "image", label: "<img src='missing-test-image.png' width='800' height='800'>"},
+            {tag: "entity", label: "&lt;b&gt; literal &amp; text"}
+        ];
+    }
+
+    function test_literalBookmark(data) {
+        // Exercise the real parser and the unmodified Text object extracted
+        // from StartMenu.qml, including its binding, elision and format.
+        placeRow.modelData = PlacesLogic.parseBookmarks("file:///tmp " + data.label, "", "/tmp")[0];
+        const label = row.children[0];
+        compare(label.text, data.label);
+        compare(label.textFormat, Text.PlainText);
+        label.forceLayout();
+        reference.forceLayout();
+        fuzzyCompare(label.contentWidth, reference.contentWidth, 0.1);
+        fuzzyCompare(label.contentHeight, reference.contentHeight, 0.1);
+        compare(label.linkAt(2, label.height / 2), "");
+    }
+}

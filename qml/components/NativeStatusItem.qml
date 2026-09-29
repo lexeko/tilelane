@@ -90,6 +90,7 @@ StatusControl {
         visible: root.presentation === "text"
         anchors.centerIn: parent
         text: root.statusText
+        textFormat: Text.PlainText
         color: Commons.Color.bar.text
         font.family: Commons.Style.font.family
         font.pixelSize: Math.max(1, Commons.Style.font.body - 0.5)

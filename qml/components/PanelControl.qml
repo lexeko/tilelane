@@ -163,6 +163,7 @@ StatusControl {
         anchors.horizontalCenterOffset: implicitWidth / 2 - (glyphMetrics.tightBoundingRect.x + glyphMetrics.tightBoundingRect.width / 2)
         anchors.verticalCenterOffset: height / 2 - baselineOffset - (glyphMetrics.tightBoundingRect.y + glyphMetrics.tightBoundingRect.height / 2)
         text: root.iconGlyph
+        textFormat: Text.PlainText
         color: Commons.Color.bar.text
         font.family: Commons.Style.font.family
         font.pixelSize: Math.max(1, Math.round(root.px(16) * root.px(20) * 0.67 / Math.max(1, referenceMetrics.tightBoundingRect.width, referenceMetrics.tightBoundingRect.height)))

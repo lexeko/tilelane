@@ -60,6 +60,7 @@ StatusControl {
 
         anchors.centerIn: parent
         text: ClockLogic.formatDateTime(clock.date, root.format)
+        textFormat: Text.PlainText
         color: Commons.Color.bar.text
         font.family: Commons.Style.font.family
         font.pixelSize: Commons.Style.font.body

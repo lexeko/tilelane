@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Display bookmark names and other Tilelane labels as plain text, preventing
+  embedded markup from changing their appearance or loading inline images.
+
 ## 0.1.0
 
 First release.

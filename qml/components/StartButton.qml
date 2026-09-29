@@ -76,6 +76,7 @@ Item {
         Text {
             anchors.verticalCenter: parent.verticalCenter
             text: root.label
+            textFormat: Text.PlainText
             color: root.textColor
             font.family: Commons.Style.font.family
             font.pixelSize: Commons.Style.font.subtitle

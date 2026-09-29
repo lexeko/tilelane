@@ -269,6 +269,7 @@ Ui.KeyboardPanel {
                         anchors.leftMargin: Commons.Style.space(8)
                         anchors.verticalCenter: parent.verticalCenter
                         text: String(menuRow.modelData.glyph || "")
+                        textFormat: Text.PlainText
                         color: Commons.Color.menu.text
                         horizontalAlignment: Text.AlignHCenter
                         font.family: Commons.Style.font.family
@@ -297,6 +298,7 @@ Ui.KeyboardPanel {
                         anchors.rightMargin: Commons.Style.space(8)
                         anchors.verticalCenter: parent.verticalCenter
                         text: String(menuRow.modelData.shortcut || "")
+                        textFormat: Text.PlainText
                         color: Commons.Util.alpha(Commons.Color.menu.text, 0.62)
                         font.family: Commons.Style.font.menuFamily
                         font.pixelSize: Commons.Style.font.caption

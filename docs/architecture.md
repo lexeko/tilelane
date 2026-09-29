@@ -265,6 +265,15 @@ Status hover feedback follows the extended hit area too, including native
 widgets that retain their own mouse handlers. Padding comes from the current
 layout, so changing widget order or size keeps edge interaction intact.
 
+## External text
+
+All Text items owned by Tilelane explicitly use `Text.PlainText`. Bookmark
+labels, app names, window titles, shortcut hints, clock formats, and status
+labels remain literal strings; embedded markup cannot change their formatting
+or load inline images. Hosted widgets retain responsibility for their own text.
+The checker renders the production bookmark label with markup-like inputs and
+checks every owned Text declaration for this policy.
+
 ## Files and settings
 
 | Path                                                 | Use                                                |

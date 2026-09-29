@@ -149,6 +149,7 @@ Rectangle {
             anchors.fill: parent
             visible: root.iconSource === "" || iconImage.status === Image.Error
             text: root.displayTitle.slice(0, 1).toUpperCase()
+            textFormat: Text.PlainText
             color: Commons.Color.bar.text
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter

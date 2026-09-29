@@ -636,6 +636,7 @@ PanelWindow {
                                             anchors.centerIn: parent
                                             visible: appIcon.status === Image.Error
                                             text: String(appRow.modelData.name || "?").slice(0, 1).toUpperCase()
+                                            textFormat: Text.PlainText
                                             color: Commons.Color.menu.text
                                             font.family: Commons.Style.font.menuFamily
                                             font.pixelSize: Commons.Style.font.title
@@ -711,6 +712,7 @@ PanelWindow {
 
                                     contentItem: Text {
                                         text: appRow.pinned ? "\uDB81\uDC03" : "\uDB82\uDD31"
+                                        textFormat: Text.PlainText
                                         color: appRow.pinned ? Commons.Color.accent : pinButton.hovered || pinButton.activeFocus ? Commons.Color.menu.text : Commons.Util.alpha(Commons.Color.menu.text, 0.66)
                                         horizontalAlignment: Text.AlignHCenter
                                         verticalAlignment: Text.AlignVCenter
@@ -731,6 +733,7 @@ PanelWindow {
                                 anchors.centerIn: parent
                                 visible: root.results.length === 0
                                 text: "No applications found"
+                                textFormat: Text.PlainText
                                 color: Commons.Util.alpha(Commons.Color.menu.text, 0.66)
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
@@ -873,6 +876,7 @@ PanelWindow {
                                         width: parent.width - placeIcon.width - parent.spacing
                                         anchors.verticalCenter: parent.verticalCenter
                                         text: String(placeRow.modelData.name || "")
+                                        textFormat: Text.PlainText
                                         color: Commons.Color.menu.text
                                         font.family: Commons.Style.font.menuFamily
                                         font.pixelSize: Commons.Style.font.body
@@ -945,6 +949,7 @@ PanelWindow {
                                     width: root.px(18)
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: "⏻"
+                                    textFormat: Text.PlainText
                                     color: Commons.Color.menu.text
                                     horizontalAlignment: Text.AlignHCenter
                                     font.family: Commons.Style.font.menuFamily
@@ -955,6 +960,7 @@ PanelWindow {
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: "System"
+                                    textFormat: Text.PlainText
                                     color: Commons.Color.menu.text
                                     font.family: Commons.Style.font.menuFamily
                                     font.pixelSize: Commons.Style.font.body

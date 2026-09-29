@@ -227,6 +227,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     text: root.activeWorkspaceText
+                    textFormat: Text.PlainText
                     color: Commons.Color.bar.text
                     font.family: Commons.Style.font.family
                     font.pixelSize: Commons.Style.font.body
@@ -433,6 +434,7 @@ Item {
                         width: Math.max(1, parent.width - root.px(6) * root.bladeScale)
                         y: root.px(12) * root.bladeScale
                         text: String(blade.modelData)
+                        textFormat: Text.PlainText
                         horizontalAlignment: Text.AlignHCenter
                         color: blade.urgent ? Commons.Color.urgent : root.bladeText(blade.focused, blade.hovered, blade.occupied)
                         font.family: Commons.Style.font.family

@@ -103,6 +103,7 @@ Rectangle {
         anchors.centerIn: parent
         visible: root.iconSource === "" || iconImage.status === Image.Error
         text: root.label.slice(0, 1).toUpperCase()
+        textFormat: Text.PlainText
         color: Commons.Color.bar.text
         font.family: Commons.Style.font.family
         font.pixelSize: Commons.Style.font.body

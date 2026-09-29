@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.lexeko.tilelane",
   "name": "Tilelane",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Alexey Konoplev",
   "license": "MIT",
   "description": "A native task-oriented full bar for Omarchy Quattro.",

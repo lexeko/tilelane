@@ -72,6 +72,7 @@ StatusControl {
             visible: root.showPercentage
             anchors.verticalCenter: parent.verticalCenter
             text: root.percentage + "%"
+            textFormat: Text.PlainText
             color: Commons.Color.bar.text
             font.family: Commons.Style.font.family
             font.pixelSize: Commons.Style.font.body
@@ -98,6 +99,7 @@ StatusControl {
 
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
+            textFormat: Text.PlainText
             color: Commons.Color.bar.text
             font.family: Commons.Style.font.family
             font.pixelSize: Math.max(1, Math.round(root.px(16) * root.px(20) * 0.67 / Math.max(1, referenceMetrics.tightBoundingRect.width, referenceMetrics.tightBoundingRect.height)))
