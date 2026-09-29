@@ -142,52 +142,6 @@ function sameRecord(first, second) {
     return true;
 }
 
-function indexForAddress(records, address) {
-    var expected = normalizeAddress(address);
-    for (var i = 0; i < records.length; i++) {
-        if (records[i].address === expected)
-            return i;
-    }
-    return -1;
-}
-
-function applyEvent(records, event, nextOrder) {
-    var result = records.slice(0);
-    var address = normalizeAddress(event.address);
-    var index = indexForAddress(result, address);
-    var order = Math.max(1, Math.round(numberValue(nextOrder, 1)));
-    if (event.type === "close") {
-        if (index !== -1 && (!event.generation || result[index].generation === event.generation))
-            result.splice(index, 1);
-        return {
-            records: result,
-            nextOrder: order
-        };
-    }
-    if (event.type !== "upsert" || address === "")
-        return {
-            records: result,
-            nextOrder: order
-        };
-
-    var incoming = {};
-    for (var key in event)
-        incoming[key] = event[key];
-    incoming.address = address;
-    if (index === -1) {
-        incoming.orderKey = creationOrder(incoming.stableId) || order++;
-        result.push(normalizeRecord(incoming));
-    } else {
-        incoming.orderKey = creationOrder(incoming.stableId) || result[index].orderKey;
-        result[index] = normalizeRecord(incoming);
-    }
-    order = Math.max(order, incoming.orderKey + 1);
-    return {
-        records: result,
-        nextOrder: order
-    };
-}
-
 function visibleOnMonitor(record, monitorName, workspacePolicy, workspaceName) {
     if (!record || record.address === "" || !record.mapped || record.hidden)
         return false;

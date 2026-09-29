@@ -150,8 +150,6 @@ QtObject {
             const origin = fallbackOrigins[address];
             return origin !== undefined && restoreExact(address, origin);
         }
-        if (action === "maximize" || action === "float")
-            return fallback(action, address, "");
         return fallback(action, address, "");
     }
 

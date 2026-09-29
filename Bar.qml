@@ -7,7 +7,6 @@ import Quickshell.Hyprland
 import Quickshell.Services.SystemTray
 import Quickshell.Wayland
 import "qml/BarGeometry.js" as BarGeometry
-import "qml/HintLogic.js" as HintLogic
 import "qml/PanelRouting.js" as PanelRouting
 import "qml/components"
 import "qml/models"
@@ -118,10 +117,6 @@ Item {
 
     function shortcut(description) {
         return shortcutCatalog.shortcut(description);
-    }
-
-    function actionHint(action, shortcutDescription) {
-        return HintLogic.withShortcut(action, shortcut(shortcutDescription));
     }
 
     function requestPopout(owner) {
@@ -290,20 +285,6 @@ Item {
     function isBarWidgetOpen(pluginId) {
         const host = findPanelHost(pluginId);
         return !!host && (host.opened || host.pendingOpen);
-    }
-
-    function barWidgetSetting(id, key, fallback) {
-        const layout = barConfig && barConfig.layout ? barConfig.layout : ({});
-        const sections = ["left", "center", "right"];
-        for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
-            const entries = layout[sections[sectionIndex]] || [];
-            for (let entryIndex = 0; entryIndex < entries.length; entryIndex++) {
-                const entry = entries[entryIndex];
-                if (entry && String(entry.id || entry) === id && entry[key] !== undefined)
-                    return entry[key];
-            }
-        }
-        return fallback;
     }
 
     function barWidgetSettings(id) {
@@ -754,8 +735,6 @@ Item {
 
     component BarPanel: PanelWindow {
         id: barWindow
-
-        property alias taskModel: screenWindows.model
 
         implicitHeight: root.barHeight
         color: Commons.Color.bar.background

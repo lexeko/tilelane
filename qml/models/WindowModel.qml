@@ -125,13 +125,23 @@ Item {
         dynamicRoles: true
     }
 
-    // Newly announced windows can have no IPC snapshot yet (notably no PID).
-    // Batch requests for those windows; this is event-driven, not polling.
+    // New windows can lack IPC details. Floating changes also need a fresh
+    // snapshot because Quickshell has no dedicated floating property.
+    // Batch both requests without polling or postponing an existing refresh.
     Timer {
         id: windowDetailsRefresh
 
         interval: 50
         onTriggered: Hyprland.refreshToplevels()
+    }
+
+    Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (event.name === "changefloatingmode" && !windowDetailsRefresh.running)
+                windowDetailsRefresh.start();
+        }
     }
 
     Instantiator {

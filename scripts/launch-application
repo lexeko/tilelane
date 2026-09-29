@@ -98,6 +98,7 @@ normalized_host="${web_app_host,,}"
 
 for ((attempt = 0; attempt < 40; attempt++)); do
   clients="$(hyprctl -j clients 2>/dev/null || true)"
+  # Window IDs can themselves end in .desktop. Keep their literal match too.
   match="$(jq -r --argjson before "$before_addresses" --arg expected "$normalized_expected" --arg desktop "$normalized_desktop" --arg host "$normalized_host" '
     def normalized: ascii_downcase | sub("\\.desktop$"; "");
     def webmatch($value; $host):
@@ -112,6 +113,7 @@ for ((attempt = 0; attempt < 40; attempt++)); do
       | (.initialClass // "") as $initial
       | select(($expected != "" and (($class | normalized) == $expected or ($initial | normalized) == $expected))
           or ($class | normalized) == $desktop or ($initial | normalized) == $desktop
+          or ($class | ascii_downcase) == $desktop or ($initial | ascii_downcase) == $desktop
           or webmatch($class; $host) or webmatch($initial; $host))]
     | sort_by(.focusHistoryID // 999999)
     | .[0] // empty

@@ -18,7 +18,6 @@ Item {
     property real uiScale: 1
     readonly property real buttonHeight: Math.max(24 * uiScale, barHeight - 8 * uiScale)
     readonly property bool overflowing: taskArea.overflowing
-    readonly property real scrollOffset: taskViewport.contentX
 
     function px(value) {
         return value * uiScale;

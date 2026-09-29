@@ -23,7 +23,7 @@ omarchy plugin validate .
 ./scripts/check
 ```
 
-The checks use Qt's QML tools. Node and Lua run the pointer regression tests.
+The checks use Qt's QML tools and Python 3. Node and Lua run the pointer regression tests.
 Install ShellCheck for shell linting. The check script reports tools it skips.
 
 After installing and selecting Tilelane, run `./scripts/smoke`.
@@ -37,6 +37,10 @@ discovery, settings updates, ordering, and removal in the live bar. Remove the
 fixture with `omarchy plugin remove local.tilelane-dynamic-test --yes` afterward.
 The automated checks also exercise manifest loading in an isolated, headless
 Quickshell process without changing the desktop configuration.
+Window-model checks load the production model without a compositor connection.
+They cover opening order, state updates, stale close events, and source cleanup.
+A separate test sends Hyprland events through local test sockets. It checks
+floating-state refreshes, rapid toggles, and windows closed before a refresh.
 
 Documentation-only changes need a link and factual review, not UI tests.
 

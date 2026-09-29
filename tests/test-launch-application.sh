@@ -87,6 +87,15 @@ if grep -E 'dispatch.*address:0x(111|333)' "$TILELANE_TEST_LOG" >/dev/null; then
   fail "native fallback changed an existing or unrelated window"
 fi
 
+for launch_mode in auto floating; do
+  for window_class in org.example.desktop ChangedClass; do
+    reset_case
+    export TILELANE_TEST_AFTER='[{"address":"0x456","class":"'"$window_class"'","initialClass":"org.example.desktop","floating":false,"focusHistoryID":0}]'
+    bash "$repo_dir/scripts/launch-application" "$launch_mode" 1 "org.example.desktop.desktop" LegacyExample ""
+    grep -F 'address:0x456' "$TILELANE_TEST_LOG" >/dev/null || fail "window ID ending in .desktop did not match its desktop file"
+  done
+done
+
 reset_case
 export TILELANE_TEST_AFTER='[{"address":"0xdef","class":"brave-youtube.com__-Default","initialClass":"brave-youtube.com__-Default","floating":true,"focusHistoryID":0}]'
 bash "$repo_dir/scripts/launch-application" floating 1 "YouTube.desktop" YouTube youtube.com

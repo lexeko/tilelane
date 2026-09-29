@@ -12,7 +12,7 @@
 build/
 result/
 
-# Test output (golden references remain tracked)
+# Test output
 tests/output/
 tests/tmp/
 

@@ -17,7 +17,6 @@ StatusControl {
     property string screenName: ""
     property string format: "h:mm AP"
     readonly property string displayText: clockText.text
-    readonly property bool nativeAvailable: nativeHost.available
     hintText: Qt.formatDateTime(clock.date, "dddd, MMMM d, yyyy, h:mm AP")
 
     activation: function (button) {

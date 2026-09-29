@@ -9,7 +9,6 @@ Rectangle {
     property string text: ""
     property real uiScale: 1
     property real maximumTextWidth: uiScale * 360
-    readonly property alias labelItem: label
     readonly property real horizontalPadding: uiScale * 10
     readonly property real verticalPadding: uiScale * 7
 

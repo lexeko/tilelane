@@ -28,15 +28,6 @@ Item {
         return -1;
     }
 
-    function sourceForId(id) {
-        const values = sourceValues();
-        for (let index = 0; index < values.length; index++) {
-            if (Number(values[index].id) === Number(id))
-                return values[index];
-        }
-        return null;
-    }
-
     function recordFor(id) {
         const index = indexForId(id);
         return index === -1 ? null : workspaces.get(index);
