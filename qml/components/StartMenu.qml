@@ -504,7 +504,7 @@ PanelWindow {
 
                                 model: root.indicatorSlotCount
 
-                                Rectangle {
+                                Item {
                                     id: indicatorFrame
 
                                     required property int index
@@ -514,8 +514,19 @@ PanelWindow {
 
                                     width: slot ? slot.width * root.indicatorScale : 0
                                     height: indicatorStrip.height
-                                    radius: root.px(4)
-                                    color: indicatorHover.hovered ? Commons.Color.menu.selectedBackground : "transparent"
+
+                                    // Paint behind the native glyphs while keeping hover
+                                    // detection above their hover-enabled MouseAreas.
+                                    Rectangle {
+                                        parent: indicatorStrip
+                                        z: -1
+                                        x: indicatorFrame.x
+                                        y: indicatorFrame.y
+                                        width: indicatorFrame.width
+                                        height: indicatorFrame.height
+                                        radius: root.px(4)
+                                        color: indicatorHover.hovered ? Commons.Color.menu.selectedBackground : "transparent"
+                                    }
 
                                     HoverHandler {
                                         id: indicatorHover
