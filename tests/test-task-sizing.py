@@ -64,6 +64,8 @@ Item {
             long = 'A long document title that should retain a readable beginning'
             configure(700, ['~', 'Short', long, long])
             roomy = wait_for(lambda s: len(s['tasks']) == 4 and s['tasks'][2]['width'] == 224)
+            # Diagnostics expose geometry and addresses, never window titles.
+            assert all(set(t) == {'address', 'width', 'preferred'} for t in roomy['tasks']), roomy
             short_width = roomy['tasks'][0]['width']
             assert 42 < short_width < 80, roomy
             assert not roomy['overflow'], roomy

@@ -42,7 +42,6 @@ Item {
             if (item)
                 tasks.push({
                     address: item.address,
-                    title: item.title,
                     width: item.width,
                     preferred: item.preferredWidth
                 });
