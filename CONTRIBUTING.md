@@ -23,7 +23,8 @@ omarchy plugin validate .
 ./scripts/check
 ```
 
-The checks use Qt's QML tools and Python 3. Node and Lua run the pointer regression tests.
+The checks use Qt's QML tools, Quickshell, and Node.js with its built-in modules.
+Lua also enables the pointer regression tests. No npm packages are required.
 Install ShellCheck for shell linting. The check script reports tools it skips.
 
 After installing and selecting Tilelane, run `./scripts/smoke`.

@@ -345,12 +345,12 @@ run_check "repository contains no symlinks" check_no_symlinks
 run_check "QML formatting" check_qml_format
 run_check "production QML lint" check_qml_lint
 run_check "QML unit tests" check_qml_tests
-run_check "adaptive task sizing" python3 "$repo_dir/tests/test-task-sizing.py"
+run_check "adaptive task sizing" node "$repo_dir/tests/test-task-sizing.cjs"
 run_check "minimize lifecycle regression" bash "$repo_dir/tests/test-minimize-lifecycle.sh"
 run_check "production window model" bash "$repo_dir/tests/test-window-model.sh"
-run_check "floating state refresh" python3 "$repo_dir/tests/test-window-refresh.py"
+run_check "floating state refresh" node "$repo_dir/tests/test-window-refresh.cjs"
 run_check "inline settings persistence" bash "$repo_dir/tests/test-settings.sh"
-run_check "plain text labels" python3 "$repo_dir/tests/test-plain-text.py"
+run_check "plain text labels" node "$repo_dir/tests/test-plain-text.cjs"
 run_check "Places bookmark updates" bash "$repo_dir/tests/test-places-watch.sh"
 run_check "hosted widget lifecycle" bash "$repo_dir/tests/test-hosted-lifecycle.sh"
 run_check "native widget manifest loading" bash "$repo_dir/tests/test-widget-manifest.sh"
