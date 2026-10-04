@@ -34,6 +34,24 @@ configuration. `omarchy bar defaults` also resets more than the bar selection.
 Omarchy can fall back to its built-in bar when a selected plugin is missing,
 invalid, or fails to load. A runtime error may still need a restart.
 
+## Manual installation
+
+Place a complete copy in `~/.config/omarchy/plugins/io.github.lexeko.tilelane`.
+Include `manifest.json`, `Bar.qml`, `qml/`, and `scripts/`.
+Keep the scripts' executable permissions. Do not use a symlink.
+Back up an existing installation before replacing it.
+
+Validate the copy, discover it, and select Tilelane:
+
+```sh
+omarchy plugin validate ~/.config/omarchy/plugins/io.github.lexeko.tilelane
+omarchy-shell shell rescanPlugins
+omarchy bar use io.github.lexeko.tilelane
+```
+
+To update a manual installation, replace the plugin files with a new complete
+copy and restart the shell. Keep your settings in `shell.json`.
+
 ## Reload changed plugin files
 
 A development install must contain the QML files and runtime scripts.
