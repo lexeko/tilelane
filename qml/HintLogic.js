@@ -123,6 +123,6 @@ function workspace(shortcut, monitorCount, moveShortcuts) {
     var family = String(shortcut || "").replace(/\s*\+\s*1$/, " + 1, 2, …");
     var hint = withShortcut("Switch workspace", family);
     if (monitorCount > 1)
-        hint += "\n" + withShortcut("Move current workspace to a different monitor", workspaceMoveShortcuts(moveShortcuts));
+        hint += "\n" + withShortcut("Move to monitor", workspaceMoveShortcuts(moveShortcuts));
     return hint;
 }
