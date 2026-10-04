@@ -345,6 +345,7 @@ run_check "repository contains no symlinks" check_no_symlinks
 run_check "QML formatting" check_qml_format
 run_check "production QML lint" check_qml_lint
 run_check "QML unit tests" check_qml_tests
+run_check "adaptive task sizing" python3 "$repo_dir/tests/test-task-sizing.py"
 run_check "minimize lifecycle regression" bash "$repo_dir/tests/test-minimize-lifecycle.sh"
 run_check "production window model" bash "$repo_dir/tests/test-window-model.sh"
 run_check "floating state refresh" python3 "$repo_dir/tests/test-window-refresh.py"

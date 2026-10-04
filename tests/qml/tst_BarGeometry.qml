@@ -85,5 +85,31 @@ TestCase {
         compare(BarGeometry.taskScrollOffset(NaN, NaN, 900, 500), 0);
     }
 
+    function test_taskWidthsKeepShortTitlesAndShareCompression() {
+        const widths = [52, 110, 224, 224];
+        compare(BarGeometry.taskWidthCap(widths, 700, 4, 140), 224);
+        compare(BarGeometry.taskWidthCap(widths, 500, 4, 140), 163);
+        compare(BarGeometry.taskWidthCap(widths, 454, 4, 140), 140);
+        compare(BarGeometry.taskWidthCap(widths, 400, 4, 140), 140);
+        compare(widths, [52, 110, 224, 224]);
+    }
+
+    function test_taskWidthsHandleEmptySingleAndShortOnlyLanes() {
+        compare(BarGeometry.taskWidthCap([], 500, 4, 140), 0);
+        compare(BarGeometry.taskWidthCap([52], 60, 4, 140), 52);
+        compare(BarGeometry.taskWidthCap([224], 180, 4, 140), 180);
+        compare(BarGeometry.taskWidthCap([224], 0, 4, 140), 140);
+        const widths = [52, 80];
+        const cap = BarGeometry.taskWidthCap(widths, 100, 4, 140);
+        compare(widths.map(width => Math.min(width, cap)), widths);
+    }
+
+    function test_taskWidthsRespectScaleAndInputOrder() {
+        for (const scale of [1, 1.25, 1.5, 2]) {
+            const widths = [224, 52, 224, 110].map(width => width * scale);
+            compare(BarGeometry.taskWidthCap(widths, 500 * scale, 4 * scale, 140 * scale), 163 * scale);
+        }
+    }
+
     name: "BarGeometry"
 }

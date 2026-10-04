@@ -35,6 +35,20 @@ function taskOverflowing(contentWidth, availableWidth) {
   return content > available + 0.5
 }
 
+// Lower a shared cap until the tasks fit. Short titles keep their natural
+// width; long titles stop shrinking at the readability floor.
+function taskWidthCap(preferredWidths, availableWidth, spacing, minimumWidth) {
+  var widths = preferredWidths.slice().sort(function(a, b) { return a - b })
+  if (!widths.length) return 0
+  var remaining = Math.max(0, availableWidth - Math.max(0, widths.length - 1) * spacing)
+  for (var i = 0; i < widths.length; i++) {
+    var cap = remaining / (widths.length - i)
+    if (widths[i] > cap) return Math.max(minimumWidth, cap)
+    remaining -= widths[i]
+  }
+  return widths[widths.length - 1]
+}
+
 function taskMaximumScroll(contentWidth, viewportWidth) {
   var content = Math.max(0, Number(contentWidth) || 0)
   var viewport = Math.max(0, Number(viewportWidth) || 0)

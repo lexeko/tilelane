@@ -18,9 +18,44 @@ Item {
     property real uiScale: 1
     readonly property real buttonHeight: Math.max(24 * uiScale, barHeight - 8 * uiScale)
     readonly property bool overflowing: taskArea.overflowing
+    // Observe both delegate lifetime and title/font measurements. Assigned
+    // widths never feed back into these natural widths.
+    readonly property var preferredWidths: {
+        const widths = [];
+        const children = taskRow.children;
+        for (let index = 0; index < children.length; index++) {
+            if (typeof children[index].preferredWidth === "number")
+                widths.push(children[index].preferredWidth);
+        }
+        return widths;
+    }
+    readonly property real taskWidthCap: BarGeometry.taskWidthCap(preferredWidths, taskArea.width, taskRow.spacing, px(140))
 
     function px(value) {
         return value * uiScale;
+    }
+
+    function sizingState() {
+        const tasks = [];
+        for (let index = 0; index < taskRepeater.count; index++) {
+            const item = taskRepeater.itemAt(index);
+            if (item)
+                tasks.push({
+                    address: item.address,
+                    title: item.title,
+                    width: item.width,
+                    preferred: item.preferredWidth
+                });
+        }
+        return {
+            availableWidth: taskArea.width,
+            viewportWidth: taskViewport.width,
+            contentWidth: taskRow.implicitWidth,
+            scrollOffset: taskViewport.contentX,
+            overflow: overflowing,
+            cap: taskWidthCap,
+            tasks: tasks
+        };
     }
 
     function openContextMenu(address) {
@@ -142,12 +177,13 @@ Item {
                             required property bool fullscreen
                             required property bool maximized
                             required property bool floating
+                            readonly property real preferredWidth: taskButton.implicitWidth
 
                             function openContextMenu() {
                                 return taskButton.openContextMenu();
                             }
 
-                            width: taskButton.implicitWidth
+                            width: Math.min(preferredWidth, root.taskWidthCap)
                             height: taskButton.implicitHeight
 
                             TaskButton {

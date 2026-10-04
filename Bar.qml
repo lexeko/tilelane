@@ -532,6 +532,16 @@ Item {
             return root.openTaskContextMenu(address, screenName) ? "opened" : "not-found";
         }
 
+        function taskSizing(screenName: string): string {
+            for (const lane of root.taskLanes) {
+                if (lane.screenName === screenName)
+                    return JSON.stringify(lane.sizingState());
+            }
+            return JSON.stringify({
+                present: false
+            });
+        }
+
         function windowAddressForPid(pid: string): string {
             return globalWindows.addressForPid(Number(pid));
         }

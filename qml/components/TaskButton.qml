@@ -32,6 +32,10 @@ Rectangle {
     readonly property string visualState: TaskLogic.visualState(pointer.pressed, activeFocus, pointer.containsMouse || contextMenu.open, launching, urgent, windowActive, minimized)
     readonly property bool tooltipHovered: pointer.containsMouse
     readonly property string hintText: HintLogic.task(displayTitle)
+    readonly property real leftPadding: px(7)
+    readonly property real iconSize: px(20)
+    readonly property real titleGap: px(7)
+    readonly property real rightPadding: px(8)
 
     function px(value) {
         return value * uiScale;
@@ -63,7 +67,7 @@ Rectangle {
         return true;
     }
 
-    implicitWidth: Math.min(px(224), Math.max(px(80), titleLabel.implicitWidth + px(64)))
+    implicitWidth: Math.min(px(224), Math.ceil(titleLabel.implicitWidth + leftPadding + iconSize + titleGap + rightPadding))
     implicitHeight: buttonHeight
     radius: px(4)
     color: launching ? Commons.Style.normalFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : urgent ? Commons.Util.alpha(Commons.Color.urgent, 0.12) : windowActive ? Commons.Style.selectedAccentFill : minimized ? Commons.Util.alpha(Commons.Color.bar.text, 0.025) : Commons.Style.normalFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent)
@@ -124,10 +128,10 @@ Rectangle {
     Item {
         id: iconBox
 
-        width: root.px(20)
-        height: root.px(20)
+        width: root.iconSize
+        height: root.iconSize
         anchors.left: parent.left
-        anchors.leftMargin: root.px(7)
+        anchors.leftMargin: root.leftPadding
         anchors.verticalCenter: parent.verticalCenter
 
         Image {
@@ -168,9 +172,9 @@ Rectangle {
         id: titleLabel
 
         anchors.left: iconBox.right
-        anchors.leftMargin: root.px(7)
+        anchors.leftMargin: root.titleGap
         anchors.right: parent.right
-        anchors.rightMargin: root.px(8)
+        anchors.rightMargin: root.rightPadding
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: height / 2 - baselineOffset + titleMetrics.capitalHeight / 2
         color: Commons.Color.bar.text
