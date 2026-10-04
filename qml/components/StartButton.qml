@@ -16,6 +16,7 @@ Item {
     property real leftHitPadding: 0
     property real bottomHitPadding: 0
     readonly property real visualHeight: px(36)
+    readonly property real horizontalPadding: px(10)
     readonly property bool tooltipHovered: pointer.containsMouse && !menuOpen
     readonly property color textColor: Commons.Color.bar.text
 
@@ -23,7 +24,7 @@ Item {
         return value * uiScale;
     }
 
-    implicitWidth: Math.max(px(90), content.implicitWidth + px(20)) + leftHitPadding
+    implicitWidth: content.implicitWidth + horizontalPadding * 2 + leftHitPadding
     implicitHeight: visualHeight + bottomHitPadding
     activeFocusOnTab: true
 
@@ -61,8 +62,8 @@ Item {
         id: content
 
         anchors.fill: buttonSurface
-        anchors.leftMargin: root.px(10)
-        anchors.rightMargin: root.px(10)
+        anchors.leftMargin: root.horizontalPadding
+        anchors.rightMargin: root.horizontalPadding
         spacing: root.px(7)
 
         BrandingLogo {
