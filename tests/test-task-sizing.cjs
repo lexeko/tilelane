@@ -84,31 +84,79 @@ Item {
     assert(!roomy.overflow);
     assert(roomy.tasks.every(t => t.width === t.preferred));
     await configure(500, ['~', 'Short', long, long]);
-    const compact = await waitFor(s => s.tasks[2].width > 140 && s.tasks[2].width < 224);
+    const compact = await waitFor(s => s.tasks[2].width > 105 && s.tasks[2].width < 224);
     assert(!compact.overflow);
     assert.equal(compact.tasks[0].width, shortWidth);
     assert(Math.abs(compact.tasks.reduce((sum, t) => sum + t.width, 0) + 12 - 500) < .01);
     await configure(300, ['~', 'Short', long, long]);
-    const crowded = await waitFor(s => s.overflow && s.tasks[2].width === 140);
+    const crowded = await waitFor(s => s.overflow && s.tasks[2].width === 105);
     assert.equal(crowded.tasks[0].width, shortWidth);
     await configure(300, ['~', 'Short']);
     await waitFor(s => s.tasks.length === 2 && !s.overflow);
     await configure(500, [long, long, long]);
-    await waitFor(s => s.tasks.length === 3 && !s.overflow && s.tasks.every(t => t.width > 140 && t.width < 224));
+    await waitFor(s => s.tasks.length === 3 && !s.overflow && s.tasks.every(t => t.width > 105 && t.width < 224));
     // Pin changes reduce available width without changing the tasks.
-    await configure(500, [long, long, long], 1, 4);
-    await waitFor(s => s.overflow && s.tasks.every(t => t.width === 140));
+    await configure(450, [long, long, long], 1, 4);
+    await waitFor(s => s.overflow && s.tasks.every(t => t.width === 105));
     await configure(500, ['~', '~', '~'], 1, 4);
     await waitFor(s => !s.overflow && s.tasks.every(t => t.width < 80));
     for (const scale of [1.25, 1.5, 2]) {
-      await configure(420 * scale, [long, long, long], scale);
-      await waitFor(s => s.overflow && s.tasks.every(t => Math.abs(t.width - 140 * scale) < .01));
+      await configure(315 * scale, [long, long, long], scale);
+      await waitFor(s => s.overflow && s.tasks.every(t => Math.abs(t.width - 105 * scale) < .01));
       await configure(600 * scale, [long, long, long], scale);
-      await waitFor(s => !s.overflow && s.tasks.every(t => t.width > 140 * scale && t.width < 224 * scale));
+      await waitFor(s => !s.overflow && s.tasks.every(t => t.width > 105 * scale && t.width < 224 * scale));
+    }
+    for (const scale of [1, 1.25, 1.5, 2]) {
+      // Adding the fourth task crosses the overflow threshold after shrinking.
+      await configure(400 * scale, [long, long, long], scale);
+      await waitFor(s => s.tasks.length === 3 && !s.overflow);
+      await configure(400 * scale, [long, long, long, long], scale);
+      await waitFor(s => s.overflow && s.scrollOffset > 0
+        && Math.abs(s.scrollOffset + s.viewportWidth - s.contentWidth) < .01);
+      await ipc('scrollToStart');
+      await waitFor(s => s.scrollOffset === 0);
+      await configure(400 * scale, Array(8).fill(long), scale);
+      await waitFor(s => s.tasks.length === 8
+        && Math.abs(s.scrollOffset + s.viewportWidth - s.contentWidth) < .01);
+      // Already visible insertions must not move the list; hidden insertions
+      // are revealed on either side, clear of the 24px edge fades.
+      await ipc('scrollToStart');
+      await ipc('insert', 1, '0xinserted');
+      await waitFor(s => s.tasks.length === 9 && s.scrollOffset === 0);
+      await ipc('insert', 7, '0xright');
+      await waitFor(s => s.tasks.length === 10 && s.scrollOffset > 0
+        && fullyVisible(s, '0xright', scale));
+      await ipc('insert', 2, '0xleft');
+      const revealed = await waitFor(s => s.tasks.length === 11 && fullyVisible(s, '0xleft', scale));
+      const savedOffset = revealed.scrollOffset;
+      await ipc('focus', 10);
+      await ipc('move', 9, 10);
+      await configure(400 * scale, Array(11).fill(long + ' changed'), scale);
+      await delay(100);
+      assert.equal(JSON.parse(await ipc('state')).scrollOffset, savedOffset,
+        'Focus, title changes, or reordering moved the scroll position');
+      await ipc('scrollToStart');
+      await ipc('transientTask');
+      await delay(100);
+      assert.equal(JSON.parse(await ipc('state')).scrollOffset, 0,
+        'A task removed before layout moved the scroll position');
+      await configure(400 * scale, [long, long], scale);
+      await waitFor(s => s.tasks.length === 2 && !s.overflow && s.scrollOffset === 0);
+    }
+    function fullyVisible(s, address, scale) {
+      const index = s.tasks.findIndex(t => t.address === address);
+      if (index < 0) return false;
+      const left = s.tasks.slice(0, index).reduce((sum, t) => sum + t.width + 4 * scale, 0);
+      const right = left + s.tasks[index].width;
+      const start = s.scrollOffset + (s.scrollOffset > .5 ? 24 * scale : 0);
+      const end = s.scrollOffset + s.viewportWidth
+        - (s.scrollOffset < s.contentWidth - s.viewportWidth - .5 ? 24 * scale : 0);
+      return left >= start - .01 && right <= end + .01;
     }
     await configure(0, []);
     await waitFor(s => !s.tasks.length && !s.overflow);
-    console.log('task sizing: pass (natural width, compression, minimum, overflow, titles, removal, pins, scale, empty lane)');
+    assert(!/TypeError|ReferenceError|Binding loop/.test(log), log);
+    console.log('task sizing: pass (widths, 105px floor, overflow, new-task reveal, scroll preservation, removal, pins, scales, title omission)');
   } catch (error) {
     console.error(log);
     throw error;

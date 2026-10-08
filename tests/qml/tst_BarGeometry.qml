@@ -87,28 +87,47 @@ TestCase {
 
     function test_taskWidthsKeepShortTitlesAndShareCompression() {
         const widths = [52, 110, 224, 224];
-        compare(BarGeometry.taskWidthCap(widths, 700, 4, 140), 224);
-        compare(BarGeometry.taskWidthCap(widths, 500, 4, 140), 163);
-        compare(BarGeometry.taskWidthCap(widths, 454, 4, 140), 140);
-        compare(BarGeometry.taskWidthCap(widths, 400, 4, 140), 140);
+        compare(BarGeometry.taskWidthCap(widths, 700, 4, 105), 224);
+        compare(BarGeometry.taskWidthCap(widths, 500, 4, 105), 163);
+        compare(BarGeometry.taskWidthCap(widths, 400, 4, 105), 113);
+        compare(BarGeometry.taskWidthCap(widths, 379, 4, 105), 105);
+        compare(BarGeometry.taskWidthCap(widths, 350, 4, 105), 105);
         compare(widths, [52, 110, 224, 224]);
     }
 
     function test_taskWidthsHandleEmptySingleAndShortOnlyLanes() {
-        compare(BarGeometry.taskWidthCap([], 500, 4, 140), 0);
-        compare(BarGeometry.taskWidthCap([52], 60, 4, 140), 52);
-        compare(BarGeometry.taskWidthCap([224], 180, 4, 140), 180);
-        compare(BarGeometry.taskWidthCap([224], 0, 4, 140), 140);
+        compare(BarGeometry.taskWidthCap([], 500, 4, 105), 0);
+        compare(BarGeometry.taskWidthCap([52], 60, 4, 105), 52);
+        compare(BarGeometry.taskWidthCap([224], 180, 4, 105), 180);
+        compare(BarGeometry.taskWidthCap([224], 0, 4, 105), 105);
         const widths = [52, 80];
-        const cap = BarGeometry.taskWidthCap(widths, 100, 4, 140);
+        const cap = BarGeometry.taskWidthCap(widths, 100, 4, 105);
         compare(widths.map(width => Math.min(width, cap)), widths);
     }
 
     function test_taskWidthsRespectScaleAndInputOrder() {
         for (const scale of [1, 1.25, 1.5, 2]) {
             const widths = [224, 52, 224, 110].map(width => width * scale);
-            compare(BarGeometry.taskWidthCap(widths, 500 * scale, 4 * scale, 140 * scale), 163 * scale);
+            compare(BarGeometry.taskWidthCap(widths, 500 * scale, 4 * scale, 105 * scale), 163 * scale);
         }
+    }
+
+    function test_revealTasksWithoutUnnecessaryScrolling() {
+        compare(BarGeometry.taskRevealOffset(0, 20, 105, 900, 500, 24), 0);
+        compare(BarGeometry.taskRevealOffset(100, 150, 105, 900, 500, 24), 100);
+        compare(BarGeometry.taskRevealOffset(0, 795, 105, 900, 500, 24), 400);
+        compare(BarGeometry.taskRevealOffset(400, 795, 105, 900, 500, 24), 400);
+        compare(BarGeometry.taskRevealOffset(400, 0, 105, 900, 500, 24), 0);
+        compare(BarGeometry.taskRevealOffset(0, 500, 105, 1000, 500, 24), 129);
+        compare(BarGeometry.taskRevealOffset(400, 300, 105, 1000, 500, 24), 276);
+    }
+
+    function test_revealHandlesNarrowViewportsAndScaling() {
+        compare(BarGeometry.taskRevealOffset(0, 109, 224, 500, 100, 24), 109);
+        compare(BarGeometry.taskRevealOffset(0, 0, 105, 105, 0, 24), 0);
+        compare(BarGeometry.taskRevealOffset(50, 0, 105, 105, 500, 24), 0);
+        for (const scale of [1, 1.25, 1.5, 2])
+            compare(BarGeometry.taskRevealOffset(0, 500 * scale, 105 * scale, 1000 * scale, 500 * scale, 24 * scale), 129 * scale);
     }
 
     name: "BarGeometry"

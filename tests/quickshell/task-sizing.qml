@@ -81,5 +81,39 @@ ShellRoot {
         function state(): string {
             return JSON.stringify(lane.sizingState());
         }
+        function scrollToStart(): void {
+            function findViewport(item) {
+                if (item.objectName === "taskViewport")
+                    return item;
+                for (const child of item.children) {
+                    const found = findViewport(child);
+                    if (found)
+                        return found;
+                }
+                return null;
+            }
+            findViewport(lane).contentX = 0;
+        }
+        function insert(index: int, address: string): void {
+            const record = Object.assign({}, tasks.get(0));
+            record.address = address;
+            tasks.insert(index, record);
+        }
+        function remove(index: int): void {
+            tasks.remove(index);
+        }
+        function transientTask(): void {
+            const record = Object.assign({}, tasks.get(0));
+            record.address = "0xclosed";
+            tasks.append(record);
+            tasks.remove(tasks.count - 1);
+        }
+        function move(from: int, to: int): void {
+            tasks.move(from, to, 1);
+        }
+        function focus(index: int): void {
+            for (let i = 0; i < tasks.count; i++)
+                tasks.setProperty(i, "active", i === index);
+        }
     }
 }

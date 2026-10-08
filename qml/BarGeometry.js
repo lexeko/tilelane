@@ -60,3 +60,18 @@ function taskScrollOffset(currentOffset, amount, contentWidth, viewportWidth) {
   var delta = Number(amount) || 0
   return Math.max(0, Math.min(taskMaximumScroll(contentWidth, viewportWidth), current + delta))
 }
+
+// Keep the new task out of the edge fades. At either end the corresponding
+// fade disappears; clamping permits the button to sit against that edge.
+function taskRevealOffset(currentOffset, taskX, taskWidth, contentWidth, viewportWidth, fadeWidth) {
+  var maximum = taskMaximumScroll(contentWidth, viewportWidth)
+  var offset = taskScrollOffset(currentOffset, 0, contentWidth, viewportWidth)
+  if (viewportWidth <= 0) return offset
+  var fade = Math.max(0, fadeWidth)
+  if (taskWidth >= viewportWidth) return taskScrollOffset(taskX, 0, contentWidth, viewportWidth)
+  if (taskX < offset + (offset > 0.5 ? fade : 0))
+    return taskScrollOffset(taskX - fade, 0, contentWidth, viewportWidth)
+  if (taskX + taskWidth > offset + viewportWidth - (offset < maximum - 0.5 ? fade : 0))
+    return taskScrollOffset(taskX + taskWidth - viewportWidth + fade, 0, contentWidth, viewportWidth)
+  return offset
+}

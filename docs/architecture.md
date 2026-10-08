@@ -69,9 +69,11 @@ This preserves button instances and the task list's scroll position.
 Pins sit outside the scrolling list. Task overflow fades cover 24 scaled pixels.
 Task buttons fit the measured title plus icon and padding, up to 224 scaled
 pixels. When space is tight, a shared width cap shrinks longer buttons while
-short titles retain their natural width. Long buttons stop at 140 scaled pixels;
+short titles retain their natural width. Long buttons stop at 105 scaled pixels;
 only then does the lane show scrolling controls. Each screen sizes its own lane,
 and title, font, pin, window-count, and available-width changes recalculate it.
+New tasks scroll into view after layout, clear of the overflow fades. Focus,
+title changes, and reordering preserve the scroll position.
 
 A new window without a PID can request one batched toplevel refresh after
 50 ms. This uses Quickshell's Hyprland API. It is not a recurring refresh loop.

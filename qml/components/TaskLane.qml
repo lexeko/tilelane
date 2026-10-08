@@ -29,10 +29,22 @@ Item {
         }
         return widths;
     }
-    readonly property real taskWidthCap: BarGeometry.taskWidthCap(preferredWidths, taskArea.width, taskRow.spacing, px(140))
+    readonly property real taskWidthCap: BarGeometry.taskWidthCap(preferredWidths, taskArea.width, taskRow.spacing, px(105))
+    property Item pendingReveal: null
 
     function px(value) {
         return value * uiScale;
+    }
+
+    function revealNewTask() {
+        const item = pendingReveal;
+        pendingReveal = null;
+        if (!item)
+            return;
+        // Repeater additions precede Row positioning and overflow-button layout.
+        taskRow.forceLayout();
+        taskViewport.cancelFlick();
+        taskViewport.contentX = BarGeometry.taskRevealOffset(taskViewport.contentX, item.x, item.width, taskViewport.contentWidth, taskViewport.width, px(24));
     }
 
     function sizingState() {
@@ -132,6 +144,7 @@ Item {
             Flickable {
                 id: taskViewport
 
+                objectName: "taskViewport"
                 anchors.fill: parent
                 anchors.leftMargin: taskArea.overflowing ? earlierTasksButton.width : 0
                 anchors.rightMargin: taskArea.overflowing ? moreTasksButton.width : 0
@@ -161,6 +174,11 @@ Item {
                         id: taskRepeater
 
                         model: root.model
+
+                        onItemAdded: function (index, item) {
+                            root.pendingReveal = item;
+                            Qt.callLater(root.revealNewTask);
+                        }
 
                         Item {
                             id: taskDelegate
