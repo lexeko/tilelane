@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0
+
+- Size task buttons to their titles, keeping short titles compact. When space
+  runs out, longer buttons shrink to 105 scaled pixels before scrolling begins.
+- Scroll newly opened windows' task buttons fully into view.
+- Keep Start's indicator icons visible under opaque hover highlights.
+- Balance the Start button's left and right padding.
+- Shorten the workspace hint to "Move to monitor".
+- Add task-sizing diagnostics that omit window titles.
+- Remove Python from the test suite. The test drivers use Node.js built-in modules.
+- Simplify the README and move detailed setup guidance into linked guides.
+
 ## 0.1.1
 
 - Display bookmark names and other Tilelane labels as plain text, preventing
