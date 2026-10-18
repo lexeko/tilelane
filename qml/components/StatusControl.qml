@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import "../BarGeometry.js" as BarGeometry
 
 Rectangle {
     id: root
@@ -50,7 +51,10 @@ Rectangle {
     onTooltipHoveredChanged: syncHint()
     onHintTextChanged: syncHint()
 
-    implicitWidth: px(30)
+    readonly property real minimumWidth: px(BarGeometry.statusSlotWidth)
+    readonly property real contentPadding: px(BarGeometry.statusHorizontalPadding)
+
+    implicitWidth: minimumWidth
     implicitHeight: px(32)
     width: implicitWidth
     height: implicitHeight

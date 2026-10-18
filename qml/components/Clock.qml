@@ -32,7 +32,7 @@ StatusControl {
     }
 
     indicatorWidth: clockText.implicitWidth
-    implicitWidth: Math.max(px(76), clockText.implicitWidth + px(20))
+    implicitWidth: Math.max(px(76), clockText.implicitWidth + contentPadding)
     implicitHeight: px(36)
 
     SystemClock {

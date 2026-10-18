@@ -21,7 +21,7 @@ StatusControl {
 
     nativeInput: true
     opened: nativeHost.opened
-    implicitWidth: available ? Math.max(px(30), nativeHost.implicitWidth * contentScale) : 0
+    implicitWidth: available ? Math.max(minimumWidth, nativeHost.implicitWidth * contentScale) : 0
     accessibleName: nativeHost.entry && nativeHost.entry.metadata ? String(nativeHost.entry.metadata.displayName || moduleName) : moduleName
     hintText: nativeHintTarget && String(nativeHintTarget.tooltipText || "").trim() !== "" ? String(nativeHintTarget.tooltipText) : accessibleName
     activation: function (button) {

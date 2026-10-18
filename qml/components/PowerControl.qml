@@ -46,7 +46,7 @@ StatusControl {
     }
 
     visible: configured && batteryPresent && icon !== ""
-    implicitWidth: visible ? Math.max(px(30), powerContent.implicitWidth + px(12)) : 0
+    implicitWidth: visible ? Math.max(minimumWidth, powerContent.implicitWidth + contentPadding) : 0
 
     HostedBarWidget {
         id: nativeHost

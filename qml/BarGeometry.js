@@ -1,6 +1,8 @@
 .pragma library
 
 var baseHeight = 44
+var statusSlotWidth = 24
+var statusHorizontalPadding = 8
 
 function sanePositive(value, fallback) {
   var number = Number(value)

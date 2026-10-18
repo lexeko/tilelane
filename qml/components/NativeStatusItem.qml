@@ -63,7 +63,7 @@ StatusControl {
     }
 
     visible: statusVisible
-    implicitWidth: presentation === "text" ? Math.max(uiScale * 30, statusLabel.implicitWidth + uiScale * 12) : uiScale * 30
+    implicitWidth: presentation === "text" ? Math.max(minimumWidth, statusLabel.implicitWidth + contentPadding) : minimumWidth
     implicitHeight: uiScale * 32
     width: visible ? implicitWidth : 0
     height: implicitHeight

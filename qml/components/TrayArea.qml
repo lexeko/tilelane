@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell.Services.SystemTray
+import "../BarGeometry.js" as BarGeometry
 import "../HintLogic.js" as HintLogic
 import "../StatusLogic.js" as StatusLogic
 import qs.Commons as Commons
@@ -25,7 +26,7 @@ Item {
     }
     readonly property int itemCount: activeItems.length
     readonly property real itemGap: px(1)
-    readonly property real slotWidth: px(30)
+    readonly property real slotWidth: px(BarGeometry.statusSlotWidth)
     readonly property real hitSize: px(32)
     readonly property bool trayHovered: trayHover.hovered && trayHover.point.position.x >= 0 && trayHover.point.position.x < width && trayHover.point.position.y >= 0 && trayHover.point.position.y < hitSize + bottomHitPadding
     readonly property real bottomHitPadding: bar ? Math.max(0, (bar.barHeight - hitSize) / 2) : 0
@@ -117,7 +118,7 @@ Item {
 
         x: 0
         anchors.verticalCenter: parent.verticalCenter
-        width: Math.ceil(expandIcon.controlGlyphWidth + root.px(16))
+        width: Math.max(root.slotWidth, Math.ceil(expandIcon.controlGlyphWidth + root.px(BarGeometry.statusHorizontalPadding)))
         height: root.hitSize
         radius: root.px(4)
         color: expandMouse.pressed ? Commons.Style.pressedFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : expandMouse.containsMouse || activeFocus ? Commons.Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent) : "transparent"
