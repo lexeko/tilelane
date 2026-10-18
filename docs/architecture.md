@@ -218,7 +218,9 @@ controls or promise to override styling drawn by the plugin itself.
 Native visuals retain their intrinsic size when they fit the full bar height;
 only taller widgets scale down proportionally. Their height includes native
 button padding, so fitting them into Tilelane's smaller hover rectangle would
-also shrink the icon. Sizing has no per-plugin overrides.
+also shrink the icon. Generic native sizing has no per-plugin overrides.
+The update indicator uses the same optical glyph sizing as weather, while its
+native widget supplies the glyph, tooltip, availability, polling, and action.
 
 `HostedBarWidget.qml` loads widget implementations from the injected registry
 and supplies `bar`, `moduleName`, and per-instance `settings`. Agents,

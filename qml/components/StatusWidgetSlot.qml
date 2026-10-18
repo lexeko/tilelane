@@ -37,6 +37,7 @@ Item {
                 return trayComponent;
             case "text":
             case "weather":
+            case "update":
                 return statusComponent;
             default:
                 return nativeComponent;
@@ -107,7 +108,7 @@ Item {
         NativeStatusItem {
             moduleName: root.widgetId
             presentation: root.presentation === "text" ? "text" : "icon"
-            fallbackEntryPoint: root.presentation === "text" ? "KeyboardLayout.qml" : "BarWidget.qml"
+            fallbackEntryPoint: root.presentation === "text" ? "KeyboardLayout.qml" : root.presentation === "update" ? "SystemUpdate.qml" : "BarWidget.qml"
             registry: root.registry
             settings: root.settings
             bar: root.bar
@@ -125,7 +126,7 @@ Item {
             bar: root.bar
             uiScale: root.uiScale
             rightHitPadding: root.rightHitPadding
-            fallbackEntryPoint: root.widgetId === "omarchy.dropbox" ? "Panel.qml" : root.widgetId === "omarchy.system-update" ? "SystemUpdate.qml" : ""
+            fallbackEntryPoint: root.widgetId === "omarchy.dropbox" ? "Panel.qml" : ""
         }
     }
 }

@@ -7,32 +7,37 @@ StatusControl {
     id: root
 
     opened: nativeHost.opened
-    accessibleName: presentation === "text" ? "Keyboard layout " + statusText : "Weather"
-    accessibleDescription: presentation === "text" ? "Switch keyboard layout" : "Open weather"
+    accessibleName: updateIndicator ? hintText : presentation === "text" ? "Keyboard layout " + statusText : "Weather"
+    accessibleDescription: updateIndicator ? "Update Omarchy" : presentation === "text" ? "Switch keyboard layout" : "Open weather"
 
     required property string moduleName
     required property string presentation
     property var registry: null
     property var settings: ({})
     property string fallbackEntryPoint: ""
+    readonly property bool updateIndicator: moduleName === "omarchy.system-update"
     readonly property real targetIconSize: uiScale * 20 * 0.67
     property var statusOwner: null
     readonly property string statusText: {
         if (!statusOwner)
             return "";
+        if (updateIndicator)
+            return String(statusOwner.text || "");
         if (presentation === "text")
             return String(statusOwner.layoutLabel || "");
         return String(statusOwner.label || "");
     }
-    readonly property bool statusVisible: nativeHost.available && statusText !== "" && (root.moduleName !== "omarchy.keyboard-layout" || statusOwner.multipleLayouts === true)
+    readonly property bool statusVisible: nativeHost.available && statusText !== "" && (!updateIndicator || nativeHost.hostItem.updateAvailable === true) && (root.moduleName !== "omarchy.keyboard-layout" || statusOwner.multipleLayouts === true)
     hintText: {
+        if (updateIndicator)
+            return statusOwner ? String(statusOwner.tooltipText || "") : "";
         if (root.moduleName === "omarchy.keyboard-layout")
             return "Language: " + root.statusText;
         return "Weather";
     }
 
     function updateStatusOwner() {
-        statusOwner = presentation === "text" ? nativeHost.hostItem : nativeHost.nativeObjects.find(object => object && object.moduleName === root.moduleName && "label" in object) || null;
+        statusOwner = updateIndicator ? nativeHost.findPressTarget(nativeHost.hostItem, 0) : presentation === "text" ? nativeHost.hostItem : nativeHost.nativeObjects.find(object => object && object.moduleName === root.moduleName && "label" in object) || null;
     }
 
     onPresentationChanged: updateStatusOwner()
