@@ -223,10 +223,11 @@ wider without shrinking the speaker body. Panel, battery, and standard native
 icon buttons use this behavior.
 
 Standalone pictograms use `opticalSizing: true`. `NativeStatusItem` selects
-this for its icon presentation, including weather. It restores the established
-13.4-scaled-pixel optical area with a maximum extent of 1.35 times that size,
-centering the painted shape. This compensates for weather glyphs with much
-smaller outlines inside the font. The renderer does not inspect widget IDs.
+this for its icon presentation, including weather. The painted shape fits a
+12-scaled-pixel square and is centered in the canvas. This compensates for
+glyphs with smaller outlines inside the font. The renderer does not inspect
+widget IDs. Weather rendering checks compare its painted extent with a
+neighboring fixed-font icon, not just with its own sizing formula.
 
 Use the shared component for new status glyphs and select the contract based
 on whether the shapes share a stable base symbol. Do not replace one policy

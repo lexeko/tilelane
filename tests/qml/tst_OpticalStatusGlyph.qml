@@ -176,10 +176,32 @@ TestCase {
         const pixelsPerUnit = picture.width / canvas.width * data.scale;
         const width = (right - left + 1) / pixelsPerUnit;
         const height = (bottom - top + 1) / pixelsPerUnit;
-        verify(Math.sqrt(width * height) >= 11.5, "Weather must not collapse to a tiny font glyph");
-        verify(Math.sqrt(width * height) <= 15, "Weather must retain its established optical size");
-        verify(Math.max(width, height) <= 19, "Wide symbols must fit the status slot");
+        verify(Math.max(width, height) >= 10.5, "Weather must not collapse to a tiny font glyph");
+        verify(Math.max(width, height) <= 13, "Weather must stay within the neighboring status icons' size");
         verify(Math.abs((left + right + 1) / 2 - picture.width / 2) <= 1.5 * pixelsPerUnit);
         verify(Math.abs((top + bottom + 1) / 2 - picture.height / 2) <= 1.5 * pixelsPerUnit);
+
+        // Compare weather with a neighboring fixed-font icon, not only with
+        // its own sizing formula, which could consistently produce oversizing.
+        glyph.opticalSizing = false;
+        glyph.text = "\uf021";
+        waitForRendering(canvas);
+        const reference = grabImage(canvas);
+        left = reference.width;
+        top = reference.height;
+        right = -1;
+        bottom = -1;
+        for (let y = 0; y < reference.height; y++) {
+            for (let x = 0; x < reference.width; x++) {
+                if (reference.red(x, y) > 64) {
+                    left = Math.min(left, x);
+                    right = Math.max(right, x);
+                    top = Math.min(top, y);
+                    bottom = Math.max(bottom, y);
+                }
+            }
+        }
+        const referenceExtent = Math.max(right - left + 1, bottom - top + 1) / pixelsPerUnit;
+        verify(Math.abs(Math.max(width, height) - referenceExtent) <= 2, "Weather extent " + Math.max(width, height) + " versus neighboring icon " + referenceExtent);
     }
 }
