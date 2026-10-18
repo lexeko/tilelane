@@ -11,7 +11,7 @@ A bottom taskbar and Start menu for Omarchy.
 
 ## Requirements
 
-Tested on Omarchy 4.0.4 with Hyprland 0.56.2 and Qt 6.11.2.
+Tested on Omarchy 4.0.5 with Hyprland 0.56.2 and Qt 6.12.
 Tilelane runs inside Omarchy's shell. Places uses Files to open folders.
 See the [runtime dependencies](docs/architecture.md#processes-and-commands).
 

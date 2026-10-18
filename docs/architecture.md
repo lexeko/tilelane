@@ -167,6 +167,13 @@ The tray opens after a 200 ms hover delay and collapses after a 120 ms delay.
 Its drawer width is capped at 300 scaled pixels, or 120 in compact mode.
 Compact mode starts below 900 scaled logical pixels.
 
+Status controls and application tray entries share a 24-scaled-pixel minimum
+slot width. Text-bearing controls use 8 scaled pixels of total horizontal
+padding, while native widgets retain any larger intrinsic width they need.
+The clock keeps a 76-scaled-pixel minimum. These layout sizes are independent
+of icon rendering; the 18-scaled-pixel gaps between status groups remain wider
+than the spacing within a group.
+
 `StatusWidgetModel.qml` joins configured widgets into the right-hand status
 area. From left to right, it places the left/right section controls, the center
 section's information widgets, and the clock in separate groups. It preserves

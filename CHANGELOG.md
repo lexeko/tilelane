@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.1
+
+- Tighten tray and status control spacing while preserving icon sizes and
+  clear gaps between groups.
+- Share fixed-font rendering across panel, battery, and standard native status
+  icons, keeping related symbols at a stable scale as their state changes.
+- Fit weather glyphs within a consistent maximum extent and bring the update
+  indicator into the shared status renderer.
+- Verify compatibility with Omarchy 4.0.5 and Qt 6.12.
+
 ## 0.2.0
 
 - Size task buttons to their titles, keeping short titles compact. When space
