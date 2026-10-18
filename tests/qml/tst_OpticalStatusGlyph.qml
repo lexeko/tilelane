@@ -31,6 +31,10 @@ TestCase {
         text: glyph.text
     }
 
+    function init() {
+        glyph.opticalSizing = false;
+    }
+
     function test_renderedSizeAndCenter_data() {
         const symbols = {
             update: "\uf021",
@@ -119,5 +123,63 @@ TestCase {
             compare(glyph.width, frameWidth);
             fuzzyCompare(glyph.paintedCenterX, frameWidth / 2, 0.01);
         });
+    }
+
+    function test_actualWeatherGlyphsKeepOpticalSize_data() {
+        // Omarchy panels/weather/Model.js iconForCode: day and night outputs.
+        const symbols = {
+            sunny: "\ue30d",
+            clearNight: "\ue32b",
+            cloudy: "\ue33d",
+            partlyCloudy: "\ue302",
+            partlyCloudyNight: "\ue32e",
+            fog: "\ue313",
+            fogNight: "\ue346",
+            showers: "\ue308",
+            showersNight: "\ue333",
+            snowShowers: "\ue30a",
+            snowShowersNight: "\ue327",
+            sleet: "\ue3ad",
+            thunder: "\ue31d",
+            rain: "\ue318",
+            snow: "\ue31a"
+        };
+        const rows = [];
+        [1, 1.25, 1.5, 2].forEach(scale => {
+            Object.keys(symbols).forEach(name => rows.push({
+                    tag: name + "@" + scale,
+                    text: symbols[name],
+                    scale: scale
+                }));
+        });
+        return rows;
+    }
+
+    function test_actualWeatherGlyphsKeepOpticalSize(data) {
+        glyph.opticalSizing = true;
+        glyph.uiScale = data.scale;
+        glyph.text = data.text;
+        waitForRendering(canvas);
+        const picture = grabImage(canvas);
+        let left = picture.width, top = picture.height, right = -1, bottom = -1;
+        for (let y = 0; y < picture.height; y++) {
+            for (let x = 0; x < picture.width; x++) {
+                if (picture.red(x, y) > 64) {
+                    left = Math.min(left, x);
+                    right = Math.max(right, x);
+                    top = Math.min(top, y);
+                    bottom = Math.max(bottom, y);
+                }
+            }
+        }
+        verify(right >= left && bottom >= top);
+        const pixelsPerUnit = picture.width / canvas.width * data.scale;
+        const width = (right - left + 1) / pixelsPerUnit;
+        const height = (bottom - top + 1) / pixelsPerUnit;
+        verify(Math.sqrt(width * height) >= 11.5, "Weather must not collapse to a tiny font glyph");
+        verify(Math.sqrt(width * height) <= 15, "Weather must retain its established optical size");
+        verify(Math.max(width, height) <= 19, "Wide symbols must fit the status slot");
+        verify(Math.abs((left + right + 1) / 2 - picture.width / 2) <= 1.5 * pixelsPerUnit);
+        verify(Math.abs((top + bottom + 1) / 2 - picture.height / 2) <= 1.5 * pixelsPerUnit);
     }
 }

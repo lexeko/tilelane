@@ -215,16 +215,23 @@ falling back to the registry display name without a per-plugin label list.
 Pointer clicks do not assign keyboard focus. Native components retain their
 own mouse and wheel handlers; the generic host does not replace their internal
 controls or promise to override styling drawn by the plugin itself.
-Status glyphs use `OpticalStatusGlyph.qml`: a fixed 13-scaled-pixel font in a
-16-scaled-pixel canvas, following Omarchy's standard bar defaults. Horizontal
-placement uses painted bounds; the font baseline stays fixed. Changing a glyph
-never changes its font scale. A speaker with additional sound waves can grow
-wider without shrinking its speaker body. Natural differences between glyph
-designs are preserved instead of forcing every shape into equal painted bounds.
-Panel, battery, weather, and standard native icon buttons share this renderer.
-Use it for new status glyphs instead of adding font sizes, per-state scaling,
-or position offsets. Rendering tests cover pixel bounds and state transitions
-at multiple scales, including all volume states.
+Status glyphs use `OpticalStatusGlyph.qml` with two explicit sizing contracts.
+Related state symbols default to a fixed 13-scaled-pixel font in a
+16-scaled-pixel canvas, following Omarchy's bar defaults. Horizontal placement
+uses painted bounds; the font baseline stays fixed. Added sound waves can grow
+wider without shrinking the speaker body. Panel, battery, and standard native
+icon buttons use this behavior.
+
+Standalone pictograms use `opticalSizing: true`. `NativeStatusItem` selects
+this for its icon presentation, including weather. It restores the established
+13.4-scaled-pixel optical area with a maximum extent of 1.35 times that size,
+centering the painted shape. This compensates for weather glyphs with much
+smaller outlines inside the font. The renderer does not inspect widget IDs.
+
+Use the shared component for new status glyphs and select the contract based
+on whether the shapes share a stable base symbol. Do not replace one policy
+globally to fix a single icon. Rendering checks must include actual native
+glyphs, weather conditions, volume transitions, and a full-row visual comparison.
 
 `NativeWidget.qml` automatically recognizes a single native `BarIconButton`
 with one text glyph and no custom `iconComponent`. It renders that glyph with

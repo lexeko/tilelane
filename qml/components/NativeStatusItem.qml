@@ -98,6 +98,7 @@ StatusControl {
 
     OpticalStatusGlyph {
         visible: root.presentation === "icon"
+        opticalSizing: true
         anchors.centerIn: parent
         anchors.alignWhenCentered: false
         text: root.statusText
