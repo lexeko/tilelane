@@ -24,6 +24,13 @@ TestCase {
         }
     }
 
+    TextMetrics {
+        id: standardMetrics
+        font.family: glyph.fontFamily
+        font.pixelSize: Math.max(1, Math.round(13 * glyph.uiScale))
+        text: glyph.text
+    }
+
     function test_renderedSizeAndCenter_data() {
         const symbols = {
             update: "\uf021",
@@ -35,6 +42,7 @@ TestCase {
             network: "󰤨",
             networkOff: "󰤮",
             wired: "󰈀",
+            audioMedium: "",
             audioQuiet: "",
             audioLoud: "",
             audioMuted: "",
@@ -79,9 +87,37 @@ TestCase {
         }
         verify(right >= left && bottom >= top, "Glyph must paint visible pixels");
         const dpr = picture.width / canvas.width;
-        const extent = Math.max(right - left + 1, bottom - top + 1) / dpr;
-        verify(Math.abs(extent - 12 * data.scale) <= 2, "Rendered extent " + extent + " must fit the shared icon size");
+        const paintedWidth = (right - left + 1) / dpr;
+        const paintedHeight = (bottom - top + 1) / dpr;
+        verify(Math.abs(paintedWidth - standardMetrics.tightBoundingRect.width) <= 2, "Glyph width must retain the shared font scale");
+        verify(Math.abs(paintedHeight - standardMetrics.tightBoundingRect.height) <= 2, "Glyph height must retain the shared font scale");
         verify(Math.abs((left + right + 1) / 2 - picture.width / 2) <= 1.5 * dpr, "Horizontal painted center");
-        verify(Math.abs((top + bottom + 1) / 2 - picture.height / 2) <= 1.5 * dpr, "Vertical painted center");
+        const expectedCenterY = (glyph.y + glyph.paintedCenterY) * dpr;
+        verify(Math.abs((top + bottom + 1) / 2 - expectedCenterY) <= 1.5 * dpr, "Painted position follows the common font baseline");
+    }
+
+    function test_stateChangesKeepScaleAndBaseline_data() {
+        return [1, 1.25, 1.5, 2].map(scale => ({
+                    tag: String(scale),
+                    scale: scale
+                }));
+    }
+
+    function test_stateChangesKeepScaleAndBaseline(data) {
+        glyph.uiScale = data.scale;
+        glyph.text = "";
+        waitForRendering(canvas);
+        const baseline = glyph.baselineY;
+        const fontSize = glyph.renderedFontSize;
+        const frameWidth = glyph.width;
+        // Exercise shrinking as well as growing glyphs, with no remembered state.
+        ["", "", "", "", "󰤨", "󰤮", "\uf021", "\uf0f3", ""].forEach(text => {
+            glyph.text = text;
+            waitForRendering(canvas);
+            compare(glyph.renderedFontSize, fontSize);
+            fuzzyCompare(glyph.baselineY, baseline, 0.01);
+            compare(glyph.width, frameWidth);
+            fuzzyCompare(glyph.paintedCenterX, frameWidth / 2, 0.01);
+        });
     }
 }

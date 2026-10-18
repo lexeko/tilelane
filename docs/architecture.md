@@ -215,11 +215,16 @@ falling back to the registry display name without a per-plugin label list.
 Pointer clicks do not assign keyboard focus. Native components retain their
 own mouse and wheel handlers; the generic host does not replace their internal
 controls or promise to override styling drawn by the plugin itself.
-Status glyphs use `OpticalStatusGlyph.qml`: painted bounds fit inside a
-12-scaled-pixel square and are centered by those bounds. Panel, battery,
-weather, and standard native icon buttons share this renderer. Use it for new
-status glyphs instead of adding a font size, area multiplier, or position offset.
-The rendering tests compare visible pixels across glyph shapes and scales.
+Status glyphs use `OpticalStatusGlyph.qml`: a fixed 13-scaled-pixel font in a
+16-scaled-pixel canvas, following Omarchy's standard bar defaults. Horizontal
+placement uses painted bounds; the font baseline stays fixed. Changing a glyph
+never changes its font scale. A speaker with additional sound waves can grow
+wider without shrinking its speaker body. Natural differences between glyph
+designs are preserved instead of forcing every shape into equal painted bounds.
+Panel, battery, weather, and standard native icon buttons share this renderer.
+Use it for new status glyphs instead of adding font sizes, per-state scaling,
+or position offsets. Rendering tests cover pixel bounds and state transitions
+at multiple scales, including all volume states.
 
 `NativeWidget.qml` automatically recognizes a single native `BarIconButton`
 with one text glyph and no custom `iconComponent`. It renders that glyph with

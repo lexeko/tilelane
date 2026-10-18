@@ -250,7 +250,7 @@ TestCase {
         const glyph = widget.children.find(child => child instanceof OpticalStatusGlyph);
         verify(glyph);
         compare(glyph.text, button.text);
-        compare(glyph.opticalSize, 12);
+        compare(glyph.opticalSize, 16);
         const width = glyph.paintedWidth;
         button.fontSize = 48;
         compare(glyph.paintedWidth, width);
@@ -259,7 +259,7 @@ TestCase {
         button.active = true;
         compare(glyph.color, button.activeColor);
         widget.uiScale = 1.5;
-        compare(glyph.opticalSize, 12 * 1.5);
+        compare(glyph.opticalSize, 16 * 1.5);
         widget.uiScale = 1;
         compare(widget.hintText, "Native status");
         mouseClick(widget, 15, 16, Qt.RightButton);
