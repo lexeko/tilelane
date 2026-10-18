@@ -15,6 +15,9 @@ StatusControl {
     readonly property real availableHeight: bar && bar.barHeight > 0 ? bar.barHeight : height
     readonly property real contentScale: Math.min(1, availableHeight / Math.max(1, nativeHost.implicitHeight))
     readonly property var nativeHintTarget: nativeHost.findPressTarget(nativeHost.hostItem, 0)
+    // Standard single-glyph buttons share Tilelane's renderer automatically.
+    // Keep compound widgets and custom icon components in their native form.
+    readonly property bool normalizeGlyph: !!nativeHintTarget && "iconComponent" in nativeHintTarget && nativeHintTarget.iconComponent === null && nativeHintTarget.labelVisible === false && Array.from(String(nativeHintTarget.text || "")).length === 1 && nativeHost.nativeObjects.filter(object => object && typeof object.triggerPress === "function").length === 1
 
     nativeInput: true
     opened: nativeHost.opened
@@ -36,6 +39,7 @@ StatusControl {
         height: implicitHeight
         anchors.centerIn: parent
         scale: root.contentScale
+        opacity: root.normalizeGlyph ? 0 : 1
         moduleName: root.moduleName
         registry: root.registry
         bar: root.bar
@@ -43,5 +47,17 @@ StatusControl {
         fallbackEntryPoint: root.fallbackEntryPoint
         alignPanelToHost: true
         showVisual: true
+    }
+
+    OpticalStatusGlyph {
+        visible: root.normalizeGlyph && root.available && root.nativeHintTarget.visible
+        anchors.centerIn: parent
+        anchors.alignWhenCentered: false
+        uiScale: root.uiScale
+        text: root.normalizeGlyph ? root.nativeHintTarget.text : ""
+        fontFamily: root.normalizeGlyph ? root.nativeHintTarget.fontFamily : "monospace"
+        color: root.normalizeGlyph ? (root.nativeHintTarget.active && root.nativeHintTarget.useActiveColor ? root.nativeHintTarget.activeColor : root.nativeHintTarget.foreground) : "transparent"
+        opacity: root.normalizeGlyph ? root.nativeHintTarget.opacity : 1
+        rotation: root.normalizeGlyph ? root.nativeHintTarget.textRotation : 0
     }
 }

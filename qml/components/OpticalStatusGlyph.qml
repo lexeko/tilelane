@@ -8,14 +8,14 @@ Item {
     property string text: ""
     property color color: "white"
     property string fontFamily: "monospace"
-    property real opticalSize: 13
+    property real uiScale: 1
+    property real opticalSize: 12 * uiScale
     property real sourceFontSize: 64
     readonly property rect paintedBounds: glyphMetrics.tightBoundingRect
     readonly property real sourceExtent: Math.max(1, paintedBounds.width, paintedBounds.height)
-    readonly property real sourceAreaExtent: Math.sqrt(Math.max(1, paintedBounds.width * paintedBounds.height))
-    readonly property real areaScale: Math.max(0, opticalSize) / sourceAreaExtent
-    readonly property real maximumExtentScale: Math.max(0, opticalSize) * 1.35 / sourceExtent
-    readonly property real fitScale: Math.min(areaScale, maximumExtentScale)
+    // Fit painted bounds, not the font's advance, line box, or bounding area.
+    // Every glyph shares one maximum extent, including narrow and wide shapes.
+    readonly property real fitScale: Math.max(0, opticalSize) / sourceExtent
     readonly property real paintedWidth: paintedBounds.width * fitScale
     readonly property real paintedHeight: paintedBounds.height * fitScale
     readonly property real paintedCenterX: glyph.x + fitScale * (paintedBounds.x + paintedBounds.width / 2)
@@ -23,6 +23,8 @@ Item {
 
     width: opticalSize
     height: opticalSize
+    implicitWidth: opticalSize
+    implicitHeight: opticalSize
 
     TextMetrics {
         id: glyphMetrics
@@ -44,7 +46,7 @@ Item {
         font.family: root.fontFamily
         font.pixelSize: root.sourceFontSize
         font.hintingPreference: Font.PreferNoHinting
-        renderType: Text.NativeRendering
+        renderType: Text.QtRendering
         transform: Scale {
             origin.x: 0
             origin.y: 0

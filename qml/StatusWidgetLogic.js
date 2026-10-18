@@ -8,7 +8,6 @@ function presentation(id) {
     if (id === "omarchy.tray") return "tray";
     if (id === "omarchy.keyboard-layout") return "text";
     if (id === "omarchy.weather") return "weather";
-    if (id === "omarchy.system-update") return "update";
     return "native";
 }
 

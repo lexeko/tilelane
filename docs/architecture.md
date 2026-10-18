@@ -215,12 +215,24 @@ falling back to the registry display name without a per-plugin label list.
 Pointer clicks do not assign keyboard focus. Native components retain their
 own mouse and wheel handlers; the generic host does not replace their internal
 controls or promise to override styling drawn by the plugin itself.
-Native visuals retain their intrinsic size when they fit the full bar height;
-only taller widgets scale down proportionally. Their height includes native
-button padding, so fitting them into Tilelane's smaller hover rectangle would
-also shrink the icon. Generic native sizing has no per-plugin overrides.
-The update indicator uses the same optical glyph sizing as weather, while its
-native widget supplies the glyph, tooltip, availability, polling, and action.
+Status glyphs use `OpticalStatusGlyph.qml`: painted bounds fit inside a
+12-scaled-pixel square and are centered by those bounds. Panel, battery,
+weather, and standard native icon buttons share this renderer. Use it for new
+status glyphs instead of adding a font size, area multiplier, or position offset.
+The rendering tests compare visible pixels across glyph shapes and scales.
+
+`NativeWidget.qml` automatically recognizes a single native `BarIconButton`
+with one text glyph and no custom `iconComponent`. It renders that glyph with
+the shared size while preserving the native input handlers, state, tooltip,
+color, and action. This also handles the update indicator without special
+sizing or polling code. Compound widgets, text labels, custom icon components,
+and application tray images keep their native presentation. Their artwork can
+contain intentional padding that font metrics cannot measure.
+
+Other native visuals retain their intrinsic size when they fit the full bar
+height; only taller widgets scale down proportionally. Their height includes
+native button padding, so fitting them into Tilelane's smaller hover rectangle
+would also shrink their content.
 
 `HostedBarWidget.qml` loads widget implementations from the injected registry
 and supplies `bar`, `moduleName`, and per-instance `settings`. Agents,

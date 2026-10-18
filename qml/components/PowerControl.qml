@@ -79,31 +79,12 @@ StatusControl {
             renderType: Text.NativeRendering
         }
 
-        TextMetrics {
-            id: referenceMetrics
-
-            font.family: Commons.Style.font.family
-            font.pixelSize: root.px(16)
-            text: "󰁹"
-        }
-
-        TextMetrics {
-            id: glyphMetrics
-
-            font: glyph.font
-            text: glyph.text
-        }
-
-        Text {
-            id: glyph
-
+        OpticalStatusGlyph {
             anchors.verticalCenter: parent.verticalCenter
             text: root.icon
-            textFormat: Text.PlainText
             color: Commons.Color.bar.text
-            font.family: Commons.Style.font.family
-            font.pixelSize: Math.max(1, Math.round(root.px(16) * root.px(20) * 0.67 / Math.max(1, referenceMetrics.tightBoundingRect.width, referenceMetrics.tightBoundingRect.height)))
-            renderType: Text.NativeRendering
+            fontFamily: Commons.Style.font.family
+            uiScale: root.uiScale
         }
     }
 }

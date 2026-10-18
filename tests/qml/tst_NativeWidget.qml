@@ -54,6 +54,67 @@ TestCase {
     }
 
     Component {
+        id: iconPluginComponent
+        Item {
+            id: iconPlugin
+            property var bar: null
+            property var settings: ({})
+            property string moduleName: ""
+            property int clicks: 0
+            property int wheels: 0
+            property int lastButton: -1
+            property bool pending: true
+            visible: pending
+            implicitWidth: 30
+            implicitHeight: 44
+
+            // An unfamiliar widget using the native BarIconButton contract.
+            Item {
+                id: button
+                anchors.fill: parent
+                property Component iconComponent: null
+                property bool labelVisible: false
+                property string text: "\uf0f3"
+                property string tooltipText: "Native status"
+                property string fontFamily: "JetBrainsMono Nerd Font"
+                property real fontSize: 8
+                property color foreground: "white"
+                property color activeColor: "red"
+                property bool active: false
+                property bool useActiveColor: true
+                property real textRotation: 0
+                function triggerPress(button) {
+                    iconPlugin.clicks++;
+                    iconPlugin.lastButton = button;
+                }
+                Text {
+                    anchors.centerIn: parent
+                    text: button.text
+                    font.family: button.fontFamily
+                    font.pixelSize: button.fontSize
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                    onClicked: function (mouse) {
+                        button.triggerPress(mouse.button);
+                    }
+                    onWheel: iconPlugin.wheels++
+                }
+            }
+        }
+    }
+
+    Component {
+        id: customIcon
+        Rectangle {
+            width: 20
+            height: 20
+            color: "red"
+        }
+    }
+
+    Component {
         id: pluginComponent
         Item {
             id: plugin
@@ -174,6 +235,55 @@ TestCase {
         verify(widget.indicatorVisible);
         original.close();
         verify(!widget.indicatorVisible);
+    }
+
+    function test_unfamiliarIconUsesSharedSizingAndKeepsNativeBehavior() {
+        registry.widgets = {
+            "example.unfamiliar": {
+                component: iconPluginComponent,
+                metadata: {}
+            }
+        };
+        tryCompare(widget, "normalizeGlyph", true);
+        const native = plugin();
+        const button = widget.nativeHintTarget;
+        const glyph = widget.children.find(child => child instanceof OpticalStatusGlyph);
+        verify(glyph);
+        compare(glyph.text, button.text);
+        compare(glyph.opticalSize, 12);
+        const width = glyph.paintedWidth;
+        button.fontSize = 48;
+        compare(glyph.paintedWidth, width);
+        button.text = "\uf021";
+        compare(glyph.text, button.text);
+        button.active = true;
+        compare(glyph.color, button.activeColor);
+        widget.uiScale = 1.5;
+        compare(glyph.opticalSize, 12 * 1.5);
+        widget.uiScale = 1;
+        compare(widget.hintText, "Native status");
+        mouseClick(widget, 15, 16, Qt.RightButton);
+        compare(native.clicks, 1);
+        compare(native.lastButton, Qt.RightButton);
+        mouseWheel(widget, 15, 16, 0, 120);
+        compare(native.wheels, 1);
+        verify(widget.activate(Qt.LeftButton));
+        compare(native.clicks, 2);
+        native.pending = false;
+        tryCompare(widget, "width", 0);
+        verify(!glyph.visible);
+        native.pending = true;
+        tryCompare(widget, "width", 30);
+        verify(glyph.visible);
+        button.iconComponent = customIcon;
+        verify(!widget.normalizeGlyph);
+        verify(!glyph.visible);
+        button.iconComponent = null;
+        verify(widget.normalizeGlyph);
+        button.text = "Two words";
+        verify(!widget.normalizeGlyph);
+        button.text = "";
+        verify(!widget.normalizeGlyph);
     }
 
     function test_nativeControlsKeepMouseWheelAndSecondaryButtons() {
