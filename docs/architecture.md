@@ -153,7 +153,22 @@ command execution. No permanent window rule is installed.
 
 ## Tray and native panels
 
-`TrayIcon.qml` tints neutral pixels in symbolic application icons. It preserves
+`TrayIcon.qml` accepts only bounded theme icon names through `TrayIconSource.js`.
+It rebuilds provider URLs, discarding application-supplied `IconThemePath` and
+fallback parameters. File paths, other URL schemes, and opaque `qsimage` handles
+use a generic application icon. Opaque handles are excluded because Quickshell
+can resolve file-backed named overlays through them. Custom private artwork and
+pixmap-only icons therefore use the generic icon; tray actions remain available.
+
+Installed icon themes and Qt's configured theme search paths are trusted. This
+guard prevents tray applications from selecting arbitrary files for decoding;
+it does not sandbox Qt, validate installed theme files, or bound the host's D-Bus
+property ingestion. `sourceSize` controls display resolution, not decoder memory
+use. Do not forward an external tray source directly to `Image`, including as a
+fallback. The tray context menu displays labels and checkmarks, not external
+menu icons.
+
+`TrayIcon.qml` tints neutral pixels in symbolic theme icons. It preserves
 colored badges with the shader in `qml/shaders`. Full-color icons and native
 Omarchy controls keep their existing rendering. The shader source and build
 instructions ship with its compiled file.

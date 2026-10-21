@@ -34,6 +34,9 @@ Use `omarchy plugin enable` and `omarchy plugin disable` to add or remove
 optional widgets. Some configured widgets appear only when needed, such as
 Power when a battery is present or Updates when updates are available.
 Application tray icons appear in the tray drawer.
+Tilelane uses icons from the installed icon theme. Apps that supply only private
+image files or raw pixmaps show a generic application icon; their tooltips,
+menus, clicks, and scrolling still work.
 
 Change settings through Omarchy. For example, use a 12-hour clock:
 

@@ -17,5 +17,5 @@ render shaders:
 
 ```sh
 QT_QPA_PLATFORM=wayland QSG_RHI_BACKEND=opengl \
-  /usr/lib/qt6/bin/qmltestrunner -input tests/render
+  bash tests/test-tray-icons.sh --render
 ```

@@ -25,6 +25,11 @@ omarchy plugin validate .
 
 The checks use Qt's QML tools, Quickshell, and Node.js with its built-in modules.
 Lua also enables the pointer regression tests. No npm packages are required.
+The tray source tests build a temporary Qt Quick Test provider with `g++`,
+`pkg-config`, and Qt development tools (`qt6-base` and `qt6-declarative` on Arch).
+This provider records image requests and loads only benign fixtures; it is not
+part of the plugin runtime. Keep untrusted-source tests at this request boundary
+without constructing oversized or otherwise harmful image fixtures.
 Install ShellCheck for shell linting. The check script reports tools it skips.
 
 After installing and selecting Tilelane, run `./scripts/smoke`.

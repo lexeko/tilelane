@@ -21,7 +21,7 @@ TestCase {
     TrayIcon {
         id: icon
 
-        source: Qt.resolvedUrl("fixtures/badge-symbolic")
+        source: "image://icon/badge-symbolic"
         iconSize: 64
         foreground: "#c0c0c0"
     }
@@ -46,7 +46,7 @@ TestCase {
     }
 
     function test_symbolicColors(data) {
-        icon.source = Qt.resolvedUrl("fixtures/badge-symbolic");
+        icon.source = "image://icon/badge-symbolic";
         icon.foreground = data.foreground;
         background.color = data.background;
         tryVerify(function () {
@@ -64,7 +64,7 @@ TestCase {
     }
 
     function test_fullColorIconIsUntouched() {
-        icon.source = Qt.resolvedUrl("fixtures/badge.svg");
+        icon.source = "image://icon/badge";
         tryVerify(function () {
             return sample(grabImage(testCase), 0.25, 0.25) == Qt.rgba(1, 1, 1, 1);
         });
