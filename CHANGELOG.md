@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2
+
+- Restrict application tray images to installed icon themes, ignoring
+  application-provided paths and opaque image handles before image loading.
+- Use a generic icon for private-file and pixmap-only artwork while preserving
+  tray menus, clicks, scrolling, and tooltips.
+- Add regression coverage for tray image sources and retain symbolic colors,
+  colored badges, and icon sizes.
+
 ## 0.2.1
 
 - Tighten tray and status control spacing while preserving icon sizes and
