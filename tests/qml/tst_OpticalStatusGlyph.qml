@@ -176,8 +176,8 @@ TestCase {
         const pixelsPerUnit = picture.width / canvas.width * data.scale;
         const width = (right - left + 1) / pixelsPerUnit;
         const height = (bottom - top + 1) / pixelsPerUnit;
-        verify(Math.max(width, height) >= 10.5, "Weather must not collapse to a tiny font glyph");
-        verify(Math.max(width, height) <= 13, "Weather must stay within the neighboring status icons' size");
+        verify(Math.max(width, height) >= 12.5, "Weather must fill most of its optical canvas");
+        verify(Math.max(width, height) <= 15, "Weather must fit within its optical canvas");
         verify(Math.abs((left + right + 1) / 2 - picture.width / 2) <= 1.5 * pixelsPerUnit);
         verify(Math.abs((top + bottom + 1) / 2 - picture.height / 2) <= 1.5 * pixelsPerUnit);
 
@@ -202,6 +202,6 @@ TestCase {
             }
         }
         const referenceExtent = Math.max(right - left + 1, bottom - top + 1) / pixelsPerUnit;
-        verify(Math.abs(Math.max(width, height) - referenceExtent) <= 2, "Weather extent " + Math.max(width, height) + " versus neighboring icon " + referenceExtent);
+        verify(Math.abs(Math.max(width, height) - referenceExtent) <= 3.5, "Weather extent " + Math.max(width, height) + " versus neighboring icon " + referenceExtent);
     }
 }

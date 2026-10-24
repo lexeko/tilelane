@@ -272,10 +272,11 @@ icon buttons use this behavior.
 
 Standalone pictograms use `opticalSizing: true`. `NativeStatusItem` selects
 this for its icon presentation, including weather. The painted shape fits a
-12-scaled-pixel square and is centered in the canvas. This compensates for
-glyphs with smaller outlines inside the font. The renderer does not inspect
-widget IDs. Weather rendering checks compare its painted extent with a
-neighboring fixed-font icon, not just with its own sizing formula.
+14-scaled-pixel square with a one-pixel inset and is centered in the canvas.
+This compensates for glyphs with smaller outlines inside the font. The
+renderer does not inspect widget IDs. Weather rendering checks compare its
+painted extent with a neighboring fixed-font icon, not just with its own
+sizing formula.
 
 Use the shared component for new status glyphs and select the contract based
 on whether the shapes share a stable base symbol. Do not replace one policy
