@@ -57,7 +57,14 @@ QtObject {
     function dismiss(id) {
         if (!id || !currentTip || currentTip.id !== id)
             return false;
-        const next = settings.values.tilelaneDismissedTips.concat([id]);
+        return saveDismissal(id);
+    }
+
+    function saveDismissal(id) {
+        const dismissed = settings.values.tilelaneDismissedTips;
+        if (dismissed.indexOf(id) >= 0)
+            return true;
+        const next = dismissed.concat([id]);
         if (!settings.setValue("tilelaneDismissedTips", next)) {
             errorKey = "tips.saveError";
             return false;
@@ -104,10 +111,10 @@ QtObject {
                 });
                 return;
             }
+            const saved = root.saveDismissal("dock-overlap");
             root.actionPending = false;
-            root.actionFailed = false;
+            root.actionFailed = !saved;
             root.pendingCommands = [];
-            root.later("dock-overlap");
         }
     }
 
