@@ -123,6 +123,12 @@ function restoreWorkspaceForMonitor(monitorName, monitors, focusedMonitor) {
     return activeWorkspaceId(focusedMonitor);
 }
 
+function canMinimizeToOmarchyDock(record, wayland) {
+    return !!record && record.omarchyFloatingWorkspace === true
+        && Number.isInteger(Number(record.workspaceId)) && Number(record.workspaceId) > 0
+        && !!wayland && String(wayland.appId || "") !== "" && !wayland.parent;
+}
+
 function activationDispatches(address, workspaceName) {
     var target = selector(address);
     if (target === "")

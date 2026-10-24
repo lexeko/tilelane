@@ -99,6 +99,35 @@ TestCase {
         }), "");
     }
 
+    function test_dockMinimizeRequiresFloatingWorkspaceAndDockVisibleWindow() {
+        const record = {
+            omarchyFloatingWorkspace: true,
+            workspaceId: 2
+        };
+        const wayland = {
+            appId: "org.example.Editor",
+            parent: null
+        };
+        verify(TaskLogic.canMinimizeToOmarchyDock(record, wayland));
+        verify(!TaskLogic.canMinimizeToOmarchyDock({
+            omarchyFloatingWorkspace: false,
+            workspaceId: 2
+        }, wayland));
+        verify(!TaskLogic.canMinimizeToOmarchyDock({
+            omarchyFloatingWorkspace: true,
+            workspaceId: -98
+        }, wayland));
+        verify(!TaskLogic.canMinimizeToOmarchyDock(record, null));
+        verify(!TaskLogic.canMinimizeToOmarchyDock(record, {
+            appId: "",
+            parent: null
+        }));
+        verify(!TaskLogic.canMinimizeToOmarchyDock(record, {
+            appId: "org.example.Dialog",
+            parent: {}
+        }));
+    }
+
     function test_originJournalIsVersionedAndSanitized() {
         const parsed = TaskLogic.parseOrigins(JSON.stringify({
             "version": 1,

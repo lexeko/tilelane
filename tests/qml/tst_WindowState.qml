@@ -88,4 +88,13 @@ TestCase {
         verify(record.minimized);
         compare(WindowState.filterRecords([record], "DP-1", "active", "1").length, 1);
     }
+
+    function test_floatingWorkspaceMarkerIsSeparateFromWindowFloatingState() {
+        const window = Fixtures.clone(Fixtures.nativeWindow);
+        window.floating = false;
+        window.omarchyFloatingWorkspace = true;
+        const record = WindowState.normalizeRecord(window);
+        verify(record.omarchyFloatingWorkspace);
+        verify(!record.floating);
+    }
 }

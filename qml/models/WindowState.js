@@ -112,6 +112,7 @@ function normalizeRecord(value) {
         fullscreen: value.fullscreen === true,
         maximized: value.maximized === true,
         floating: value.floating === true,
+        omarchyFloatingWorkspace: value.omarchyFloatingWorkspace === true,
         mapped: value.mapped !== false,
         hidden: value.hidden === true,
         xwayland: value.xwayland === true,
@@ -121,7 +122,7 @@ function normalizeRecord(value) {
     };
 }
 
-var roleNames = ["address", "handle", "title", "appId", "className", "initialClass", "pid", "terminalPrograms", "desktopEntry", "desktopEntryId", "workspaceId", "workspaceName", "monitorId", "monitorName", "active", "urgent", "minimized", "fullscreen", "maximized", "floating", "mapped", "hidden", "xwayland", "hasWaylandHandle", "orderKey", "generation"];
+var roleNames = ["address", "handle", "title", "appId", "className", "initialClass", "pid", "terminalPrograms", "desktopEntry", "desktopEntryId", "workspaceId", "workspaceName", "monitorId", "monitorName", "active", "urgent", "minimized", "fullscreen", "maximized", "floating", "omarchyFloatingWorkspace", "mapped", "hidden", "xwayland", "hasWaylandHandle", "orderKey", "generation"];
 
 function copyRecord(value) {
     var copy = {};

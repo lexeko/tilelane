@@ -214,6 +214,7 @@ Item {
                     "fullscreen": (wayland && wayland.fullscreen === true) || (Number(ipc.fullscreen || ipc.fullscreenClient || 0) & 2) !== 0,
                     "maximized": (wayland && wayland.maximized === true) || (Number(ipc.fullscreen || ipc.fullscreenClient || 0) & 1) !== 0,
                     "floating": ipc.floating === true,
+                    "omarchyFloatingWorkspace": Array.isArray(ipc.tags) && ipc.tags.indexOf("omarchy-floating-workspace") !== -1,
                     "mapped": ipc.mapped !== false,
                     "hidden": ipc.hidden === true,
                     "xwayland": ipc.xwayland === true,

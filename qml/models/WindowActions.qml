@@ -146,6 +146,10 @@ QtObject {
         }
 
         if (action === "minimize") {
+            if (TaskLogic.validAddress(address) && TaskLogic.canMinimizeToOmarchyDock(record, wayland)) {
+                Quickshell.execDetached(["omarchy-hyprland-window-minimize", address]);
+                return true;
+            }
             if (!rememberOrigin(address, record.workspaceName || String(record.workspaceId || "")))
                 return false;
             const queued = fallback("minimize", address, "");

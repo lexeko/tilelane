@@ -86,20 +86,24 @@ Close first tries the Wayland handle. Other actions and fallback paths use
 one detached `hyprctl eval` command.
 
 The tested Hyprland release ignored the Wayland toplevel's minimized setter.
-Tilelane therefore moves minimized windows to `special:tilelane-minimized`.
-The recovery journal records its original workspace before the move.
+On Omarchy floating workspaces, Tilelane invokes Omarchy's minimize command
+for windows its dock can display. The command moves them to `special:minimized`,
+so either the dock or Tilelane can restore them. On older Omarchy versions,
+tiled workspaces, and windows the dock cannot display, Tilelane moves minimized
+windows to `special:tilelane-minimized`. Its recovery journal records the
+original workspace before that move.
 The model must observe the hidden workspace before a later normal-workspace
 update can clear that record. This avoids losing the origin during an
 asynchronous minimize.
 
-Omarchy's floating-workspace titlebar minimizes to `special:minimized` instead.
+Omarchy's floating-workspace titlebar also minimizes to `special:minimized`.
 Tilelane recognizes those windows as minimized tasks and restores them to the
 active regular workspace on their monitor before focusing them, matching
 Omarchy's dock. If that monitor is gone, it uses the focused monitor's active
 workspace. Tilelane's recovery journal remains specific to windows minimized
-through Tilelane.
+into its own hidden workspace.
 
-Restoring a Tilelane-minimized window returns it to its saved workspace.
+Restoring a window from `special:tilelane-minimized` returns it to its saved workspace.
 Neither restore path changes the workspace layout or forces floating mode.
 Pointer-preserving dispatches save
 Hyprland's cursor-warp settings, suppress warping for the action, and restore
