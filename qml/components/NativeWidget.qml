@@ -88,7 +88,6 @@ StatusControl {
         anchors.alignWhenCentered: false
         uiScale: root.uiScale
         opticalSizing: root.normalizeGlyph
-        opticalPaintedSize: 13 * root.uiScale
         text: root.normalizeGlyph ? root.nativeHintTarget.text : ""
         fontFamily: root.normalizeGlyph ? root.nativeHintTarget.fontFamily : "monospace"
         color: root.normalizeGlyph ? (root.nativeHintTarget.active && root.nativeHintTarget.useActiveColor ? root.nativeHintTarget.activeColor : root.nativeHintTarget.foreground) : "transparent"

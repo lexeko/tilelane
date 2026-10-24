@@ -13,7 +13,7 @@ Item {
     // retain one font scale so added detail does not shrink the base symbol.
     property bool opticalSizing: false
     readonly property real opticalSize: 16 * uiScale
-    readonly property real opticalInset: uiScale
+    readonly property real opticalInset: 1.5 * uiScale
     property real opticalPaintedSize: opticalSize - 2 * opticalInset
     readonly property int renderedFontSize: opticalSizing ? 64 : Math.max(1, Math.round(13 * uiScale))
     readonly property rect paintedBounds: glyphMetrics.tightBoundingRect

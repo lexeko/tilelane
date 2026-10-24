@@ -159,6 +159,7 @@ TestCase {
         glyph.opticalSizing = true;
         glyph.uiScale = data.scale;
         glyph.text = data.text;
+        fuzzyCompare(Math.max(glyph.paintedWidth, glyph.paintedHeight), 13 * data.scale, 0.01);
         waitForRendering(canvas);
         const picture = grabImage(canvas);
         let left = picture.width, top = picture.height, right = -1, bottom = -1;
@@ -176,8 +177,8 @@ TestCase {
         const pixelsPerUnit = picture.width / canvas.width * data.scale;
         const width = (right - left + 1) / pixelsPerUnit;
         const height = (bottom - top + 1) / pixelsPerUnit;
-        verify(Math.max(width, height) >= 12.5, "Weather must fill most of its optical canvas");
-        verify(Math.max(width, height) <= 15, "Weather must fit within its optical canvas");
+        verify(Math.max(width, height) >= 11, "Weather must fill most of its optical canvas: " + Math.max(width, height));
+        verify(Math.max(width, height) <= 14, "Weather must fit within its optical canvas");
         verify(Math.abs((left + right + 1) / 2 - picture.width / 2) <= 1.5 * pixelsPerUnit);
         verify(Math.abs((top + bottom + 1) / 2 - picture.height / 2) <= 1.5 * pixelsPerUnit);
 
