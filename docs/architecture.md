@@ -185,6 +185,8 @@ pixmap. A helper reads its bounded raw D-Bus pixmap outside the shell and
 returns only whether the top-right red unread dot is present. A source change
 triggers a new read and Tilelane draws the dot over the installed icon. Other
 opaque handles still receive the generic icon.
+Dropbox's `dropboxstatus-*` theme icons render at 1.5 times the regular tray
+image size so their compact artwork fills more of the existing tray slot.
 
 Installed icon themes and Qt's configured theme search paths are trusted. This
 guard prevents tray applications from selecting arbitrary files for decoding;

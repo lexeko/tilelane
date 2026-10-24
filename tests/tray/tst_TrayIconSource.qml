@@ -52,6 +52,25 @@ TestCase {
         tryCompare(icon, "roamUnread", false);
     }
 
+    function test_dropboxStatusIconSize() {
+        const image = findChild(icon, "trayImage");
+        icon.trayItemId = "dropbox-client-2164";
+        icon.source = "image://icon/dropboxstatus-logo?path=/opt/dropbox/images";
+        compare(icon.implicitWidth, 48);
+        compare(icon.implicitHeight, 48);
+        compare(icon.width, 48);
+        compare(image.width, 48);
+        compare(icon.safeSource, "image://icon/dropboxstatus-logo?fallback=application-x-executable");
+
+        icon.source = "image://icon/dropboxstatus-idle";
+        compare(icon.implicitWidth, 48);
+
+        icon.source = "image://icon/org.telegram.desktop";
+        compare(icon.implicitWidth, 32);
+        compare(icon.implicitHeight, 32);
+        compare(icon.width, 32);
+    }
+
     function test_sources_data() {
         const generic = "image://icon/application-x-executable";
         const roam = "image://icon/roam?fallback=application-x-executable";
