@@ -82,6 +82,7 @@ A new window without a PID can request one batched toplevel refresh after
 
 `WindowActions.qml` validates an exact window address before acting.
 Activation and restore normally use `Hyprland.dispatch()`.
+They focus the exact window and raise it to the top of the floating stack.
 Close first tries the Wayland handle. Other actions and fallback paths use
 one detached `hyprctl eval` command.
 

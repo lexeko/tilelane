@@ -28,6 +28,7 @@ TestCase {
     function test_fallbackCommandsValidateAndEscapeInputs() {
         compare(TaskLogic.fallbackCode("activate", "not-an-address", ""), "");
         compare(TaskLogic.fallbackCode("activate", "0x123456789abcdef01", ""), "");
+        verify(TaskLogic.fallbackCode("activate", "0xabc", "").indexOf('hl.dsp.window.alter_zorder({ mode = "top", window = "address:0xabc" })') !== -1);
         compare(TaskLogic.fallbackCode("close", "0xabc", ""), "return hl.dispatch(hl.dsp.window.close({ window = \"address:0xabc\" }))");
         const minimized = TaskLogic.fallbackCode("minimize", "0xABC", "");
         verify(minimized.indexOf("special:tilelane-minimized") !== -1);
@@ -41,22 +42,24 @@ TestCase {
 
     function test_activationTargetsWorkspaceThenExactWindow() {
         const commands = TaskLogic.activationDispatches("0xABC", "name:work\"room");
-        compare(commands.length, 2);
+        compare(commands.length, 3);
         compare(commands[0], "hl.dsp.focus({ workspace = \"name:work\\\"room\" })");
         compare(commands[1], "hl.dsp.focus({ window = \"address:0xABC\" })");
+        compare(commands[2], "hl.dsp.window.alter_zorder({ mode = \"top\", window = \"address:0xABC\" })");
         const minimized = TaskLogic.activationDispatches("0xabc", TaskLogic.minimizedWorkspace);
-        compare(minimized.length, 1);
+        compare(minimized.length, 2);
         verify(minimized[0].indexOf("address:0xabc") !== -1);
         compare(TaskLogic.activationDispatches("not-an-address", "2").length, 0);
     }
 
     function test_restoreTargetsWindowWithoutChangingLayout() {
         const commands = TaskLogic.restoreDispatches("0xABC", "name:work\"room");
-        compare(commands.length, 3);
+        compare(commands.length, 4);
         verify(commands[0].indexOf("follow = false") !== -1);
         verify(commands[0].indexOf("name:work\\\"room") !== -1);
         compare(commands[1], "hl.dsp.focus({ workspace = \"name:work\\\"room\" })");
         compare(commands[2], "hl.dsp.focus({ window = \"address:0xABC\" })");
+        compare(commands[3], "hl.dsp.window.alter_zorder({ mode = \"top\", window = \"address:0xABC\" })");
         verify(commands.join(" ").indexOf("hl.dsp.layout") === -1);
         compare(TaskLogic.restoreDispatches("bad", "2").length, 0);
         compare(TaskLogic.restoreDispatches("0xabc", TaskLogic.minimizedWorkspace).length, 0);

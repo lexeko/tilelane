@@ -172,6 +172,7 @@ function activationDispatches(address, workspaceName) {
     if (workspace !== "" && workspace !== minimizedWorkspace)
         result.push("hl.dsp.focus({ workspace = " + luaString(workspace) + " })");
     result.push("hl.dsp.focus({ window = " + luaString(target) + " })");
+    result.push("hl.dsp.window.alter_zorder({ mode = \"top\", window = " + luaString(target) + " })");
     return result;
 }
 
@@ -182,7 +183,7 @@ function restoreDispatches(address, workspaceName) {
         return [];
 
     var windowArg = "window = " + luaString(target);
-    return ["hl.dsp.window.move({ workspace = " + luaString(workspace) + ", follow = false, " + windowArg + " })", "hl.dsp.focus({ workspace = " + luaString(workspace) + " })", "hl.dsp.focus({ " + windowArg + " })"];
+    return ["hl.dsp.window.move({ workspace = " + luaString(workspace) + ", follow = false, " + windowArg + " })", "hl.dsp.focus({ workspace = " + luaString(workspace) + " })", "hl.dsp.focus({ " + windowArg + " })", "hl.dsp.window.alter_zorder({ mode = \"top\", " + windowArg + " })"];
 }
 
 function fallbackCode(action, address, workspaceName) {
@@ -191,7 +192,7 @@ function fallbackCode(action, address, workspaceName) {
         return "";
     var windowArg = "window = " + luaString(target);
     if (action === "activate")
-        return "return hl.dispatch(hl.dsp.focus({ " + windowArg + " }))";
+        return "hl.dispatch(hl.dsp.focus({ " + windowArg + " })); return hl.dispatch(hl.dsp.window.alter_zorder({ mode = \"top\", " + windowArg + " }))";
     if (action === "close")
         return "return hl.dispatch(hl.dsp.window.close({ " + windowArg + " }))";
     if (action === "minimize")

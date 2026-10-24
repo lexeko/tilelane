@@ -20,7 +20,7 @@ local calls = 0
 hl = {
   get_config = function(key) return options[key:match("cursor%.(.+)")] end,
   config = function(value) for key, v in pairs(value.cursor) do options[key] = v end end,
-  dsp = { focus = function(value) return value end, window = { move = function(value) return value end } },
+  dsp = { focus = function(value) return value end, window = { move = function(value) return value end, alter_zorder = function(value) return value end } },
   dispatch = function(command)
     assert(options.no_warps == true)
     assert(options.warp_on_change_workspace == 0)
@@ -36,7 +36,7 @@ local function checkRestored()
 end
 local activate = ${normal}
 activate()
-assert(calls == 2)
+assert(calls == 3)
 checkRestored()
 local fail = ${failure}
 local ok, message = pcall(fail)
@@ -44,7 +44,7 @@ assert(not ok and message:find("simulated failure"))
 checkRestored()
 local minimize = ${fallback}
 assert(minimize() == true)
-assert(calls == 4)
+assert(calls == 5)
 checkRestored()
 `;
   const result = spawnSync('lua', ['-'], { input: script, encoding: 'utf8' });
