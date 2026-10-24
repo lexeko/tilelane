@@ -135,6 +135,7 @@ TestCase {
         verify(code.indexOf('"-omarchy-minimized-from-2"') !== -1);
         verify(code.indexOf('"+omarchy-minimized-from-3"') !== -1);
         verify(code.indexOf('workspace = "special:minimized"') !== -1);
+        verify(code.indexOf('hl.dsp.focus({ workspace = focus })') !== -1);
         compare(TaskLogic.dockMigrationCode("bad", 3, []), "");
         compare(TaskLogic.dockMigrationCode("0xabc", 0, []), "");
         compare(TaskLogic.dockMigrationCode("0xabc", "name:work", []), "");

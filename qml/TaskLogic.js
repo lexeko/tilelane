@@ -157,7 +157,9 @@ function dockMigrationCode(address, workspaceId, tags) {
     commands.push("hl.dispatch(hl.dsp.window.move({ workspace = " + luaString(omarchyMinimizedWorkspace) + ", follow = false, " + windowArg + " }))");
     return "local window = hl.get_window(" + luaString(target) + "); "
         + "if not window or not window.workspace or window.workspace.name ~= " + luaString(minimizedWorkspace) + " then return false end; "
-        + commands.join("; ");
+        + "local active = hl.get_active_workspace(); "
+        + "local focus = active and active.id and active.id >= 1 and tostring(active.id) or " + luaString(workspace) + "; "
+        + commands.join("; ") + "; hl.dispatch(hl.dsp.focus({ workspace = focus }))";
 }
 
 function activationDispatches(address, workspaceName) {
