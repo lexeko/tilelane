@@ -153,7 +153,7 @@ Item {
             id: card
 
             implicitWidth: cardWindow.implicitWidth
-            implicitHeight: content.implicitHeight + root.px(30)
+            implicitHeight: content.implicitHeight + root.px(36)
             width: implicitWidth
             height: implicitHeight
             radius: root.px(9)
@@ -166,10 +166,10 @@ Item {
             Column {
                 id: content
 
-                x: root.px(15)
-                y: root.px(15)
-                width: parent.width - root.px(30)
-                spacing: root.px(9)
+                x: root.px(18)
+                y: root.px(18)
+                width: parent.width - root.px(36)
+                spacing: root.px(14)
 
                 Row {
                     width: parent.width
