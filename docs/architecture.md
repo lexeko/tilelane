@@ -175,9 +175,9 @@ command execution. No permanent window rule is installed.
 
 `TrayIcon.qml` accepts only bounded theme icon names through `TrayIconSource.js`.
 It rebuilds provider URLs, discarding application-supplied `IconThemePath` and
-fallback parameters. File paths, other URL schemes, and opaque `qsimage` handles
-use a generic application icon. Opaque handles are excluded because Quickshell
-can resolve file-backed named overlays through them. Custom private artwork and
+fallback parameters. File paths, other URL schemes, and opaque Quickshell
+pixmap handles use a generic application icon. Quickshell can resolve
+file-backed named overlays through these handles. Custom private artwork and
 pixmap-only icons therefore use the generic icon; tray actions remain available.
 Roam is a narrow exception: when its SNI id matches the observed status-icon
 form, Tilelane requests the fixed installed `roam` theme icon instead of its

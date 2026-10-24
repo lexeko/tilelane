@@ -27,7 +27,7 @@ TestCase {
         verify(probe);
 
         icon.trayItemId = "Roam_status_icon_1";
-        icon.source = "image://qsimage/current-roam-pixmap";
+        icon.source = "image://qspixmap/current-roam-pixmap";
         compare(icon.badgeReady, true);
         compare(icon.roamPixmap, true);
         tryCompare(probe, "running", true);
@@ -38,11 +38,14 @@ TestCase {
         compare(badge.visible, true);
 
         probe.running = false;
-        icon.source = "image://qsimage/next-roam-pixmap";
+        icon.source = "image://qspixmap/next-roam-pixmap";
         tryCompare(probe, "running", true);
         probe.stdout.text = "0\n";
         probe.stdout.streamFinished();
         compare(badge.visible, false);
+
+        icon.source = "image://qsimage/older-roam-pixmap";
+        compare(icon.roamPixmap, true);
 
         icon.source = "image://icon/roam";
         tryCompare(badge, "visible", false);
@@ -168,6 +171,11 @@ TestCase {
             {
                 tag: "opaque provider",
                 input: "image://qsimage/1/2",
+                expected: generic
+            },
+            {
+                tag: "current opaque pixmap provider",
+                input: "image://qspixmap/1/2",
                 expected: generic
             },
             {
