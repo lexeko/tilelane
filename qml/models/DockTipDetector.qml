@@ -91,7 +91,7 @@ QtObject {
         }
     }
 
-    Connections {
+    property Connections hyprlandEvents: Connections {
         target: Hyprland
 
         function onRawEvent(event) {

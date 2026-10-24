@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Hyprland
 import qs.Commons as Commons
 
 Item {
@@ -137,7 +138,6 @@ Item {
         id: cardWindow
 
         visible: root.cardOpen && root.visible && root.tip !== null
-        grabFocus: true
         color: "transparent"
         implicitWidth: root.px(370)
         implicitHeight: card.implicitHeight
@@ -147,6 +147,12 @@ Item {
 
         onVisibleChanged: if (!visible && root.cardOpen)
             root.close()
+
+        HyprlandFocusGrab {
+            active: root.cardOpen
+            windows: root.barWindow ? [cardWindow, root.barWindow] : [cardWindow]
+            onCleared: root.close()
+        }
 
         anchor {
             window: root.barWindow
