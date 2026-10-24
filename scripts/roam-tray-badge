@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+# Read Roam's raw SNI pixels outside the shell and report only its unread dot.
+set -euo pipefail
+
+classify() {
+  jq -r '
+    if .type != "a(iiay)" or (.data | type) != "array" then empty else
+      first(
+        .data[]
+        | select(type == "array" and length == 3)
+        | .[0] as $width | .[1] as $height | .[2] as $pixels
+        | select(($width | type) == "number" and ($height | type) == "number")
+        | select($width >= 16 and $width <= 64 and $height >= 16 and $height <= 64)
+        | select(($pixels | type) == "array" and ($pixels | length) == 4 * $width * $height)
+        | reduce range(0; $width * $height) as $pixel (0;
+            ($pixel % $width) as $x
+            | (($pixel / $width) | floor) as $y
+            | (4 * $pixel) as $at
+            | if $x >= $width * 0.55 and $x <= $width * 0.92
+                 and $y >= $height * 0.05 and $y <= $height * 0.45
+                 and $pixels[$at] > 127
+                 and $pixels[$at + 1] >= 160
+                 and $pixels[$at + 1] > $pixels[$at + 2] * 1.5
+                 and $pixels[$at + 1] > $pixels[$at + 3] * 1.5
+              then . + 1 else . end)
+        | if . >= 6 then "1" else "0" end
+      )
+    end
+  '
+}
+
+if [[ ${1:-} == --classify ]]; then
+  classify
+  exit
+fi
+
+target=${1:-}
+[[ $target =~ ^Roam_status_icon_[0-9]{1,6}$ ]] || exit 0
+
+registered=$(timeout 2s busctl --user --json=short get-property \
+  org.kde.StatusNotifierWatcher /StatusNotifierWatcher \
+  org.kde.StatusNotifierWatcher RegisteredStatusNotifierItems 2>/dev/null) || exit 0
+mapfile -t items < <(jq -r '.data[:32][]? | select(type == "string")' <<<"$registered")
+
+for item in "${items[@]}"; do
+  [[ $item == */* ]] || continue
+  service=${item%%/*}
+  path=/${item#*/}
+  [[ $service =~ ^[:A-Za-z0-9_.-]{1,255}$ && $path =~ ^/[A-Za-z0-9_/]{1,255}$ ]] || continue
+
+  id=$(timeout 2s busctl --user --json=short get-property \
+    "$service" "$path" org.kde.StatusNotifierItem Id 2>/dev/null \
+    | jq -r '.data // empty') || continue
+  [[ $id == "$target" ]] || continue
+
+  pixels=$(timeout 2s busctl --user --json=short get-property \
+    "$service" "$path" org.kde.StatusNotifierItem IconPixmap 2>/dev/null \
+    | head -c 131072) || continue
+  classify <<<"$pixels"
+  exit
+done

@@ -20,6 +20,35 @@ TestCase {
         foreground: "white"
     }
 
+    function test_roamUnreadBadge() {
+        const badge = findChild(icon, "roamUnreadBadge");
+        const probe = findChild(icon, "roamBadgeProbe");
+        verify(badge);
+        verify(probe);
+
+        icon.trayItemId = "Roam_status_icon_1";
+        icon.source = "image://qsimage/current-roam-pixmap";
+        compare(icon.badgeReady, true);
+        compare(icon.roamPixmap, true);
+        tryCompare(probe, "running", true);
+        compare(badge.visible, false);
+
+        probe.stdout.text = "1\n";
+        probe.stdout.streamFinished();
+        compare(badge.visible, true);
+
+        probe.running = false;
+        icon.source = "image://qsimage/next-roam-pixmap";
+        tryCompare(probe, "running", true);
+        probe.stdout.text = "0\n";
+        probe.stdout.streamFinished();
+        compare(badge.visible, false);
+
+        icon.source = "image://icon/roam";
+        tryCompare(badge, "visible", false);
+        tryCompare(icon, "roamUnread", false);
+    }
+
     function test_sources_data() {
         const generic = "image://icon/application-x-executable";
         const roam = "image://icon/roam?fallback=application-x-executable";

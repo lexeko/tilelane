@@ -17,4 +17,4 @@ read -r -a qt_flags <<< "$(pkg-config --cflags --libs Qt6QuickTest Qt6Quick)"
 g++ -std=c++17 -fPIC -Wall -Wextra -I "$test_dir" \
   "$repo_dir/tests/render/runner.cpp" "${qt_flags[@]}" -o "$test_dir/tray-tests"
 TILELANE_ICON_FIXTURES="$repo_dir/tests/render/fixtures" \
-  "$test_dir/tray-tests" -input "$input_dir" "$@"
+  "$test_dir/tray-tests" -import "$repo_dir/tests/mocks" -input "$input_dir" "$@"

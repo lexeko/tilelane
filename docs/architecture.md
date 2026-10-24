@@ -181,7 +181,10 @@ can resolve file-backed named overlays through them. Custom private artwork and
 pixmap-only icons therefore use the generic icon; tray actions remain available.
 Roam is a narrow exception: when its SNI id matches the observed status-icon
 form, Tilelane requests the fixed installed `roam` theme icon instead of its
-pixmap. Other opaque handles still receive the generic icon.
+pixmap. A helper reads its bounded raw D-Bus pixmap outside the shell and
+returns only whether the top-right red unread dot is present. A source change
+triggers a new read and Tilelane draws the dot over the installed icon. Other
+opaque handles still receive the generic icon.
 
 Installed icon themes and Qt's configured theme search paths are trusted. This
 guard prevents tray applications from selecting arbitrary files for decoding;
