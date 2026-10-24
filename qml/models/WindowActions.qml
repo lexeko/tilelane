@@ -120,8 +120,15 @@ QtObject {
         if (!record || !source)
             return false;
 
+        if (action === "activate" && record.minimized)
+            action = "restore";
         if (action === "activate")
             return activateExact(address, record.workspaceName || String(record.workspaceId || ""));
+
+        if (action === "restore" && record.workspaceName === TaskLogic.omarchyMinimizedWorkspace) {
+            const workspace = TaskLogic.restoreWorkspaceForMonitor(record.monitorName, Hyprland.monitors.values, Hyprland.focusedMonitor);
+            return workspace !== "" && restoreExact(address, workspace);
+        }
 
         const wayland = source.wayland || null;
         try {

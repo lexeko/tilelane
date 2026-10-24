@@ -92,8 +92,16 @@ The model must observe the hidden workspace before a later normal-workspace
 update can clear that record. This avoids losing the origin during an
 asynchronous minimize.
 
-Restore returns the window to its saved workspace. It does not change the
-workspace layout or force floating mode. Pointer-preserving dispatches save
+Omarchy's floating-workspace titlebar minimizes to `special:minimized` instead.
+Tilelane recognizes those windows as minimized tasks and restores them to the
+active regular workspace on their monitor before focusing them, matching
+Omarchy's dock. If that monitor is gone, it uses the focused monitor's active
+workspace. Tilelane's recovery journal remains specific to windows minimized
+through Tilelane.
+
+Restoring a Tilelane-minimized window returns it to its saved workspace.
+Neither restore path changes the workspace layout or forces floating mode.
+Pointer-preserving dispatches save
 Hyprland's cursor-warp settings, suppress warping for the action, and restore
 the settings even when the dispatch fails.
 

@@ -62,6 +62,43 @@ TestCase {
         compare(TaskLogic.restoreDispatches("0xabc", TaskLogic.minimizedWorkspace).length, 0);
     }
 
+    function test_omarchyRestoreUsesTheTaskMonitorActiveWorkspace() {
+        const monitors = [
+            {
+                name: "DP-1",
+                activeWorkspace: {
+                    id: 2
+                }
+            },
+            {
+                name: "HDMI-A-1",
+                activeWorkspace: {
+                    id: 4
+                }
+            }
+        ];
+        compare(TaskLogic.restoreWorkspaceForMonitor("DP-1", monitors, monitors[1]), "2");
+        compare(TaskLogic.restoreWorkspaceForMonitor("missing", monitors, monitors[1]), "4");
+        compare(TaskLogic.restoreWorkspaceForMonitor("DP-1", [
+            {
+                name: "DP-1",
+                activeWorkspace: {
+                    id: -99
+                }
+            }
+        ], monitors[1]), "4");
+        compare(TaskLogic.restoreWorkspaceForMonitor("", [], {
+            activeWorkspace: {
+                id: -99
+            }
+        }), "");
+        compare(TaskLogic.restoreWorkspaceForMonitor("", [], {
+            activeWorkspace: {
+                id: 2147483648
+            }
+        }), "");
+    }
+
     function test_originJournalIsVersionedAndSanitized() {
         const parsed = TaskLogic.parseOrigins(JSON.stringify({
             "version": 1,

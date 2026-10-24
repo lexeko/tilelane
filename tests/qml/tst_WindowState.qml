@@ -78,4 +78,14 @@ TestCase {
         unmapped.mapped = false;
         compare(WindowState.filterRecords([WindowState.normalizeRecord(hidden), WindowState.normalizeRecord(unmapped)], "", "all", "").length, 0);
     }
+
+    function test_omarchyMinimizedWindowRemainsAVisibleTask() {
+        const collapsed = Fixtures.clone(Fixtures.nativeWindow);
+        collapsed.workspaceName = WindowState.omarchyMinimizedWorkspace;
+        collapsed.workspaceId = -1;
+        collapsed.minimized = false;
+        const record = WindowState.normalizeRecord(collapsed);
+        verify(record.minimized);
+        compare(WindowState.filterRecords([record], "DP-1", "active", "1").length, 1);
+    }
 }

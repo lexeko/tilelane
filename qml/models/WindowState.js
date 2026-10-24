@@ -1,6 +1,7 @@
 .pragma library
 
 var minimizedWorkspace = "special:tilelane-minimized";
+var omarchyMinimizedWorkspace = "special:minimized";
 var terminalProbeMarker = "__tilelane_terminal_host__";
 
 function parseTerminalProbe(text) {
@@ -107,7 +108,7 @@ function normalizeRecord(value) {
         monitorName: stringValue(value.monitorName, ""),
         active: value.active === true,
         urgent: value.urgent === true,
-        minimized: value.minimized === true || workspaceName === minimizedWorkspace,
+        minimized: value.minimized === true || workspaceName === minimizedWorkspace || workspaceName === omarchyMinimizedWorkspace,
         fullscreen: value.fullscreen === true,
         maximized: value.maximized === true,
         floating: value.floating === true,

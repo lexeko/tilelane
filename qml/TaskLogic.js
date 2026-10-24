@@ -1,6 +1,7 @@
 .pragma library
 
 var minimizedWorkspace = "special:tilelane-minimized";
+var omarchyMinimizedWorkspace = "special:minimized";
 
 function primaryAction(active, minimized) {
     if (minimized === true)
@@ -100,6 +101,26 @@ function pointerStableDispatch(commands) {
     return withoutCursorWarp(commands.map(function (command) {
         return "hl.dispatch(" + command + ")";
     }).join("; "));
+}
+
+function activeWorkspaceId(monitor) {
+    var id = monitor && monitor.activeWorkspace ? Number(monitor.activeWorkspace.id) : 0;
+    return Number.isInteger(id) && id > 0 && id <= 2147483647 ? String(id) : "";
+}
+
+function restoreWorkspaceForMonitor(monitorName, monitors, focusedMonitor) {
+    var name = String(monitorName || "");
+    if (name !== "") {
+        var available = monitors || [];
+        for (var i = 0; i < available.length; i++) {
+            if (String(available[i].name || "") === name) {
+                var workspace = activeWorkspaceId(available[i]);
+                if (workspace !== "")
+                    return workspace;
+            }
+        }
+    }
+    return activeWorkspaceId(focusedMonitor);
 }
 
 function activationDispatches(address, workspaceName) {
