@@ -369,7 +369,9 @@ checks every owned Text declaration for this policy.
 
 `XDG_CONFIG_HOME` defaults to `~/.config`.
 Tilelane uses inline fields on the `bar` entry: `tilelanePins`,
-`tilelaneStartPins`, `tilelaneIdentityOverrides`, and `reducedMotion`.
+`tilelaneStartPins`, `tilelaneIdentityOverrides`, `tilelaneDismissedTips`, and
+`reducedMotion`. Dismissed tip IDs are independent, so a later tip can still
+appear.
 `tilelaneSettingsVersion: 1` records initialization. The injected `barConfig`
 snapshot supplies current values. Saves use the scoped
 `shell.mutateShellConfig()` callback, which lets the host persist bar changes.

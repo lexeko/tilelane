@@ -1,18 +1,16 @@
+import "../../qml/SettingsLogic.js" as SettingsLogic
 import QtQuick
 import QtTest
-import "../../qml/SettingsLogic.js" as SettingsLogic
 
 TestCase {
-    name: "SettingsLogic"
-
     function test_invalidFieldsDoNotDiscardOtherPreferences() {
         const values = SettingsLogic.read({
-            tilelanePins: ["bad\nID"],
-            tilelaneStartPins: ["files", "files", "browser"],
-            tilelaneIdentityOverrides: {
-                terminal: "editor"
+            "tilelanePins": ["bad\nID"],
+            "tilelaneStartPins": ["files", "files", "browser"],
+            "tilelaneIdentityOverrides": {
+                "terminal": "editor"
             },
-            reducedMotion: true
+            "reducedMotion": true
         });
         compare(values.tilelanePins, []);
         compare(values.tilelaneStartPins, ["files", "browser"]);
@@ -23,23 +21,23 @@ TestCase {
 
     function test_legacyPinsDoNotPreventPreferenceImport() {
         const legacy = SettingsLogic.legacyPreferences(JSON.stringify({
-            version: 1,
-            pins: "invalid old pins",
-            overrides: {
-                terminal: "editor"
+            "version": 1,
+            "pins": "invalid old pins",
+            "overrides": {
+                "terminal": "editor"
             },
-            reducedMotion: true
+            "reducedMotion": true
         }));
         const bar = {
-            id: "example",
-            layout: {
-                left: [
+            "id": "example",
+            "layout": {
+                "left": [
                     {
-                        id: "clock"
+                        "id": "clock"
                     }
                 ]
             },
-            position: "top"
+            "position": "top"
         };
         verify(SettingsLogic.initialize(bar, legacy));
         compare(bar.tilelanePins, []);
@@ -49,23 +47,23 @@ TestCase {
         compare(bar.layout.left[0].id, "clock");
         compare(bar.position, "top");
         verify(!SettingsLogic.initialize(bar, {
-            overrides: {},
-            reducedMotion: false
+            "overrides": {},
+            "reducedMotion": false
         }));
         verify(bar.reducedMotion);
     }
 
     function test_existingInlineValuesWinIncludingFalse() {
         const bar = {
-            reducedMotion: false,
-            tilelanePins: ["browser"],
-            tilelaneIdentityOverrides: {}
+            "reducedMotion": false,
+            "tilelanePins": ["browser"],
+            "tilelaneIdentityOverrides": {}
         };
         verify(SettingsLogic.initialize(bar, {
-            overrides: {
-                terminal: "editor"
+            "overrides": {
+                "terminal": "editor"
             },
-            reducedMotion: true
+            "reducedMotion": true
         }));
         verify(!bar.reducedMotion);
         compare(bar.tilelanePins, ["browser"]);
@@ -87,14 +85,29 @@ TestCase {
 
     function test_futureVersionIsUntouched() {
         const bar = {
-            tilelaneSettingsVersion: 2,
-            tilelanePins: ["future"]
+            "tilelaneSettingsVersion": 2,
+            "tilelanePins": ["future"]
         };
         verify(!SettingsLogic.initialize(bar, {
-            overrides: {},
-            reducedMotion: false
+            "overrides": {},
+            "reducedMotion": false
         }));
         compare(bar.tilelaneSettingsVersion, 2);
         compare(bar.tilelanePins, ["future"]);
     }
+
+    function test_tipDismissalIsStoredPerId() {
+        const values = SettingsLogic.read({
+            "tilelaneDismissedTips": ["dock-overlap", "dock-overlap", "future-change"]
+        });
+        compare(values.tilelaneDismissedTips, ["dock-overlap", "future-change"]);
+        compare(SettingsLogic.field("tilelaneDismissedTips", ["dock-overlap"]), ["dock-overlap"]);
+        const invalid = SettingsLogic.read({
+            "tilelaneDismissedTips": ["../../../bad"]
+        });
+        compare(invalid.tilelaneDismissedTips, []);
+        compare(invalid.errors.length, 1);
+    }
+
+    name: "SettingsLogic"
 }

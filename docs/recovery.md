@@ -105,10 +105,12 @@ Back up this file before editing it. Keep its other fields and layout entries.
 | `tilelanePins`              | Ordered array of taskbar desktop-entry IDs            |
 | `tilelaneStartPins`         | Ordered array of Start desktop-entry IDs              |
 | `tilelaneIdentityOverrides` | Object mapping window identities to desktop-entry IDs |
+| `tilelaneDismissedTips`     | Array of tips hidden with "Don't show this tip again" |
 | `reducedMotion`             | `true` or `false`                                     |
 
-To clear pins, set the corresponding array to `[]`. A missing app remains a
-removable taskbar pin. Invalid fields use safe defaults and log an error.
+To clear pins or restore dismissed tips, set the corresponding array to `[]`.
+A missing app remains a removable taskbar pin. Invalid fields use safe defaults
+and log an error.
 Tilelane leaves the invalid data on disk until you correct it or change that
 setting. Other valid settings remain usable. An unsupported settings version
 blocks saves.
@@ -194,8 +196,9 @@ omarchy plugin remove io.github.lexeko.tilelane
 
 Removal deletes the installed plugin. Tilelane's fields remain on `bar` in
 `shell.json`, ready for a later install. To clear them, back up `shell.json` and
-remove `tilelaneSettingsVersion`, `tilelanePins`, `tilelaneStartPins`, and
-`tilelaneIdentityOverrides`. Keep shared fields such as `layout` and `reducedMotion`.
+remove `tilelaneSettingsVersion`, `tilelanePins`, `tilelaneStartPins`,
+`tilelaneIdentityOverrides`, and `tilelaneDismissedTips`. Keep shared fields
+such as `layout` and `reducedMotion`.
 Old files under `~/.config/tilelane/` also remain. Archive them before reinstalling
 if you do not want their preferences imported again.
 Restore minimized windows before removing recovery data.

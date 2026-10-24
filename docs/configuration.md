@@ -19,6 +19,13 @@ Order within each group follows your configuration. Tilelane supplies its own
 menu and workspace controls, so it skips Omarchy's menu and workspace widgets.
 Start contains the indicators instead of placing them in the status area.
 
+On Omarchy versions with a dock, Tilelane may show a Dock tip in the taskbar
+when the always-visible dock and Tilelane share the bottom edge of a floating
+workspace. The tip explains how to use Omarchy's Dock settings to enable
+auto-hide or move the dock. Tilelane does not change the dock or its plugin
+state. "Later" hides the tip for this shell session. "Don't show this tip again"
+stores a dismissal for this tip only; future tips remain available.
+
 For example, move Volume before Bluetooth:
 
 ```sh
@@ -52,6 +59,6 @@ Third-party widgets retain their own controls and may use different styling.
 
 ## Tilelane settings
 
-Pins, identity overrides, and reduced motion are stored in Omarchy's
+Pins, identity overrides, tip dismissals, and reduced motion are stored in Omarchy's
 `shell.json`. See [settings and reduced motion](recovery.md#recover-pins-or-settings)
 for the fields and commands.

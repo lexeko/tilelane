@@ -445,6 +445,14 @@ Item {
         pluginId: root.manifest ? root.manifest.id : "io.github.lexeko.tilelane"
     }
 
+    TipController {
+        id: tipController
+
+        settings: tilelaneSettings
+        bar: root
+        barPosition: root.position
+    }
+
     PinnedApplications {
         id: taskbarPinnedApplications
 
@@ -584,6 +592,23 @@ Item {
             return JSON.stringify({
                 "enabled": root.reducedMotion,
                 "stored": tilelaneSettings.values.reducedMotion
+            });
+        }
+
+        function tipState(): string {
+            const dock = tipController.dockDetector;
+            return JSON.stringify({
+                "currentTip": tipController.currentTip ? tipController.currentTip.id : "",
+                "dismissed": tilelaneSettings.values.tilelaneDismissedTips,
+                "screen": tipController.screenName,
+                "dock": {
+                    "enabled": dock.dockEnabled,
+                    "position": dock.dockPosition,
+                    "autohide": dock.dockAutohide,
+                    "workspaceMode": dock.workspaceMode,
+                    "fullscreenMode": dock.fullscreenMode,
+                    "conflict": dock.conflict
+                }
             });
         }
 
@@ -865,7 +890,7 @@ Item {
             anchors.bottom: parent.bottom
             anchors.left: workspaceSwitcher.right
             anchors.leftMargin: root.sectionGap
-            anchors.right: rightStatus.left
+            anchors.right: tipButton.visible ? tipButton.left : rightStatus.left
             anchors.rightMargin: root.sectionGap
             sectionGap: root.sectionGap
             model: tasks.model
@@ -876,6 +901,21 @@ Item {
             barHeight: root.barHeight
             uiScale: root.barScale
             screenName: barWindow.screen ? String(barWindow.screen.name || "") : ""
+        }
+
+        CompatibilityTipButton {
+            id: tipButton
+
+            anchors.right: rightStatus.left
+            anchors.rightMargin: root.sectionGap
+            anchors.verticalCenter: parent.verticalCenter
+            visible: tipController.currentTip !== null && barWindow.screen && String(barWindow.screen.name || "") === tipController.screenName
+            tip: tipController.currentTip
+            controller: tipController
+            barWindow: barWindow
+            uiScale: root.barScale
+            compact: barWindow.width < 1050 * root.barScale
+            reducedMotion: root.reducedMotion
         }
 
         BarHint {

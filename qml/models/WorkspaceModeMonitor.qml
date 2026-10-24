@@ -13,14 +13,21 @@ QtObject {
     property int generation: 0
     property int checkingGeneration: 0
     property int watchGeneration: 0
+    property var modes: ({})
     readonly property string stateHome: Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state"
     readonly property string modesDir: stateHome + "/omarchy/workspace-layouts"
     property string defaultWatchPath: modesDir + "/default.lua"
 
     signal floating(int workspaceId)
+    signal modeChecked(int workspaceId, string mode)
+
+    function modeFor(workspaceId) {
+        return String(modes[String(workspaceId)] || "");
+    }
 
     function refresh() {
         generation++;
+        modes = ({});
         const next = pendingIds.slice(0);
         for (const id of workspaceIds) {
             if (next.indexOf(id) === -1)
@@ -91,7 +98,14 @@ QtObject {
     property Process modeProbe: Process {
         stdout: StdioCollector {
             onStreamFinished: {
-                if (root.checkingGeneration === root.generation && text.trim() === "floating")
+                if (root.checkingGeneration !== root.generation)
+                    return;
+                const mode = text.trim();
+                const next = Object.assign({}, root.modes);
+                next[String(root.checkingId)] = mode;
+                root.modes = next;
+                root.modeChecked(root.checkingId, mode);
+                if (mode === "floating")
                     root.floating(root.checkingId);
             }
         }
