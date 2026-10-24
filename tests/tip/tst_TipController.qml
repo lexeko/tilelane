@@ -37,7 +37,6 @@ TestCase {
             });
         fakeSettings.allowSave = true;
         fakeSettings.saveCount = 0;
-        controller.hiddenThisSession = [];
         controller.actionPending = false;
         controller.actionFailed = false;
         controller.stableDockConflict = false;
@@ -59,7 +58,6 @@ TestCase {
         finishSecondDockCommand(0);
         compare(fakeSettings.values.tilelaneDismissedTips, ["dock-overlap"]);
         compare(fakeSettings.saveCount, 1);
-        compare(controller.hiddenThisSession, []);
         verify(!controller.actionPending);
         verify(!controller.actionFailed);
         compare(controller.currentTip, null);
@@ -79,17 +77,21 @@ TestCase {
         compare(controller.currentTip.id, "dock-overlap");
     }
 
-    function test_laterRemainsHiddenForSession() {
+    function test_tipRemainsAvailableUntilConflictEndsOrDismissed() {
         controller.stableDockConflict = true;
-        controller.later("dock-overlap");
+        compare(controller.currentTip.id, "dock-overlap");
+        controller.stableDockConflict = false;
         compare(controller.currentTip, null);
+        controller.stableDockConflict = true;
+        compare(controller.currentTip.id, "dock-overlap");
         fakeSettings.values = ({
                 tilelaneDismissedTips: ["dock-overlap"]
             });
+        compare(controller.currentTip, null);
         fakeSettings.values = ({
                 tilelaneDismissedTips: []
             });
-        compare(controller.currentTip, null);
+        compare(controller.currentTip.id, "dock-overlap");
     }
 
     function test_commandFailureKeepsTipAvailable() {

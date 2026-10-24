@@ -315,10 +315,7 @@ Item {
                         height: parent.height
                         implicitWidth: laterText.implicitWidth + root.px(8)
                         text: strings.t("tips.later")
-                        onClicked: {
-                            root.controller.later(root.tip.id);
-                            root.close();
-                        }
+                        onClicked: root.close()
                         background: Item {}
                         contentItem: Text {
                             id: laterText

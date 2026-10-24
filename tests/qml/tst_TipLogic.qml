@@ -14,10 +14,9 @@ TestCase {
                 "eligible": true
             }
         ];
-        compare(TipLogic.select(tips, [], []).id, "dock-overlap");
-        compare(TipLogic.select(tips, ["dock-overlap"], []).id, "future-change");
-        compare(TipLogic.select(tips, [], ["dock-overlap"]).id, "future-change");
-        compare(TipLogic.select(tips, ["dock-overlap", "future-change"], []), null);
+        compare(TipLogic.select(tips, []).id, "dock-overlap");
+        compare(TipLogic.select(tips, ["dock-overlap"]).id, "future-change");
+        compare(TipLogic.select(tips, ["dock-overlap", "future-change"]), null);
     }
 
     function test_dockNeedsVisibleBottomConflict() {

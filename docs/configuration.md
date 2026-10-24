@@ -24,8 +24,9 @@ when the always-visible dock and Tilelane share the bottom edge of a floating
 workspace. Choose Left, Top, or Right to move the dock there and turn on
 auto-hide with one click. A successful choice also dismisses this tip
 permanently. Tilelane changes the dock only when you choose one of these
-actions. "Later" hides the tip for this shell session. "Don't show again"
-stores a dismissal for this tip only; future tips remain available.
+actions. "Later" closes the card and leaves its taskbar button visible.
+"Don't show again" stores a dismissal for this tip only; future tips remain
+available.
 
 For example, move Volume before Bluetooth:
 

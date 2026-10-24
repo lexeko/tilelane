@@ -11,7 +11,6 @@ QtObject {
     required property var settings
     property var bar: null
     property string barPosition: "bottom"
-    property var hiddenThisSession: []
     property bool stableDockConflict: false
     property bool actionPending: false
     property bool actionFailed: false
@@ -46,13 +45,7 @@ QtObject {
             eligible: stableDockConflict || actionPending || actionFailed
         }
     ]
-    readonly property var currentTip: TipLogic.select(tips, settings.values.tilelaneDismissedTips, hiddenThisSession)
-
-    function later(id) {
-        if (!id || hiddenThisSession.indexOf(id) >= 0)
-            return;
-        hiddenThisSession = hiddenThisSession.concat([id]);
-    }
+    readonly property var currentTip: TipLogic.select(tips, settings.values.tilelaneDismissedTips)
 
     function dismiss(id) {
         if (!id || !currentTip || currentTip.id !== id)

@@ -1,8 +1,8 @@
 .pragma library
 
 // A tip has a stable ID so dismissing it does not hide future tips.
-function select(tips, dismissed, hidden) {
-    const ignored = (dismissed || []).concat(hidden || []);
+function select(tips, dismissed) {
+    const ignored = dismissed || [];
     for (const tip of tips || []) {
         if (tip && tip.eligible === true && ignored.indexOf(tip.id) === -1)
             return tip;
