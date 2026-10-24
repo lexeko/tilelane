@@ -29,8 +29,6 @@ Item {
     function openCard() {
         if (!tip)
             return;
-        if (controller && controller.saveError)
-            controller.saveError = "";
         if (controller && controller.bar)
             controller.bar.requestPopout(root);
         cardOpen = true;
@@ -119,7 +117,7 @@ Item {
 
         visible: root.cardOpen && root.visible && root.tip !== null
         color: "transparent"
-        implicitWidth: root.px(370)
+        implicitWidth: root.px(410)
         implicitHeight: card.implicitHeight
         mask: Region {
             item: card
@@ -173,42 +171,15 @@ Item {
                 width: parent.width - root.px(30)
                 spacing: root.px(9)
 
-                Row {
+                Text {
                     width: parent.width
-                    spacing: root.px(8)
-
-                    Text {
-                        width: parent.width - closeButton.width - parent.spacing
-                        text: root.tip ? strings.t(root.tip.titleKey) : ""
-                        textFormat: Text.PlainText
-                        color: Commons.Color.menu.text
-                        font.family: Commons.Style.font.family
-                        font.pixelSize: Commons.Style.font.subtitle
-                        font.weight: Font.DemiBold
-                        wrapMode: Text.Wrap
-                    }
-
-                    Button {
-                        id: closeButton
-
-                        width: root.px(24)
-                        height: root.px(24)
-                        text: "×"
-                        Accessible.name: strings.t("tips.close")
-                        onClicked: root.close()
-                        background: Rectangle {
-                            radius: root.px(4)
-                            color: closeButton.hovered || closeButton.activeFocus ? Commons.Color.menu.selectedBackground : "transparent"
-                        }
-                        contentItem: Text {
-                            text: closeButton.text
-                            textFormat: Text.PlainText
-                            color: Commons.Color.menu.text
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            font.pixelSize: Commons.Style.font.title
-                        }
-                    }
+                    text: root.tip ? strings.t(root.tip.titleKey) : ""
+                    textFormat: Text.PlainText
+                    color: Commons.Color.menu.text
+                    font.family: Commons.Style.font.family
+                    font.pixelSize: Commons.Style.font.subtitle
+                    font.weight: Font.DemiBold
+                    wrapMode: Text.Wrap
                 }
 
                 Text {
@@ -222,81 +193,118 @@ Item {
                 }
 
                 Row {
+                    id: actionRow
+
+                    width: parent.width
                     spacing: root.px(8)
 
-                    Button {
-                        id: settingsButton
+                    Repeater {
+                        model: root.tip ? root.tip.actions : []
 
-                        text: root.tip ? strings.t(root.tip.actionKey) : ""
-                        onClicked: {
-                            if (root.controller.runAction(root.tip.id))
-                                root.close();
+                        delegate: Button {
+                            id: choiceButton
+
+                            required property var modelData
+
+                            width: (actionRow.width - actionRow.spacing * 2) / 3
+                            height: root.px(68)
+                            text: strings.t(modelData.labelKey)
+                            enabled: !root.controller.actionPending
+                            Accessible.name: strings.t("tips.dock.choiceAccessibility").arg(text)
+                            onClicked: root.controller.runAction(root.tip.id, modelData.id)
+
+                            background: Rectangle {
+                                radius: root.px(7)
+                                color: choiceButton.hovered || choiceButton.activeFocus ? Commons.Util.alpha(Commons.Color.accent, 0.16) : Commons.Util.alpha(Commons.Color.menu.text, 0.05)
+                                border.width: choiceButton.activeFocus ? Math.max(1, Math.round(root.px(1))) : 0
+                                border.color: Commons.Color.accent
+                            }
+                            contentItem: Item {
+                                Column {
+                                    anchors.centerIn: parent
+                                    spacing: root.px(3)
+
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: choiceButton.modelData.glyph
+                                        textFormat: Text.PlainText
+                                        color: Commons.Color.accent
+                                        font.family: Commons.Style.font.family
+                                        font.pixelSize: Commons.Style.font.heading
+                                    }
+
+                                    Text {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: choiceButton.text
+                                        textFormat: Text.PlainText
+                                        color: Commons.Color.menu.text
+                                        font.family: Commons.Style.font.family
+                                        font.pixelSize: Commons.Style.font.body
+                                        font.weight: Font.DemiBold
+                                    }
+                                }
+                            }
                         }
-                        background: Rectangle {
-                            radius: root.px(5)
-                            color: Commons.Color.accent
-                        }
+                    }
+                }
+
+                Item {
+                    width: parent.width
+                    height: root.px(28)
+
+                    Button {
+                        id: dismissLink
+
+                        anchors.left: parent.left
+                        height: parent.height
+                        implicitWidth: dismissText.implicitWidth + root.px(8)
+                        text: strings.t("tips.dismiss")
+                        onClicked: if (root.controller.dismiss(root.tip.id))
+                            root.close()
+                        background: Item {}
                         contentItem: Text {
-                            text: settingsButton.text
+                            id: dismissText
+
+                            text: dismissLink.text
                             textFormat: Text.PlainText
-                            color: Commons.Color.menu.background
+                            color: Commons.Color.accent
                             font.family: Commons.Style.font.family
-                            font.pixelSize: Commons.Style.font.body
-                            font.weight: Font.DemiBold
-                            horizontalAlignment: Text.AlignHCenter
+                            font.pixelSize: Commons.Style.font.bodySmall
+                            font.underline: dismissLink.hovered || dismissLink.activeFocus
                             verticalAlignment: Text.AlignVCenter
                         }
                     }
 
                     Button {
-                        id: laterButton
+                        id: laterLink
 
+                        anchors.right: parent.right
+                        height: parent.height
+                        implicitWidth: laterText.implicitWidth + root.px(8)
                         text: strings.t("tips.later")
                         onClicked: {
                             root.controller.later(root.tip.id);
                             root.close();
                         }
-                        background: Rectangle {
-                            radius: root.px(5)
-                            color: laterButton.hovered || laterButton.activeFocus ? Commons.Color.menu.selectedBackground : "transparent"
-                        }
+                        background: Item {}
                         contentItem: Text {
-                            text: laterButton.text
+                            id: laterText
+
+                            text: laterLink.text
                             textFormat: Text.PlainText
                             color: Commons.Color.menu.text
                             font.family: Commons.Style.font.family
-                            font.pixelSize: Commons.Style.font.body
-                            horizontalAlignment: Text.AlignHCenter
+                            font.pixelSize: Commons.Style.font.bodySmall
+                            font.underline: laterLink.hovered || laterLink.activeFocus
                             verticalAlignment: Text.AlignVCenter
                         }
                     }
                 }
 
-                Button {
-                    id: dismissButton
-
-                    text: strings.t("tips.dismiss")
-                    onClicked: if (root.controller.dismiss(root.tip.id))
-                        root.close()
-                    background: Rectangle {
-                        radius: root.px(5)
-                        color: dismissButton.hovered || dismissButton.activeFocus ? Commons.Color.menu.selectedBackground : "transparent"
-                    }
-                    contentItem: Text {
-                        text: dismissButton.text
-                        textFormat: Text.PlainText
-                        color: Commons.Color.menu.text
-                        font.family: Commons.Style.font.family
-                        font.pixelSize: Commons.Style.font.body
-                        horizontalAlignment: Text.AlignLeft
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                }
-
                 Text {
-                    visible: root.controller && root.controller.saveError !== ""
+                    visible: root.controller && root.controller.errorKey !== ""
                     width: parent.width
-                    text: visible ? strings.t("tips.saveError") : ""
+                    text: visible ? strings.t(root.controller.errorKey) : ""
                     textFormat: Text.PlainText
                     color: Commons.Color.urgent
                     font.family: Commons.Style.font.family

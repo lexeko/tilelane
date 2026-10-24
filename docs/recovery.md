@@ -105,7 +105,7 @@ Back up this file before editing it. Keep its other fields and layout entries.
 | `tilelanePins`              | Ordered array of taskbar desktop-entry IDs            |
 | `tilelaneStartPins`         | Ordered array of Start desktop-entry IDs              |
 | `tilelaneIdentityOverrides` | Object mapping window identities to desktop-entry IDs |
-| `tilelaneDismissedTips`     | Array of tips hidden with "Don't show this tip again" |
+| `tilelaneDismissedTips`     | Array of tips hidden with "Don't show again"          |
 | `reducedMotion`             | `true` or `false`                                     |
 
 To clear pins or restore dismissed tips, set the corresponding array to `[]`.

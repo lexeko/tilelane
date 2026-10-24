@@ -13,3 +13,9 @@ function select(tips, dismissed, hidden) {
 function dockOverlap(state) {
     return !!state && state.dockEnabled === true && state.dockPosition === "bottom" && state.dockAutohide === false && state.barPosition === "bottom" && state.workspaceMode === "floating" && state.fullscreenMode === 0 && state.screenName !== "";
 }
+
+function dockActionCommands(position) {
+    if (["left", "top", "right"].indexOf(position) === -1)
+        return [];
+    return [["omarchy", "dock", "position", position], ["omarchy", "dock", "autohide", "on"]];
+}

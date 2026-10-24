@@ -1,10 +1,13 @@
 {
   "tips.dock.button": "Dock tip",
   "tips.dock.title": "Give Tilelane more room",
-  "tips.dock.body": "Omarchy's dock is always visible at the bottom of floating workspaces. Set it to auto-hide or move it to the left, right, or top.",
-  "tips.dock.action": "Open Dock settings",
+  "tips.dock.body": "Omarchy's dock and Tilelane share the bottom edge. Pick a new position; auto-hide turns on too.",
+  "tips.dock.left": "Left",
+  "tips.dock.top": "Top",
+  "tips.dock.right": "Right",
+  "tips.dock.error": "Could not change the dock. Please try again.",
+  "tips.dock.choiceAccessibility": "Move dock %1 and turn on auto-hide",
   "tips.later": "Later",
-  "tips.dismiss": "Don't show this tip again",
-  "tips.close": "Close tip",
+  "tips.dismiss": "Don't show again",
   "tips.saveError": "Could not save this preference."
 }

@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import "../TipLogic.js" as TipLogic
 
 QtObject {
@@ -12,7 +13,11 @@ QtObject {
     property string barPosition: "bottom"
     property var hiddenThisSession: []
     property bool stableDockConflict: false
-    property string saveError: ""
+    property bool actionPending: false
+    property bool actionFailed: false
+    property string errorKey: ""
+    property var pendingCommands: []
+    property int commandIndex: 0
     readonly property string screenName: dockDetector.screenName
     readonly property var tips: [
         {
@@ -20,8 +25,24 @@ QtObject {
             buttonKey: "tips.dock.button",
             titleKey: "tips.dock.title",
             bodyKey: "tips.dock.body",
-            actionKey: "tips.dock.action",
-            eligible: stableDockConflict
+            actions: [
+                {
+                    id: "left",
+                    labelKey: "tips.dock.left",
+                    glyph: "←"
+                },
+                {
+                    id: "top",
+                    labelKey: "tips.dock.top",
+                    glyph: "↑"
+                },
+                {
+                    id: "right",
+                    labelKey: "tips.dock.right",
+                    glyph: "→"
+                }
+            ],
+            eligible: stableDockConflict || actionPending || actionFailed
         }
     ]
     readonly property var currentTip: TipLogic.select(tips, settings.values.tilelaneDismissedTips, hiddenThisSession)
@@ -37,24 +58,57 @@ QtObject {
             return false;
         const next = settings.values.tilelaneDismissedTips.concat([id]);
         if (!settings.setValue("tilelaneDismissedTips", next)) {
-            saveError = "Could not save this preference.";
+            errorKey = "tips.saveError";
             return false;
         }
-        saveError = "";
+        errorKey = "";
         later(id);
         return true;
     }
 
-    function runAction(id) {
-        if (id === "dock-overlap") {
-            Quickshell.execDetached(["omarchy", "menu", "summon", "trigger.appearance.dock"]);
-            return true;
-        }
-        return false;
+    function runAction(id, choice) {
+        if (id !== "dock-overlap" || actionPending)
+            return false;
+        const commands = TipLogic.dockActionCommands(choice);
+        if (commands.length !== 2)
+            return false;
+        errorKey = "";
+        actionFailed = false;
+        pendingCommands = commands;
+        commandIndex = 0;
+        actionPending = true;
+        dockAction.command = commands[0];
+        dockAction.running = true;
+        return true;
     }
 
-    onSaveErrorChanged: if (saveError)
-        console.warn("Tilelane tip: " + saveError)
+    onErrorKeyChanged: if (errorKey)
+        console.warn("Tilelane tip: " + errorKey)
+
+    property Process dockAction: Process {
+        onExited: function (exitCode) {
+            if (!root.actionPending)
+                return;
+            if (exitCode !== 0) {
+                root.actionPending = false;
+                root.actionFailed = true;
+                root.errorKey = "tips.dock.error";
+                return;
+            }
+            if (root.commandIndex + 1 < root.pendingCommands.length) {
+                root.commandIndex++;
+                Qt.callLater(() => {
+                    dockAction.command = root.pendingCommands[root.commandIndex];
+                    dockAction.running = true;
+                });
+                return;
+            }
+            root.actionPending = false;
+            root.actionFailed = false;
+            root.pendingCommands = [];
+            root.later("dock-overlap");
+        }
+    }
 
     property DockTipDetector dockDetector: DockTipDetector {
         barPosition: root.barPosition

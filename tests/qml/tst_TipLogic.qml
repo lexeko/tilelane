@@ -65,5 +65,14 @@ TestCase {
         }
     }
 
+    function test_dockChoicesUseSequentialValidatedCommands() {
+        for (const position of ["left", "top", "right"]) {
+            const commands = TipLogic.dockActionCommands(position);
+            compare(JSON.stringify(commands), JSON.stringify([["omarchy", "dock", "position", position], ["omarchy", "dock", "autohide", "on"]]));
+        }
+        compare(TipLogic.dockActionCommands("bottom").length, 0);
+        compare(TipLogic.dockActionCommands("left; false").length, 0);
+    }
+
     name: "TipLogic"
 }

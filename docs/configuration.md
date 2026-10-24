@@ -21,9 +21,9 @@ Start contains the indicators instead of placing them in the status area.
 
 On Omarchy versions with a dock, Tilelane may show a Dock tip in the taskbar
 when the always-visible dock and Tilelane share the bottom edge of a floating
-workspace. The tip explains how to use Omarchy's Dock settings to enable
-auto-hide or move the dock. Tilelane does not change the dock or its plugin
-state. "Later" hides the tip for this shell session. "Don't show this tip again"
+workspace. Choose Left, Top, or Right to move the dock there and turn on
+auto-hide with one click. Tilelane changes the dock only when you choose one of
+these actions. "Later" hides the tip for this shell session. "Don't show again"
 stores a dismissal for this tip only; future tips remain available.
 
 For example, move Volume before Bluetooth:
