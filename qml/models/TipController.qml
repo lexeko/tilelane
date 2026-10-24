@@ -25,6 +25,7 @@ QtObject {
             buttonKey: "tips.dock.button",
             titleKey: "tips.dock.title",
             bodyKey: "tips.dock.body",
+            titleIcon: "dock-grid",
             actions: [
                 {
                     id: "left",

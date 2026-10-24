@@ -171,15 +171,47 @@ Item {
                 width: parent.width - root.px(30)
                 spacing: root.px(9)
 
-                Text {
+                Row {
                     width: parent.width
-                    text: root.tip ? strings.t(root.tip.titleKey) : ""
-                    textFormat: Text.PlainText
-                    color: Commons.Color.menu.text
-                    font.family: Commons.Style.font.family
-                    font.pixelSize: Commons.Style.font.subtitle
-                    font.weight: Font.DemiBold
-                    wrapMode: Text.Wrap
+                    spacing: root.px(9)
+
+                    Item {
+                        id: titleIcon
+
+                        visible: root.tip && root.tip.titleIcon === "dock-grid"
+                        width: visible ? root.px(20) : 0
+                        height: root.px(20)
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        Grid {
+                            anchors.centerIn: parent
+                            columns: 3
+                            spacing: root.px(2)
+
+                            Repeater {
+                                model: 9
+
+                                delegate: Rectangle {
+                                    width: root.px(4)
+                                    height: root.px(4)
+                                    radius: root.px(1)
+                                    color: Commons.Color.menu.text
+                                }
+                            }
+                        }
+                    }
+
+                    Text {
+                        width: parent.width - titleIcon.width - parent.spacing
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: root.tip ? strings.t(root.tip.titleKey) : ""
+                        textFormat: Text.PlainText
+                        color: Commons.Color.menu.text
+                        font.family: Commons.Style.font.family
+                        font.pixelSize: Commons.Style.font.subtitle
+                        font.weight: Font.DemiBold
+                        wrapMode: Text.Wrap
+                    }
                 }
 
                 Text {
@@ -187,8 +219,9 @@ Item {
                     text: root.tip ? strings.t(root.tip.bodyKey) : ""
                     textFormat: Text.PlainText
                     color: Commons.Color.menu.text
+                    opacity: 0.6
                     font.family: Commons.Style.font.family
-                    font.pixelSize: Commons.Style.font.body
+                    font.pixelSize: Commons.Style.font.bodySmall
                     wrapMode: Text.Wrap
                 }
 

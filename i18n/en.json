@@ -1,7 +1,7 @@
 {
   "tips.dock.button": "Dock tip",
   "tips.dock.title": "Give Tilelane more room",
-  "tips.dock.body": "Omarchy's dock and Tilelane share the bottom edge. Pick a new position; auto-hide turns on too.",
+  "tips.dock.body": "Omarchy's dock and Tilelane share the bottom edge. Pick new position for Omarchy dock. Auto-hide turns on too.",
   "tips.dock.left": "Left",
   "tips.dock.top": "Top",
   "tips.dock.right": "Right",
