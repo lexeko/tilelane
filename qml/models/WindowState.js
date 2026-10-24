@@ -4,6 +4,10 @@ var minimizedWorkspace = "special:tilelane-minimized";
 var omarchyMinimizedWorkspace = "special:minimized";
 var terminalProbeMarker = "__tilelane_terminal_host__";
 
+function hasTag(tags, name) {
+    return !!tags && typeof tags.indexOf === "function" && tags.indexOf(name) !== -1;
+}
+
 function parseTerminalProbe(text) {
     var programs = [];
     var ownsTerminal = false;

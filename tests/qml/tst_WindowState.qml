@@ -97,4 +97,16 @@ TestCase {
         verify(record.omarchyFloatingWorkspace);
         verify(!record.floating);
     }
+
+    function test_floatingWorkspaceTagAcceptsQuickshellLists() {
+        const tags = {
+            length: 2,
+            0: "omarchy-floating-workspace",
+            1: "omarchy-mode-floated",
+            indexOf: Array.prototype.indexOf
+        };
+        verify(WindowState.hasTag(tags, "omarchy-floating-workspace"));
+        verify(!WindowState.hasTag(tags, "missing"));
+        verify(!WindowState.hasTag(null, "omarchy-floating-workspace"));
+    }
 }
