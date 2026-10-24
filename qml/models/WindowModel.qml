@@ -92,6 +92,7 @@ Item {
 
         const index = indexForAddress(address);
         raw.address = address;
+        raw.taskWorkspaceId = index === -1 ? 0 : windows.get(index).taskWorkspaceId;
         const creationOrder = WindowState.creationOrder(raw.stableId);
         raw.orderKey = creationOrder || (index === -1 ? nextOrder++ : windows.get(index).orderKey);
         nextOrder = Math.max(nextOrder, raw.orderKey + 1);
@@ -206,6 +207,7 @@ Item {
                     "desktopEntryId": "",
                     "workspaceId": workspace ? Number(workspace.id || 0) : Number(workspaceSnapshot.id || 0),
                     "workspaceName": workspace ? String(workspace.name || "") : String(workspaceSnapshot.name || ""),
+                    "tags": ipc.tags,
                     "monitorId": monitor ? Number(monitor.id) : Number(ipc.monitor === undefined ? -1 : ipc.monitor),
                     "monitorName": monitor ? String(monitor.name || "") : "",
                     "active": (toplevel && toplevel.activated === true) || (wayland && wayland.activated === true),

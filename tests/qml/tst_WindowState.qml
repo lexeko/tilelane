@@ -89,6 +89,15 @@ TestCase {
         compare(WindowState.filterRecords([record], "DP-1", "active", "1").length, 1);
     }
 
+    function test_taskWorkspaceKeepsMinimizedWindowInItsSourceGroup() {
+        compare(WindowState.taskWorkspaceFor(2, "2", [], 1), 2);
+        compare(WindowState.taskWorkspaceFor(0, "", [], 2), 2);
+        compare(WindowState.taskWorkspaceFor(-1, WindowState.omarchyMinimizedWorkspace, ["omarchy-minimized-from-4"], 2), 4);
+        compare(WindowState.taskWorkspaceFor(-1, WindowState.minimizedWorkspace, [], 3), 3);
+        compare(WindowState.taskWorkspaceFor(-1, "special:scratchpad", [], 0), 0);
+        compare(WindowState.taskWorkspaceFor(-1, WindowState.omarchyMinimizedWorkspace, ["omarchy-minimized-from-0"], 0), 0);
+    }
+
     function test_floatingWorkspaceMarkerIsSeparateFromWindowFloatingState() {
         const window = Fixtures.clone(Fixtures.nativeWindow);
         window.floating = false;

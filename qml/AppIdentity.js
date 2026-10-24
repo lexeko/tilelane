@@ -242,11 +242,14 @@ function taskRecords(records, identityFor) {
             fullscreen: record.fullscreen === true,
             maximized: record.maximized === true,
             floating: record.floating === true,
+            taskWorkspaceId: Number(record.taskWorkspaceId || record.workspaceId || 0),
             orderKey: Number(record.orderKey || index + 1)
         });
     }
     result.sort(function (first, second) {
-        return first.orderKey - second.orderKey;
+        var firstWorkspace = first.taskWorkspaceId > 0 ? first.taskWorkspaceId : 2147483648;
+        var secondWorkspace = second.taskWorkspaceId > 0 ? second.taskWorkspaceId : 2147483648;
+        return firstWorkspace - secondWorkspace || first.orderKey - second.orderKey || first.address.localeCompare(second.address);
     });
     return result;
 }

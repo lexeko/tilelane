@@ -80,11 +80,14 @@ TestCase {
         signalName: "itemAdded"
     }
 
-    function windowRecord(address, order) {
+    function windowRecord(address, order, workspaceId) {
+        const workspace = workspaceId || 1;
         return {
             address: address,
             title: "Window " + order,
             appId: "example",
+            workspaceId: workspace,
+            taskWorkspaceId: workspace,
             active: false,
             urgent: false,
             minimized: false,
@@ -169,6 +172,61 @@ TestCase {
         compare(buttons.itemAt(0), first);
         compare(removed.count, 0);
         compare(added.count, 0);
+    }
+
+    function test_workspaceOrderFollowsWindowMovesAndKeepsAltTabOrder() {
+        const original = [buttons.itemAt(0), buttons.itemAt(1), buttons.itemAt(2)];
+        windows.set(0, {
+            workspaceId: 3,
+            taskWorkspaceId: 3
+        });
+        windows.set(1, {
+            workspaceId: 2,
+            taskWorkspaceId: 2
+        });
+        tasks.sourceRevision++;
+        compare(addresses(), "0xc,0xb,0xa");
+        compare(buttons.itemAt(0), original[2]);
+        compare(buttons.itemAt(1), original[1]);
+        compare(buttons.itemAt(2), original[0]);
+
+        windows.set(1, {
+            active: true
+        });
+        tasks.sourceRevision++;
+        compare(addresses(), "0xc,0xb,0xa");
+
+        windows.set(0, {
+            workspaceId: 1,
+            taskWorkspaceId: 1
+        });
+        tasks.sourceRevision++;
+        compare(addresses(), "0xa,0xc,0xb");
+        compare(removed.count, 0);
+        compare(added.count, 0);
+    }
+
+    function test_minimizedOriginRestoresWorkspaceGroup() {
+        windows.set(0, {
+            workspaceId: -1,
+            taskWorkspaceId: 0,
+            minimized: true
+        });
+        windows.set(1, {
+            workspaceId: 2,
+            taskWorkspaceId: 2
+        });
+        windows.set(2, {
+            workspaceId: 3,
+            taskWorkspaceId: 3
+        });
+        tasks.sourceRevision++;
+        compare(addresses(), "0xb,0xc,0xa");
+        tasks.minimizedOrigins = {
+            "0xa": "1"
+        };
+        compare(addresses(), "0xa,0xb,0xc");
+        tasks.minimizedOrigins = ({});
     }
 
     function test_newWindowsAppendAndClosingPreservesSurvivors() {

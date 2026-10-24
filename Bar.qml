@@ -822,6 +822,7 @@ Item {
             sourceRevision: screenWindows.revision
             applicationCatalog: applicationCatalog
             applicationRevision: applicationCatalog.revision
+            minimizedOrigins: globalActions.fallbackOrigins
         }
 
         Rectangle {

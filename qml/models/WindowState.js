@@ -51,6 +51,30 @@ function creationOrder(stableId) {
     return Number.isSafeInteger(value) && value > 0 ? value : 0;
 }
 
+function regularWorkspaceId(value) {
+    var id = Number(value);
+    return Number.isInteger(id) && id > 0 && id <= 2147483647 ? id : 0;
+}
+
+function taskWorkspaceFor(workspaceId, workspaceName, tags, previousWorkspaceId) {
+    var name = stringValue(workspaceName, "");
+    if (name !== minimizedWorkspace && name !== omarchyMinimizedWorkspace && name.slice(0, 8) !== "special:")
+        return regularWorkspaceId(workspaceId) || regularWorkspaceId(previousWorkspaceId);
+
+    // Omarchy records the source workspace on windows sent to its dock.
+    if (name === omarchyMinimizedWorkspace && tags && typeof tags.length === "number") {
+        for (var index = 0; index < tags.length; index++) {
+            var match = /^omarchy-minimized-from-([1-9][0-9]*)$/.exec(String(tags[index]));
+            if (match) {
+                var origin = regularWorkspaceId(match[1]);
+                if (origin)
+                    return origin;
+            }
+        }
+    }
+    return regularWorkspaceId(previousWorkspaceId);
+}
+
 function normalizeAddress(value) {
     var address = stringValue(value, "").trim();
     if (/^0x[0-9a-f]+$/i.test(address))
@@ -108,6 +132,7 @@ function normalizeRecord(value) {
         desktopEntryId: stringValue(value.desktopEntryId, ""),
         workspaceId: Math.round(numberValue(value.workspaceId, 0)),
         workspaceName: workspaceName,
+        taskWorkspaceId: taskWorkspaceFor(value.workspaceId, workspaceName, value.tags, value.taskWorkspaceId),
         monitorId: Math.round(numberValue(value.monitorId, -1)),
         monitorName: stringValue(value.monitorName, ""),
         active: value.active === true,
@@ -126,7 +151,7 @@ function normalizeRecord(value) {
     };
 }
 
-var roleNames = ["address", "handle", "title", "appId", "className", "initialClass", "pid", "terminalPrograms", "desktopEntry", "desktopEntryId", "workspaceId", "workspaceName", "monitorId", "monitorName", "active", "urgent", "minimized", "fullscreen", "maximized", "floating", "omarchyFloatingWorkspace", "mapped", "hidden", "xwayland", "hasWaylandHandle", "orderKey", "generation"];
+var roleNames = ["address", "handle", "title", "appId", "className", "initialClass", "pid", "terminalPrograms", "desktopEntry", "desktopEntryId", "workspaceId", "workspaceName", "taskWorkspaceId", "monitorId", "monitorName", "active", "urgent", "minimized", "fullscreen", "maximized", "floating", "omarchyFloatingWorkspace", "mapped", "hidden", "xwayland", "hasWaylandHandle", "orderKey", "generation"];
 
 function copyRecord(value) {
     var copy = {};

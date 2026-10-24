@@ -10,12 +10,16 @@ Item {
     required property int sourceRevision
     required property var applicationCatalog
     required property int applicationRevision
+    property var minimizedOrigins: ({})
     property alias model: tasks
 
     function recordAt(index) {
         const value = sourceModel.get(index);
+        const address = String(value.address || "");
+        const workspaceId = Number(value.workspaceId || 0);
+        const taskWorkspaceId = workspaceId > 0 ? workspaceId : Number(value.taskWorkspaceId || minimizedOrigins[address] || 0);
         return {
-            "address": String(value.address || ""),
+            "address": address,
             "title": String(value.title || ""),
             "appId": String(value.appId || ""),
             "className": String(value.className || ""),
@@ -28,6 +32,7 @@ Item {
             "fullscreen": value.fullscreen === true,
             "maximized": value.maximized === true,
             "floating": value.floating === true,
+            "taskWorkspaceId": taskWorkspaceId,
             "orderKey": Number(value.orderKey || index + 1)
         };
     }
@@ -38,8 +43,8 @@ Item {
             records.push(recordAt(index));
         const taskRecords = AppIdentity.taskRecords(records, record => applicationCatalog.identityFor(record));
 
-        // Keep delegates (and the lane's scroll position) across state and
-        // metadata changes. Opening order belongs to the window, not its state.
+        // Move existing delegates as workspaces change, preserving the lane's
+        // scroll position and each window's button identity.
         for (let taskIndex = 0; taskIndex < taskRecords.length; taskIndex++) {
             const task = taskRecords[taskIndex];
             let currentIndex = taskIndex;
@@ -64,6 +69,7 @@ Item {
 
     onSourceRevisionChanged: rebuild()
     onApplicationRevisionChanged: rebuild()
+    onMinimizedOriginsChanged: rebuild()
     Component.onCompleted: rebuild()
 
     ListModel {

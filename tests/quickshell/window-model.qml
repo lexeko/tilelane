@@ -120,9 +120,22 @@ ShellRoot {
         const record = windows.recordFor("0xaaa");
         check(windows.model.count === 1 && windows.revision === 2, "Update added a row or missed revision");
         check(record.title === changed.title && !record.active && record.urgent, "Window roles did not update");
-        check(record.workspaceName === "7" && record.monitorName === "DP-3" && record.orderKey === 1, "Move lost placement or order");
+        check(record.workspaceName === "7" && record.monitorName === "DP-3" && record.taskWorkspaceId === 7 && record.orderKey === 1, "Move lost placement or order");
+        windows.upsert(Object.assign({}, changed, {
+            workspaceId: -1,
+            workspaceName: "special:minimized",
+            tags: ["omarchy-minimized-from-7"]
+        }), firstSource);
+        check(windows.recordFor("0xaaa").taskWorkspaceId === 7, "Omarchy minimized window lost its workspace order");
+        windows.upsert(Object.assign({}, changed, {
+            workspaceId: -1,
+            workspaceName: "special:tilelane-minimized"
+        }), firstSource);
+        check(windows.recordFor("0xaaa").taskWorkspaceId === 7, "Tilelane minimized window lost its workspace order");
+        windows.upsert(changed, firstSource);
+        const revision = windows.revision;
         windows.upsert(Fixtures.clone(changed), firstSource);
-        check(windows.revision === 2, "Identical update changed revision");
+        check(windows.revision === revision, "Identical update changed revision");
         record.title = "Detached copy";
         check(windows.recordFor("0xaaa").title === changed.title, "recordFor exposed mutable model data");
     }

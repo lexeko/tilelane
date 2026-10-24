@@ -4,7 +4,8 @@ A bottom taskbar and Start menu for Omarchy.
 
 ![Tilelane on Omarchy with the Start menu open](preview.png)
 
-- Each monitor shows windows from all its workspaces, in opening order.
+- Each monitor groups task buttons by workspace number, then by the window
+  opening order used by Omarchy's Alt+Tab cycle.
 - Minimize and restore keep windows in their tiled or floating mode.
 - Short titles use narrower buttons. Longer buttons shrink before scrolling is needed.
 - Omarchy themes, configured widgets, and keyboard shortcuts carry over.
