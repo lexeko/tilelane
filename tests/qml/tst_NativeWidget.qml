@@ -249,8 +249,10 @@ TestCase {
         const button = widget.nativeHintTarget;
         const glyph = widget.children.find(child => child instanceof OpticalStatusGlyph);
         verify(glyph);
+        verify(glyph.opticalSizing);
         compare(glyph.text, button.text);
         compare(glyph.opticalSize, 16);
+        verify(Math.max(glyph.paintedWidth, glyph.paintedHeight) >= 13.5);
         const width = glyph.paintedWidth;
         button.fontSize = 48;
         compare(glyph.paintedWidth, width);
@@ -275,6 +277,10 @@ TestCase {
         native.pending = true;
         tryCompare(widget, "width", 30);
         verify(glyph.visible);
+        button.text = "\udb80\udde7";
+        verify(widget.normalizeGlyph);
+        compare(glyph.text, button.text);
+        verify(Math.max(glyph.paintedWidth, glyph.paintedHeight) >= 13.5);
         button.iconComponent = customIcon;
         verify(!widget.normalizeGlyph);
         verify(!glyph.visible);
@@ -282,12 +288,15 @@ TestCase {
         verify(widget.normalizeGlyph);
         button.text = "Two words";
         verify(!widget.normalizeGlyph);
+        button.text = "AB";
+        verify(!widget.normalizeGlyph);
         button.text = "";
         verify(!widget.normalizeGlyph);
     }
 
     function test_nativeControlsKeepMouseWheelAndSecondaryButtons() {
         const item = plugin();
+        verify(!widget.normalizeGlyph);
         mouseClick(widget, 20, 16, Qt.RightButton);
         compare(item.lastButton, Qt.RightButton);
         compare(item.clicks, 1);

@@ -26,9 +26,21 @@ StatusControl {
         }
         return null;
     }
+    function singleCodePoint(value) {
+        const text = String(value || "");
+        if (text.length === 1) {
+            const unit = text.charCodeAt(0);
+            return unit < 0xD800 || unit > 0xDFFF;
+        }
+        if (text.length !== 2)
+            return false;
+        const first = text.charCodeAt(0);
+        const second = text.charCodeAt(1);
+        return first >= 0xD800 && first <= 0xDBFF && second >= 0xDC00 && second <= 0xDFFF;
+    }
     // Standard single-glyph buttons share Tilelane's renderer automatically.
     // Keep compound widgets and custom icon components in their native form.
-    readonly property bool normalizeGlyph: !!nativeHintTarget && "iconComponent" in nativeHintTarget && nativeHintTarget.iconComponent === null && nativeHintTarget.labelVisible === false && Array.from(String(nativeHintTarget.text || "")).length === 1 && nativeHost.nativeObjects.filter(object => object && typeof object.triggerPress === "function").length === 1
+    readonly property bool normalizeGlyph: !!nativeHintTarget && "iconComponent" in nativeHintTarget && nativeHintTarget.iconComponent === null && nativeHintTarget.labelVisible === false && singleCodePoint(nativeHintTarget.text) && nativeHost.nativeObjects.filter(object => object && typeof object.triggerPress === "function").length === 1
 
     nativeInput: true
     opened: nativeHost.opened
@@ -75,6 +87,7 @@ StatusControl {
         anchors.centerIn: parent
         anchors.alignWhenCentered: false
         uiScale: root.uiScale
+        opticalSizing: root.normalizeGlyph
         text: root.normalizeGlyph ? root.nativeHintTarget.text : ""
         fontFamily: root.normalizeGlyph ? root.nativeHintTarget.fontFamily : "monospace"
         color: root.normalizeGlyph ? (root.nativeHintTarget.active && root.nativeHintTarget.useActiveColor ? root.nativeHintTarget.activeColor : root.nativeHintTarget.foreground) : "transparent"
