@@ -14,9 +14,10 @@ Item {
     property bool opticalSizing: false
     readonly property real opticalSize: 16 * uiScale
     readonly property real opticalInset: uiScale
+    property real opticalPaintedSize: opticalSize - 2 * opticalInset
     readonly property int renderedFontSize: opticalSizing ? 64 : Math.max(1, Math.round(13 * uiScale))
     readonly property rect paintedBounds: glyphMetrics.tightBoundingRect
-    readonly property real fitScale: opticalSizing ? (opticalSize - 2 * opticalInset) / Math.max(1, paintedBounds.width, paintedBounds.height) : 1
+    readonly property real fitScale: opticalSizing ? opticalPaintedSize / Math.max(1, paintedBounds.width, paintedBounds.height) : 1
     readonly property real paintedWidth: paintedBounds.width * fitScale
     readonly property real paintedHeight: paintedBounds.height * fitScale
     readonly property real paintedCenterX: glyph.x + fitScale * (paintedBounds.x + paintedBounds.width / 2)

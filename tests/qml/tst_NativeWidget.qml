@@ -252,7 +252,7 @@ TestCase {
         verify(glyph.opticalSizing);
         compare(glyph.text, button.text);
         compare(glyph.opticalSize, 16);
-        verify(Math.max(glyph.paintedWidth, glyph.paintedHeight) >= 13.5);
+        fuzzyCompare(Math.max(glyph.paintedWidth, glyph.paintedHeight), 13, 0.01);
         const width = glyph.paintedWidth;
         button.fontSize = 48;
         compare(glyph.paintedWidth, width);
@@ -262,6 +262,7 @@ TestCase {
         compare(glyph.color, button.activeColor);
         widget.uiScale = 1.5;
         compare(glyph.opticalSize, 16 * 1.5);
+        fuzzyCompare(Math.max(glyph.paintedWidth, glyph.paintedHeight), 13 * 1.5, 0.01);
         widget.uiScale = 1;
         compare(widget.hintText, "Native status");
         mouseClick(widget, 15, 16, Qt.RightButton);
@@ -280,7 +281,7 @@ TestCase {
         button.text = "\udb80\udde7";
         verify(widget.normalizeGlyph);
         compare(glyph.text, button.text);
-        verify(Math.max(glyph.paintedWidth, glyph.paintedHeight) >= 13.5);
+        fuzzyCompare(Math.max(glyph.paintedWidth, glyph.paintedHeight), 13, 0.01);
         button.iconComponent = customIcon;
         verify(!widget.normalizeGlyph);
         verify(!glyph.visible);
