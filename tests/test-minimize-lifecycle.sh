@@ -10,6 +10,7 @@ trap 'rm -rf -- "$test_dir"' EXIT
 mkdir -p "$test_dir/qml/models"
 cp "$repo_dir/tests/quickshell/minimize-lifecycle.qml" "$test_dir/shell.qml"
 cp "$repo_dir/qml/models/WindowActions.qml" "$test_dir/qml/models/"
+cp "$repo_dir/qml/models/WorkspaceModeMonitor.qml" "$test_dir/qml/models/"
 cp "$repo_dir/qml/TaskLogic.js" "$test_dir/qml/"
 if ! QT_QPA_PLATFORM=offscreen XDG_STATE_HOME="$test_dir/state" \
     timeout 10 quickshell --path "$test_dir" --no-color >"$test_dir/result.log" 2>&1; then

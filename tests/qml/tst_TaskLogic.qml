@@ -128,6 +128,18 @@ TestCase {
         }));
     }
 
+    function test_dockMigrationGuardsTheHiddenWindowAndUpdatesItsOriginTag() {
+        const code = TaskLogic.dockMigrationCode("0xabc", 3, ["omarchy-minimized-from-2", "other"]);
+        verify(code.indexOf('hl.get_window("address:0xabc")') !== -1);
+        verify(code.indexOf('window.workspace.name ~= "special:tilelane-minimized"') !== -1);
+        verify(code.indexOf('"-omarchy-minimized-from-2"') !== -1);
+        verify(code.indexOf('"+omarchy-minimized-from-3"') !== -1);
+        verify(code.indexOf('workspace = "special:minimized"') !== -1);
+        compare(TaskLogic.dockMigrationCode("bad", 3, []), "");
+        compare(TaskLogic.dockMigrationCode("0xabc", 0, []), "");
+        compare(TaskLogic.dockMigrationCode("0xabc", "name:work", []), "");
+    }
+
     function test_originJournalIsVersionedAndSanitized() {
         const parsed = TaskLogic.parseOrigins(JSON.stringify({
             "version": 1,

@@ -100,8 +100,15 @@ Omarchy's floating-workspace titlebar also minimizes to `special:minimized`.
 Tilelane recognizes those windows as minimized tasks and restores them to the
 active regular workspace on their monitor before focusing them, matching
 Omarchy's dock. If that monitor is gone, it uses the focused monitor's active
-workspace. Tilelane's recovery journal remains specific to windows minimized
-into its own hidden workspace.
+workspace. Tilelane's recovery journal tracks windows it initially moved into
+its own hidden workspace, including those later transferred to the dock.
+
+If that saved workspace changes to floating mode while its window is hidden,
+Tilelane checks the workspace mode and moves dock-eligible windows into
+`special:minimized` without showing them. It adds Omarchy's origin tag, keeps
+its journal entry until the window is restored, and leaves other hidden windows
+on Tilelane's recovery path. The mode check follows Omarchy's layout files and
+active workspace changes; a slow retry covers missed file notifications.
 
 Restoring a window from `special:tilelane-minimized` returns it to its saved workspace.
 Neither restore path changes the workspace layout or forces floating mode.

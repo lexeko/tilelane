@@ -39,6 +39,11 @@ function validAddress(address) {
     return /^0x[0-9a-f]{1,16}$/i.test(String(address || ""));
 }
 
+function validWorkspaceId(value) {
+    var id = String(value || "");
+    return /^[1-9][0-9]*$/.test(id) && Number(id) <= 2147483647;
+}
+
 function cleanOrigins(origins) {
     var result = ({});
     if (!origins || typeof origins !== "object" || Array.isArray(origins))
@@ -126,7 +131,33 @@ function restoreWorkspaceForMonitor(monitorName, monitors, focusedMonitor) {
 function canMinimizeToOmarchyDock(record, wayland) {
     return !!record && record.omarchyFloatingWorkspace === true
         && Number.isInteger(Number(record.workspaceId)) && Number(record.workspaceId) > 0
-        && !!wayland && String(wayland.appId || "") !== "" && !wayland.parent;
+        && canAppearInOmarchyDock(wayland);
+}
+
+function canAppearInOmarchyDock(wayland) {
+    return !!wayland && String(wayland.appId || "") !== "" && !wayland.parent;
+}
+
+function dockMigrationCode(address, workspaceId, tags) {
+    var target = selector(address);
+    var workspace = String(workspaceId || "");
+    if (target === "" || !validWorkspaceId(workspace))
+        return "";
+
+    var originTag = "omarchy-minimized-from-" + workspace;
+    var windowArg = "window = " + luaString(target);
+    var commands = [];
+    var count = tags && typeof tags.length === "number" ? Math.min(tags.length, 256) : 0;
+    for (var i = 0; i < count; i++) {
+        var tag = String(tags[i] || "");
+        if (/^omarchy-minimized-from-[1-9][0-9]*$/.test(tag) && tag !== originTag)
+            commands.push("hl.dispatch(hl.dsp.window.tag({ tag = " + luaString("-" + tag) + ", " + windowArg + " }))");
+    }
+    commands.push("hl.dispatch(hl.dsp.window.tag({ tag = " + luaString("+" + originTag) + ", " + windowArg + " }))");
+    commands.push("hl.dispatch(hl.dsp.window.move({ workspace = " + luaString(omarchyMinimizedWorkspace) + ", follow = false, " + windowArg + " }))");
+    return "local window = hl.get_window(" + luaString(target) + "); "
+        + "if not window or not window.workspace or window.workspace.name ~= " + luaString(minimizedWorkspace) + " then return false end; "
+        + commands.join("; ");
 }
 
 function activationDispatches(address, workspaceName) {

@@ -15,6 +15,57 @@ QtObject {
     property bool originsLoaded: false
     readonly property string originsPath: Quickshell.statePath("tilelane-minimized-v1.json")
 
+    onFallbackOriginsChanged: rebuildModeCandidates()
+
+    function activeDockCandidateIds() {
+        const active = [];
+        for (const monitor of Hyprland.monitors.values) {
+            const workspace = monitor.activeWorkspace;
+            if (workspace && TaskLogic.validWorkspaceId(workspace.id))
+                active.push(String(workspace.id));
+        }
+
+        const ids = [];
+        for (const address in fallbackOrigins) {
+            const origin = String(fallbackOrigins[address]);
+            if (active.indexOf(origin) === -1 || ids.indexOf(Number(origin)) !== -1)
+                continue;
+            const record = windowModel.recordFor(address);
+            const source = windowModel.toplevelFor(address);
+            if (record && record.workspaceName === TaskLogic.minimizedWorkspace && source && TaskLogic.canAppearInOmarchyDock(source.wayland))
+                ids.push(Number(origin));
+        }
+        return ids.sort((first, second) => first - second);
+    }
+
+    function rebuildModeCandidates() {
+        if (!windowModel || !modeMonitor)
+            return;
+        const ids = activeDockCandidateIds();
+        if (JSON.stringify(ids) !== JSON.stringify(modeMonitor.workspaceIds))
+            modeMonitor.workspaceIds = ids;
+    }
+
+    function migrateOwnedToDock(workspaceId) {
+        for (const address in fallbackOrigins) {
+            if (String(fallbackOrigins[address]) !== String(workspaceId))
+                continue;
+            const record = windowModel.recordFor(address);
+            const source = windowModel.toplevelFor(address);
+            if (!record || record.workspaceName !== TaskLogic.minimizedWorkspace || !source || !TaskLogic.canAppearInOmarchyDock(source.wayland))
+                continue;
+            const ipc = source.lastIpcObject || ({});
+            const code = TaskLogic.dockMigrationCode(address, workspaceId, ipc.tags);
+            if (code === "")
+                continue;
+            try {
+                Hyprland.dispatch(TaskLogic.withoutCursorWarp(code));
+            } catch (error) {
+                Quickshell.execDetached(["hyprctl", "eval", "return hl.dispatch(" + TaskLogic.withoutCursorWarp(code) + ")"]);
+            }
+        }
+    }
+
     function copyOrigins() {
         const result = ({});
         for (const address in fallbackOrigins)
@@ -126,7 +177,7 @@ QtObject {
             return activateExact(address, record.workspaceName || String(record.workspaceId || ""));
 
         if (action === "restore" && record.workspaceName === TaskLogic.omarchyMinimizedWorkspace) {
-            const workspace = TaskLogic.restoreWorkspaceForMonitor(record.monitorName, Hyprland.monitors.values, Hyprland.focusedMonitor);
+            const workspace = fallbackOrigins[address] || TaskLogic.restoreWorkspaceForMonitor(record.monitorName, Hyprland.monitors.values, Hyprland.focusedMonitor);
             return workspace !== "" && restoreExact(address, workspace);
         }
 
@@ -223,17 +274,40 @@ QtObject {
         }
     }
 
+    property WorkspaceModeMonitor modeMonitor: WorkspaceModeMonitor {
+        onFloating: function (workspaceId) {
+            root.migrateOwnedToDock(workspaceId);
+        }
+    }
+
+    property Timer modeCandidateDelay: Timer {
+        interval: 100
+        onTriggered: root.rebuildModeCandidates()
+    }
+
+    property Connections workspaceEvents: Connections {
+        target: Hyprland
+
+        function onRawEvent(event) {
+            if (["workspace", "workspacev2", "focusedmon", "moveworkspace", "moveworkspacev2", "configreloaded"].indexOf(event.name) !== -1)
+                root.modeCandidateDelay.restart();
+        }
+    }
+
     property Connections modelChanges: Connections {
         target: root.windowModel
 
         function onRevisionChanged() {
             root.reconcileOrigins();
+            root.rebuildModeCandidates();
         }
 
         function onInitializedChanged() {
             root.reconcileOrigins();
+            root.rebuildModeCandidates();
         }
     }
 
+    Component.onCompleted: rebuildModeCandidates()
     Component.onDestruction: restoreOwnedWindows()
 }
