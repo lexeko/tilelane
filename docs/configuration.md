@@ -37,6 +37,8 @@ Application tray icons appear in the tray drawer.
 Tilelane uses icons from the installed icon theme. Apps that supply only private
 image files or raw pixmaps show a generic application icon; their tooltips,
 menus, clicks, and scrolling still work.
+Roam uses its installed theme icon when its tray service supplies a pixmap
+without an icon name.
 
 Change settings through Omarchy. For example, use a 12-hour clock:
 

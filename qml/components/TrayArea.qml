@@ -252,6 +252,7 @@ Item {
                     TrayIcon {
                         anchors.centerIn: parent
                         source: trayItem.modelData.icon
+                        trayItemId: String(trayItem.modelData.id || "")
                         iconSize: root.px(20) * 0.67
                         foreground: Commons.Color.bar.text
                     }

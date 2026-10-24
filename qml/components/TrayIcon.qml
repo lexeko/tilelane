@@ -6,9 +6,10 @@ Item {
     id: root
 
     required property string source
+    property string trayItemId: ""
     required property real iconSize
     required property color foreground
-    readonly property string safeSource: TrayIconSource.themeSource(source)
+    readonly property string safeSource: TrayIconSource.themeSource(source, trayItemId)
     readonly property bool symbolic: safeSource.split("?")[0].endsWith("-symbolic")
 
     implicitWidth: iconSize

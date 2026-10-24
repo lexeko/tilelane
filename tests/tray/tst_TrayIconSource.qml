@@ -22,6 +22,7 @@ TestCase {
 
     function test_sources_data() {
         const generic = "image://icon/application-x-executable";
+        const roam = "image://icon/roam?fallback=application-x-executable";
         const badge = "image://icon/badge?fallback=application-x-executable";
         const symbolic = "image://icon/badge-symbolic?fallback=application-x-executable";
         return [
@@ -141,6 +142,36 @@ TestCase {
                 expected: generic
             },
             {
+                tag: "Roam pixmap uses installed icon",
+                input: "image://qsimage/1/2",
+                itemId: "Roam_status_icon_1",
+                expected: roam
+            },
+            {
+                tag: "Roam named icon remains named",
+                input: "image://icon/badge",
+                itemId: "Roam_status_icon_2",
+                expected: badge
+            },
+            {
+                tag: "Roam identity cannot forward a path",
+                input: "image://icon/../benign.svg",
+                itemId: "Roam_status_icon_1",
+                expected: roam
+            },
+            {
+                tag: "similar identity remains generic",
+                input: "image://qsimage/1/2",
+                itemId: "Roam_status_icon_1_extra",
+                expected: generic
+            },
+            {
+                tag: "other pixmap remains generic",
+                input: "image://qsimage/1/2",
+                itemId: "Other_status_icon_1",
+                expected: generic
+            },
+            {
                 tag: "unknown provider",
                 input: "image://other/badge",
                 expected: generic
@@ -183,6 +214,7 @@ TestCase {
         // rejected transitions. Both providers record requests at the decoder.
         const image = findChild(icon, "trayImage");
         image.cache = false;
+        icon.trayItemId = data.itemId || "";
         icon.source = "image://icon/reset";
         tryCompare(image, "status", Image.Ready);
         const previousCount = iconRequests.count;

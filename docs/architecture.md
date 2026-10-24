@@ -179,6 +179,9 @@ fallback parameters. File paths, other URL schemes, and opaque `qsimage` handles
 use a generic application icon. Opaque handles are excluded because Quickshell
 can resolve file-backed named overlays through them. Custom private artwork and
 pixmap-only icons therefore use the generic icon; tray actions remain available.
+Roam is a narrow exception: when its SNI id matches the observed status-icon
+form, Tilelane requests the fixed installed `roam` theme icon instead of its
+pixmap. Other opaque handles still receive the generic icon.
 
 Installed icon themes and Qt's configured theme search paths are trusted. This
 guard prevents tray applications from selecting arbitrary files for decoding;
