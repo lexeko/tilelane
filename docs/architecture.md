@@ -247,9 +247,10 @@ The row loads Omarchy's native indicator QML files from the sibling
 `indicators` directory used by Omarchy's widget, supplying the
 native `single` block, settings, bar, and refresh host. Indicator IDs cannot
 contain path separators or traversal. Native state, visuals, and actions stay
-with those components; Tilelane supplies placement and Start's hints. The
-native item sets its own icon size. Items with no visible artwork use no slot,
-so indicators such as Remote Session appear only when their state is visible.
+with those components; Tilelane supplies placement and Start's hints. Start
+scales each item against its reported font size. Items with no visible artwork
+use no slot, so indicators such as Remote Session appear only when their state
+is visible.
 The `omarchy.indicators refresh` IPC broadcasts to every screen's row. This
 adapter depends on Omarchy's current indicator schema, source layout, and
 `BarIndicator` properties; changes to that contract require compatibility review.

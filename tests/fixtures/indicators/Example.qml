@@ -10,6 +10,7 @@ Item {
     property var indicatorHost: null
     property var activeOverride: true
     property bool active: false
+    property real fontSize: settings.fontSize || 10
     property int refreshes: 0
     implicitWidth: settings.slotWidth || 40
     implicitHeight: 32

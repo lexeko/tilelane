@@ -39,6 +39,7 @@ TestCase {
     }
 
     function init() {
+        indicators.targetGlyphSize = 0;
         registry.widgets = {
             "omarchy.indicators": {
                 metadata: {
@@ -211,5 +212,32 @@ TestCase {
         tryCompare(empty, "width", 40);
         empty.nativeItem.active = false;
         tryCompare(empty, "width", 0);
+    }
+
+    function test_nativeFontSizeControlsVisualScale() {
+        indicators.targetGlyphSize = 13.4;
+        indicators.settings = {
+            items: [
+                {
+                    id: "Example",
+                    fontSize: 10
+                },
+                {
+                    id: "Example",
+                    fontSize: 13
+                }
+            ]
+        };
+        tryCompare(indicators, "count", 2);
+        tryVerify(function () {
+            return indicators.slotAt(0).nativeItem && indicators.slotAt(1).nativeItem;
+        });
+        const older = indicators.slotAt(0);
+        const newer = indicators.slotAt(1);
+        fuzzyCompare(older.visualScale, 1.34, 0.001);
+        fuzzyCompare(newer.visualScale, 13.4 / 13, 0.001);
+        fuzzyCompare(older.width, 40 * 1.34, 0.001);
+        fuzzyCompare(newer.width, 40 * 13.4 / 13, 0.001);
+        tryCompare(newer, "x", older.width);
     }
 }

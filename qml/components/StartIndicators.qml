@@ -10,6 +10,7 @@ Item {
     property var registry: null
     property var bar: null
     property var settings: ({})
+    property real targetGlyphSize: 0
     property var registeredBar: null
     property int revision: 0
     readonly property var entry: registry && registry.widgets ? registry.widgets["omarchy.indicators"] : null
@@ -116,12 +117,22 @@ Item {
                 readonly property var nativeItem: source.item
                 readonly property var indicatorSettings: JSON.parse(settingsJson)
                 readonly property bool shown: !!nativeItem && nativeItem.visible && nativeItem.opacity > 0 && nativeItem.hasVisualContent !== false
-                width: shown ? nativeItem.implicitWidth : 0
-                height: shown ? nativeItem.implicitHeight : 0
+                readonly property real visualScale: {
+                    const fontSize = nativeItem ? Number(nativeItem.fontSize) : 0;
+                    if (root.targetGlyphSize <= 0 || !isFinite(fontSize) || fontSize <= 0)
+                        return 1;
+                    return Math.max(0.5, Math.min(2, root.targetGlyphSize / fontSize));
+                }
+                width: shown ? nativeItem.implicitWidth * visualScale : 0
+                height: shown ? nativeItem.implicitHeight * visualScale : 0
 
                 Loader {
                     id: source
-                    anchors.fill: parent
+                    width: slot.nativeItem ? slot.nativeItem.implicitWidth : 0
+                    height: slot.nativeItem ? slot.nativeItem.implicitHeight : 0
+                    anchors.centerIn: parent
+                    scale: slot.visualScale
+                    transformOrigin: Item.Center
                     source: root.metadata.sourceDir ? "file://" + root.metadata.sourceDir + "/../indicators/" + slot.indicatorId + ".qml" : ""
                     onLoaded: {
                         const target = item;

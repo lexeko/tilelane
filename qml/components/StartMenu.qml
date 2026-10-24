@@ -46,6 +46,7 @@ PanelWindow {
     readonly property real appRowHeight: px(42)
     readonly property real placeRowHeight: px(38)
     readonly property real placeDividerHeight: sectionGap
+    readonly property real trayIconSize: px(20) * 0.67
     readonly property int indicatorSlotCount: indicatorHost.count
     readonly property var indicatorSettings: {
         const configured = bar && typeof bar.barWidgetSettings === "function" ? bar.barWidgetSettings("omarchy.indicators") : {
@@ -489,6 +490,7 @@ PanelWindow {
                             registry: root.barWidgetRegistry
                             bar: root.bar
                             settings: root.indicatorSettings
+                            targetGlyphSize: root.trayIconSize
                         }
 
                         Row {
