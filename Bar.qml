@@ -915,7 +915,6 @@ Item {
             barWindow: barWindow
             uiScale: root.barScale
             compact: barWindow.width < 1050 * root.barScale
-            reducedMotion: root.reducedMotion
         }
 
         BarHint {

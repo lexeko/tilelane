@@ -27,7 +27,8 @@ QtObject {
 
     function refresh() {
         generation++;
-        modes = ({});
+        // Keep the last known mode during the probe so the tip does not blink
+        // every time the retry timer checks the same workspace.
         const next = pendingIds.slice(0);
         for (const id of workspaceIds) {
             if (next.indexOf(id) === -1)

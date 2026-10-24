@@ -14,10 +14,7 @@ Item {
     property var tip: null
     property real uiScale: 1
     property bool compact: false
-    property bool reducedMotion: false
     property bool cardOpen: false
-    property bool attentionPlayed: false
-    property real attention: 0
     readonly property real buttonHeight: px(30)
     readonly property real buttonWidth: compact ? px(32) : Math.max(px(80), buttonLabel.implicitWidth + px(36))
 
@@ -45,14 +42,8 @@ Item {
     height: implicitHeight
     activeFocusOnTab: visible
 
-    onVisibleChanged: {
-        if (!visible) {
-            close();
-        } else if (!reducedMotion && !attentionPlayed) {
-            attentionPlayed = true;
-            attentionAnimation.start();
-        }
-    }
+    onVisibleChanged: if (!visible)
+        close()
     onCardOpenChanged: {
         if (!cardOpen && controller && controller.bar)
             controller.bar.releasePopout(root);
@@ -66,25 +57,12 @@ Item {
         directory: Qt.resolvedUrl("../../i18n")
     }
 
-    SequentialAnimation {
-        id: attentionAnimation
-
-        NumberAnimation {
-            target: root
-            property: "attention"
-            from: 1
-            to: 0
-            duration: 850
-            easing.type: Easing.OutCubic
-        }
-    }
-
     Rectangle {
         id: pill
 
         anchors.fill: parent
         radius: root.px(7)
-        color: pointer.pressed ? Commons.Util.alpha(Commons.Color.accent, 0.32) : pointer.containsMouse || root.activeFocus ? Commons.Util.alpha(Commons.Color.accent, 0.24) : Commons.Util.alpha(Commons.Color.accent, 0.15 + root.attention * 0.13)
+        color: pointer.pressed ? Commons.Util.alpha(Commons.Color.accent, 0.32) : pointer.containsMouse || root.activeFocus ? Commons.Util.alpha(Commons.Color.accent, 0.24) : Commons.Util.alpha(Commons.Color.accent, 0.15)
         border.width: Math.max(1, Math.round(root.px(1)))
         border.color: Commons.Color.accent
 
@@ -97,12 +75,12 @@ Item {
                 textFormat: Text.PlainText
                 color: Commons.Color.accent
                 font.family: Commons.Style.font.family
-                font.pixelSize: Commons.Style.font.caption
-                font.bold: true
+                font.pixelSize: Commons.Style.font.bodySmall
+                font.weight: Font.DemiBold
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 width: root.px(13)
-                height: root.px(13)
+                height: root.buttonHeight
             }
 
             Text {
@@ -115,6 +93,8 @@ Item {
                 font.family: Commons.Style.font.family
                 font.pixelSize: Commons.Style.font.bodySmall
                 font.weight: Font.DemiBold
+                verticalAlignment: Text.AlignVCenter
+                height: root.buttonHeight
             }
         }
 
