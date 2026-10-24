@@ -46,8 +46,6 @@ PanelWindow {
     readonly property real appRowHeight: px(42)
     readonly property real placeRowHeight: px(38)
     readonly property real placeDividerHeight: sectionGap
-    readonly property real trayIconSize: px(20) * 0.67
-    readonly property real indicatorScale: trayIconSize / Math.max(1, Commons.Style.font.caption)
     readonly property int indicatorSlotCount: indicatorHost.count
     readonly property var indicatorSettings: {
         const configured = bar && typeof bar.barWidgetSettings === "function" ? bar.barWidgetSettings("omarchy.indicators") : {
@@ -472,7 +470,7 @@ PanelWindow {
                     Item {
                         id: indicatorStrip
 
-                        width: indicatorHost.implicitWidth * root.indicatorScale
+                        width: indicatorHost.implicitWidth
                         height: root.px(32)
                         anchors.right: parent.right
                         // The native indicator delegates center their glyphs in padded
@@ -488,8 +486,6 @@ PanelWindow {
                             width: implicitWidth
                             height: implicitHeight
                             anchors.centerIn: parent
-                            scale: root.indicatorScale
-                            transformOrigin: Item.Center
                             registry: root.barWidgetRegistry
                             bar: root.bar
                             settings: root.indicatorSettings
@@ -512,7 +508,7 @@ PanelWindow {
                                     readonly property string hintText: root.indicatorHintFor(index)
                                     readonly property bool tooltipHovered: indicatorHover.hovered
 
-                                    width: slot ? slot.width * root.indicatorScale : 0
+                                    width: slot ? slot.width : 0
                                     height: indicatorStrip.height
 
                                     // Paint behind the native glyphs while keeping hover

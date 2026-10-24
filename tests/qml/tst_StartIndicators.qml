@@ -172,4 +172,44 @@ TestCase {
         }, {})[0].indicatorId, "Example");
         compare(IndicatorLogic.records({}, {}), []);
     }
+
+    function test_indicatorWithNoInactiveArtworkUsesNoSlot() {
+        indicators.settings = {
+            items: ["Example", "HiddenUntilActive", "Future"]
+        };
+        tryCompare(indicators, "count", 3);
+        tryVerify(function () {
+            return indicators.slotAt(1).nativeItem && indicators.slotAt(2).nativeItem;
+        });
+        const hidden = indicators.slotAt(1);
+        const after = indicators.slotAt(2);
+        compare(hidden.width, 0);
+        tryCompare(after, "x", indicators.slotAt(0).width);
+        compare(indicators.hintFor(1), "");
+
+        hidden.nativeItem.active = true;
+        tryCompare(hidden, "width", 40);
+        tryCompare(after, "x", indicators.slotAt(0).width + 40);
+        compare(indicators.hintFor(1), "Hidden Until Active");
+
+        hidden.nativeItem.active = false;
+        tryCompare(hidden, "width", 0);
+        tryCompare(after, "x", indicators.slotAt(0).width);
+    }
+
+    function test_indicatorWithNoVisualContentUsesNoSlot() {
+        indicators.settings = {
+            items: ["Example", "NoArtwork"]
+        };
+        tryCompare(indicators, "count", 2);
+        tryVerify(function () {
+            return indicators.slotAt(1).nativeItem;
+        });
+        const empty = indicators.slotAt(1);
+        compare(empty.width, 0);
+        empty.nativeItem.active = true;
+        tryCompare(empty, "width", 40);
+        empty.nativeItem.active = false;
+        tryCompare(empty, "width", 0);
+    }
 }

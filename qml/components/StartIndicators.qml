@@ -68,7 +68,7 @@ Item {
 
     function hintFor(index) {
         const slot = slotAt(index);
-        return slot ? HintLogic.startIndicator(slot.indicatorId, !!slot.nativeItem && slot.nativeItem.active === true) : "";
+        return slot && slot.shown ? HintLogic.startIndicator(slot.indicatorId, slot.nativeItem.active === true) : "";
     }
 
     function snapshot() {
@@ -115,8 +115,9 @@ Item {
                 required property string settingsJson
                 readonly property var nativeItem: source.item
                 readonly property var indicatorSettings: JSON.parse(settingsJson)
-                width: nativeItem ? nativeItem.implicitWidth : 0
-                height: nativeItem ? nativeItem.implicitHeight : 0
+                readonly property bool shown: !!nativeItem && nativeItem.visible && nativeItem.opacity > 0 && nativeItem.hasVisualContent !== false
+                width: shown ? nativeItem.implicitWidth : 0
+                height: shown ? nativeItem.implicitHeight : 0
 
                 Loader {
                     id: source
