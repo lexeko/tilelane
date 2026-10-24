@@ -12,8 +12,6 @@ Item {
     required property color foreground
     readonly property string safeSource: TrayIconSource.themeSource(source, trayItemId)
     readonly property bool symbolic: safeSource.split("?")[0].endsWith("-symbolic")
-    readonly property bool compactDropboxArtwork: /^image:\/\/icon\/dropboxstatus-(?:logo|idle|busy|busy2|blank|x)\?/.test(safeSource)
-    readonly property real displaySize: compactDropboxArtwork ? iconSize * 1.5 : iconSize
     readonly property bool roamPixmap: /^Roam_status_icon_[0-9]{1,6}$/.test(trayItemId) && /^image:\/\/(?:qspixmap|qsimage)\//.test(source)
     readonly property string badgeProbePath: decodeURIComponent(String(Qt.resolvedUrl("../../scripts/roam-tray-badge")).replace(/^file:\/\//, ""))
     property bool roamUnread: false
@@ -47,8 +45,8 @@ Item {
         refreshBadge();
     }
 
-    implicitWidth: displaySize
-    implicitHeight: displaySize
+    implicitWidth: iconSize
+    implicitHeight: iconSize
 
     Image {
         id: trayImage
