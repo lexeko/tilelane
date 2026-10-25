@@ -106,7 +106,7 @@ Back up this file before editing it. Keep its other fields and layout entries.
 | `tilelaneStartPins`         | Ordered array of Start desktop-entry IDs              |
 | `tilelaneIdentityOverrides` | Object mapping window identities to desktop-entry IDs |
 | `tilelaneDismissedTips`     | Array of tips hidden with "Don't show again"          |
-| `tilelaneTranslucent`       | `true` or `false` for bar and Start backgrounds        |
+| `tilelaneTranslucent`       | `true` or `false` for the bar background               |
 | `reducedMotion`             | `true` or `false`                                     |
 
 To clear pins or restore dismissed tips, set the corresponding array to `[]`.

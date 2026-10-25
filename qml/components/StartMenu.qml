@@ -342,7 +342,7 @@ PanelWindow {
         anchors.leftMargin: root.px(5)
         anchors.bottomMargin: root.barHeight + root.px(7)
         radius: Commons.Style.cornerRadius
-        color: root.bar && root.bar.semiTransparent ? Commons.Util.alpha(Commons.Color.menu.background, root.bar.background.a) : Commons.Color.menu.background
+        color: Commons.Color.menu.background
         border.color: Commons.Color.menu.border
         border.width: Math.max(1, Math.round(root.px(2)))
         opacity: root.reveal
