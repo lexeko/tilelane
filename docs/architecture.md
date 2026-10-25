@@ -102,9 +102,10 @@ helpers. Native dock migration and overlap tips remain enabled when their
 required helper is present.
 
 The tested Hyprland release ignored the Wayland toplevel's minimized setter.
-On Omarchy floating workspaces, Tilelane invokes Omarchy's minimize command
-for windows its dock can display. The command moves them to `special:minimized`,
-so either the dock or Tilelane can restore them. On older Omarchy versions,
+On Omarchy floating workspaces with the native minimize helper available,
+Tilelane uses the same tagged dock move and workspace focus with cursor warps
+suppressed. The window moves to `special:minimized`, so either the dock or
+Tilelane can restore it. On older Omarchy versions,
 tiled workspaces, and windows the dock cannot display, Tilelane moves minimized
 windows to `special:tilelane-minimized`. Its recovery journal records the
 original workspace before that move.
