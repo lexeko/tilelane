@@ -19,8 +19,6 @@
   Keep icon sizes consistent across the tested Omarchy versions.
 - Improve weather, Dropbox, and other status icon sizes.
 - Show Roam's installed tray icon and a red badge for unread messages.
-- Isolate the native image-provider test and fail test runs on new user core
-  dumps, including crashes in helper processes.
 
 ## 0.2.2
 
