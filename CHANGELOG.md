@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 - Support Omarchy 4.5 RC while keeping compatibility with 4.0.6. Use native
   translations for tips when available, with English as the fallback.
