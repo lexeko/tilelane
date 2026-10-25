@@ -26,6 +26,12 @@ Those packaged files are read-only references for this project.
 See the [requirements](../README.md#requirements) for tested versions.
 Window-model integration tests exercise the production model.
 
+Tip text uses `PluginTranslations`, which loads the running shell's
+`Commons/Translations.qml` dynamically when available. Newer Omarchy versions
+retain native language selection and live translation updates. Older hosts
+read Tilelane's bundled `i18n/en.json` instead, without a compile-time dependency
+on the newer component. Missing keys use an explicit fallback or the key itself.
+
 ## Shared models and screen views
 
 `Bar.qml` owns one `WindowModel`, `WorkspaceModel`, `ApplicationCatalog`,

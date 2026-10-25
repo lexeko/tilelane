@@ -5,6 +5,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Hyprland
 import qs.Commons as Commons
+import "../models"
 
 Item {
     id: root
@@ -49,7 +50,7 @@ Item {
     Component.onDestruction: if (controller && controller.bar)
         controller.bar.releasePopout(root)
 
-    Commons.Translations {
+    PluginTranslations {
         id: strings
 
         directory: Qt.resolvedUrl("../../i18n")
