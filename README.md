@@ -29,8 +29,8 @@ For an installation without Git, see [manual installation](docs/recovery.md#manu
 
 - Start pins and taskbar pins are independent. Right-click a taskbar pin to
   reorder it.
-- Double-click empty taskbar space to toggle a semi-transparent background.
-  Tilelane saves the choice.
+- Double-click empty taskbar space to toggle semi-transparent bar and Start
+  menu backgrounds. Tilelane saves the choice.
 - Hold Ctrl while clicking an app launcher or a place to open a floating window.
 - Window context menus show the configured Omarchy shortcuts for their actions.
 
