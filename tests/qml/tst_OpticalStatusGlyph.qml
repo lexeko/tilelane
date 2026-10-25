@@ -93,8 +93,10 @@ TestCase {
         const dpr = picture.width / canvas.width;
         const paintedWidth = (right - left + 1) / dpr;
         const paintedHeight = (bottom - top + 1) / dpr;
-        verify(Math.abs(paintedWidth - standardMetrics.tightBoundingRect.width) <= 2, "Glyph width must retain the shared font scale");
-        verify(Math.abs(paintedHeight - standardMetrics.tightBoundingRect.height) <= 2, "Glyph height must retain the shared font scale");
+        // Rasterized edges can shift by one physical pixel at fractional scale.
+        const rasterTolerance = 2 + 1 / dpr;
+        verify(Math.abs(paintedWidth - standardMetrics.tightBoundingRect.width) <= rasterTolerance, "Glyph width must retain the shared font scale");
+        verify(Math.abs(paintedHeight - standardMetrics.tightBoundingRect.height) <= rasterTolerance, "Glyph height must retain the shared font scale");
         verify(Math.abs((left + right + 1) / 2 - picture.width / 2) <= 1.5 * dpr, "Horizontal painted center");
         const expectedCenterY = (glyph.y + glyph.paintedCenterY) * dpr;
         verify(Math.abs((top + bottom + 1) / 2 - expectedCenterY) <= 1.5 * dpr, "Painted position follows the common font baseline");
