@@ -44,7 +44,7 @@ the screen edge does not stretch the icon, text, or underline.
 
 ## Project preview
 
-[The project preview](../preview.png) shows the full desktop with Tilelane's
+[The project preview](../preview.webp) shows the full desktop with Tilelane's
 taskbar and Start menu open.
 
 ## Earlier visual checks

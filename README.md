@@ -2,7 +2,7 @@
 
 A bottom taskbar and Start menu for Omarchy.
 
-![Tilelane on Omarchy with the Start menu open](preview.png)
+![Tilelane on Omarchy with the Start menu open](preview.webp)
 
 - Each monitor groups task buttons by workspace number, then by the window
   opening order used by Omarchy's Alt+Tab cycle.
