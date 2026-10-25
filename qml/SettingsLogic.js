@@ -60,7 +60,7 @@ function field(key, value) {
 
 function read(bar) {
     const source = isObject(bar) ? bar : {};
-    const result = { tilelanePins: [], tilelaneStartPins: [], tilelaneIdentityOverrides: {}, tilelaneDismissedTips: [], tilelaneTranslucent: false, reducedMotion: false, errors: [] };
+    const result = { tilelanePins: [], tilelaneStartPins: [], tilelaneIdentityOverrides: {}, tilelaneDismissedTips: [], tilelaneTranslucent: true, reducedMotion: false, errors: [] };
     const keys = ["tilelanePins", "tilelaneStartPins", "tilelaneIdentityOverrides", "tilelaneDismissedTips", "tilelaneTranslucent", "reducedMotion"];
     for (let index = 0; index < keys.length; index++) {
         const key = keys[index];
@@ -103,7 +103,7 @@ function initialize(bar, legacy) {
     if (bar.tilelaneDismissedTips === undefined)
         bar.tilelaneDismissedTips = [];
     if (bar.tilelaneTranslucent === undefined)
-        bar.tilelaneTranslucent = false;
+        bar.tilelaneTranslucent = true;
     if (bar.reducedMotion === undefined)
         bar.reducedMotion = legacy.reducedMotion;
     bar.tilelaneSettingsVersion = 1;

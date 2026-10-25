@@ -61,6 +61,10 @@ Third-party widgets retain their own controls and may use different styling.
 
 ## Tilelane settings
 
+The bar is semi-transparent by default. Double-click unused taskbar space to
+toggle between semi-transparent and the theme background. Your choice is saved
+as `bar.tilelaneTranslucent` in `shell.json`; an existing choice is preserved.
+
 Pins, identity overrides, tip dismissals, and reduced motion are stored in Omarchy's
 `shell.json`. See [settings and reduced motion](recovery.md#recover-pins-or-settings)
 for the fields and commands.

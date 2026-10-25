@@ -55,20 +55,20 @@ printf '%s\n' '{"id":2,"kind":"startPin","value":"files"}' >"$test_dir/action.js
 await_state '.actionId == 2 and .actionResult and .pins == ["browser"] and .startPins == ["files"]' 'independent Start pin'
 printf '%s\n' '{"id":3,"key":"reducedMotion","value":false}' >"$test_dir/action.json"
 await_state '.actionId == 3 and .actionResult and (.values.reducedMotion | not)' 'disable motion preference'
-printf '%s\n' '{"id":5,"key":"tilelaneTranslucent","value":true}' >"$test_dir/action.json"
-await_state '.actionId == 5 and .actionResult and .values.tilelaneTranslucent' 'enable translucent background'
+printf '%s\n' '{"id":5,"key":"tilelaneTranslucent","value":false}' >"$test_dir/action.json"
+await_state '.actionId == 5 and .actionResult and (.values.tilelaneTranslucent | not)' 'save opaque background'
 printf '%s\n' '{"id":6,"key":"id","value":"other.bar"}' >"$test_dir/action.json"
 await_state '.actionId == 6 and (.actionResult | not) and .writes == 5' 'reject unrelated setting'
 cmp "$test_dir/legacy.json" "$test_dir/legacy-original.json"
-jq -e '.bar.layout.right[0].format == "HH:mm" and .idle.lock == 600 and .plugins[0].value == 42 and .bar.tilelaneIdentityOverrides.terminal == "editor" and .bar.tilelaneTranslucent == true' "$test_dir/shell.json" >/dev/null
+jq -e '.bar.layout.right[0].format == "HH:mm" and .idle.lock == 600 and .plugins[0].value == 42 and .bar.tilelaneIdentityOverrides.terminal == "editor" and .bar.tilelaneTranslucent == false' "$test_dir/shell.json" >/dev/null
 stop_shell
 
 # A restart must not read the old file or import its true value again.
 printf 'invalid old settings\n' >"$test_dir/legacy.json"
 start_shell
-await_state '.loaded and .writes == 0 and .error == "" and (.values.reducedMotion | not) and .values.tilelaneTranslucent and .pins == ["browser"] and .startPins == ["files"]' 'restart ignores legacy file'
-edit_config '.bar.tilelanePins = ["external"] | .bar.reducedMotion = true | .bar.tilelaneTranslucent = false'
-await_state '.pins == ["external"] and .values.reducedMotion and (.values.tilelaneTranslucent | not) and .writes == 0' 'external settings reload'
+await_state '.loaded and .writes == 0 and .error == "" and (.values.reducedMotion | not) and (.values.tilelaneTranslucent | not) and .pins == ["browser"] and .startPins == ["files"]' 'restart ignores legacy file'
+edit_config '.bar.tilelanePins = ["external"] | .bar.reducedMotion = true | .bar.tilelaneTranslucent = true'
+await_state '.pins == ["external"] and .values.reducedMotion and .values.tilelaneTranslucent and .writes == 0' 'external settings reload'
 edit_config '.bar.tilelanePins = "invalid"'
 await_state '.pins == [] and .startPins == ["files"] and .values.reducedMotion and (.error | contains("tilelanePins")) and .writes == 0' 'invalid field preserves other settings and disk data'
 edit_config '.bar.tilelanePins = ["restored"]'
@@ -85,7 +85,7 @@ stop_shell
 rm "$test_dir/legacy.json"
 printf '%s\n' '{"bar":{"id":"io.github.lexeko.tilelane"}}' >"$test_dir/shell.json"
 start_shell
-await_state '.loaded and .error == "" and .pins == [] and .startPins == [] and (.values.reducedMotion | not) and (.values.tilelaneTranslucent | not) and .writes == 1' 'fresh installation'
+await_state '.loaded and .error == "" and .pins == [] and .startPins == [] and (.values.reducedMotion | not) and .values.tilelaneTranslucent and .writes == 1' 'fresh installation'
 stop_shell
 
 # Do not silently drop preferences when legacy input is damaged.

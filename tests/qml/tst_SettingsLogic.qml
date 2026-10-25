@@ -44,6 +44,7 @@ TestCase {
         compare(bar.tilelaneStartPins, []);
         compare(bar.tilelaneIdentityOverrides.terminal, "editor");
         verify(bar.reducedMotion);
+        verify(bar.tilelaneTranslucent);
         compare(bar.layout.left[0].id, "clock");
         compare(bar.position, "top");
         verify(!SettingsLogic.initialize(bar, {
@@ -56,6 +57,7 @@ TestCase {
     function test_existingInlineValuesWinIncludingFalse() {
         const bar = {
             "reducedMotion": false,
+            "tilelaneTranslucent": false,
             "tilelanePins": ["browser"],
             "tilelaneIdentityOverrides": {}
         };
@@ -66,6 +68,7 @@ TestCase {
             "reducedMotion": true
         }));
         verify(!bar.reducedMotion);
+        verify(!bar.tilelaneTranslucent);
         compare(bar.tilelanePins, ["browser"]);
         compare(Object.keys(bar.tilelaneIdentityOverrides).length, 0);
     }
@@ -110,16 +113,19 @@ TestCase {
     }
 
     function test_translucentBarPreference() {
-        compare(SettingsLogic.read({}).tilelaneTranslucent, false);
+        compare(SettingsLogic.read({}).tilelaneTranslucent, true);
         compare(SettingsLogic.field("tilelaneTranslucent", true), true);
         compare(SettingsLogic.read({
             tilelaneTranslucent: true
         }).tilelaneTranslucent, true);
+        compare(SettingsLogic.read({
+            tilelaneTranslucent: false
+        }).tilelaneTranslucent, false);
         const invalid = SettingsLogic.read({
             tilelaneTranslucent: "yes",
             reducedMotion: true
         });
-        compare(invalid.tilelaneTranslucent, false);
+        compare(invalid.tilelaneTranslucent, true);
         compare(invalid.reducedMotion, true);
         compare(invalid.errors.length, 1);
     }
