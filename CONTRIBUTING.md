@@ -1,14 +1,17 @@
 # Contributing to Tilelane
 
 Read the [architecture](docs/architecture.md) before changing window actions,
-settings, or native widget integration. Keep documentation in simple language
-and update it when behavior changes.
+settings, or native widget integration. Update the docs when behavior changes.
+Write for the person using the feature. Use familiar words and short sentences.
+Explain what they can do before describing how the code works.
 
 ## Development setup
 
 Follow the [installation instructions](README.md#install) to load a complete
 copy of the plugin. Keep changes in this repository and copy the affected
-runtime files into the installed plugin directory.
+runtime files into the installed plugin directory. Include `i18n/` with the QML
+and scripts. Omarchy's plugin updater follows the repository's default branch,
+so use this copy step when testing a development branch.
 
 Omarchy watches installed plugin files. If a changed component stays cached,
 run `omarchy restart shell`. The plugin runs inside Omarchy's existing shell.
@@ -24,13 +27,12 @@ omarchy plugin validate .
 ```
 
 The checks use Qt's QML tools, Quickshell, and Node.js with its built-in modules.
-Lua also enables the pointer regression tests. No npm packages are required.
-Python 3 and readable systemd journal records are required for the core-dump
-guard. It records a cursor before the suite, waits three seconds after it,
-and fails on new core-dump reports for the current user, including auxiliary
-processes. Concurrent unrelated crashes also fail the check and need review;
-this is a bounded observation window, not a guarantee against later crashes.
-A journal access or parsing failure cannot produce a passing result.
+Lua enables the pointer regression tests. No npm packages are required.
+Python 3 and access to the systemd journal are required for crash checking.
+The suite checks for new core dumps from your user, including helper processes.
+It observes the run and waits three seconds after it ends. A crash in an
+unrelated app also fails the check and needs investigation. Failure to read or
+parse the journal fails the check too.
 
 The native image-provider test additionally uses `dbus-run-session`, `dbus-send`,
 and ImageMagick. Its private bus has no activatable service directories. It
@@ -50,11 +52,17 @@ The tray source tests build a temporary Qt Quick Test provider with `g++`,
 This provider records image requests and loads only benign fixtures; it is not
 part of the plugin runtime. Keep untrusted-source tests at this request boundary
 without constructing oversized or otherwise harmful image fixtures.
-Install ShellCheck for shell linting. The check script reports tools it skips.
+Install ShellCheck for shell linting. The script reports skipped checks.
+Resolve those skips before calling a run complete.
 
 After installing and selecting Tilelane, run `./scripts/smoke`.
 For input or window behavior, also test the affected action in the live bar.
 Tray rendering changes need the [shader rendering tests](qml/shaders/README.md).
+
+Changes to Omarchy integration need live checks on both 4.0.6 and 4.5 RC.
+The suite tests missing helpers and translation components with fixtures.
+Those tests do not replace a run on each desktop version. Check minimize,
+restore, focus, pointer position, and any affected native widgets.
 
 For widget integration, `tests/fixtures/dynamic-widget` provides a plugin with
 a custom entry point, configurable label, and native panel. Install a copy in

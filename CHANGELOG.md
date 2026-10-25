@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+- Support Omarchy 4.5 RC while keeping compatibility with 4.0.6. Use native
+  translations for tips when available, with English as the fallback.
+- Restore windows minimized through Omarchy's titlebar or dock. On floating
+  workspaces, let the dock and Tilelane restore the same minimized windows.
+- Keep hidden windows available in the dock when their workspace switches
+  from tiled to floating mode.
+- Fix task activation and restore choosing the wrong window on older Omarchy.
+  Keep the pointer in place when minimizing to the newer dock.
+- Group tasks by workspace number, then by window opening order.
+- Make the taskbar semi-transparent by default. Double-click empty space to
+  toggle opacity. Keep saved choices and the opaque Start menu.
+- Add a Dock tip when Omarchy's dock overlaps the taskbar. Choose another edge
+  to move the dock and enable auto-hide. Remember resolved or dismissed tips.
+- Use Omarchy's native Start indicators and hide those with no visible content.
+  Keep icon sizes consistent across the tested Omarchy versions.
+- Improve weather, Dropbox, and other status icon sizes.
+- Show Roam's installed tray icon and a red badge for unread messages.
+- Isolate the native image-provider test and fail test runs on new user core
+  dumps, including crashes in helper processes.
+
 ## 0.2.2
 
 - Restrict application tray images to installed icon themes, ignoring

@@ -4,16 +4,18 @@ A bottom taskbar and Start menu for Omarchy.
 
 ![Tilelane on Omarchy with the Start menu open](preview.webp)
 
-- Each monitor groups task buttons by workspace number, then by the window
-  opening order used by Omarchy's Alt+Tab cycle.
-- Minimize and restore keep windows in their tiled or floating mode.
-- Short titles use narrower buttons. Longer buttons shrink before scrolling is needed.
-- Omarchy themes, configured widgets, and keyboard shortcuts carry over.
+- See each monitor's windows, grouped by workspace. Within each group,
+  windows stay in opening order.
+- Click the active task to minimize it. Click it again to restore it.
+  Windows keep their tiled or floating mode.
+- Pin apps to the taskbar or Start. Find folders through your Files bookmarks.
+- Keep your Omarchy theme, widgets, and keyboard shortcuts.
 
 ## Requirements
 
-Tested on Omarchy 4.0.5 with Hyprland 0.56.2 and Qt 6.12.
-Tilelane runs inside Omarchy's shell. Places uses Files to open folders.
+Tested on Omarchy 4.0.6 and 4.5.0 RC1. Tilelane runs inside Omarchy's shell.
+It uses the native dock and tip translations when available. They are not
+required on 4.0.6. Places uses Files to open folders.
 See the [runtime dependencies](docs/architecture.md#processes-and-commands).
 
 ## Install
@@ -29,13 +31,18 @@ For an installation without Git, see [manual installation](docs/recovery.md#manu
 
 - Start pins and taskbar pins are independent. Right-click a taskbar pin to
   reorder it.
-- Double-click empty taskbar space to toggle a semi-transparent background.
-  Tilelane saves the choice.
+- The taskbar is semi-transparent by default. Double-click empty taskbar space
+  to switch to an opaque background or back. Tilelane saves your choice.
 - Hold Ctrl while clicking an app launcher or a place to open a floating window.
+- In Start, Ctrl+Enter also launches the selected app as a floating window.
 - Window context menus show the configured Omarchy shortcuts for their actions.
 
 Places follows your bookmarks in Files. Names, order, and bookmark changes
 update automatically.
+
+On Omarchy 4.5 RC, Tilelane also restores windows minimized through Omarchy's
+titlebar or dock. If the dock overlaps the taskbar, a Dock tip lets you move it
+to another edge and turn on auto-hide.
 
 ## Configure
 
@@ -78,6 +85,8 @@ See [recovery and cleanup](docs/recovery.md) for settings or minimized windows.
 ## Documentation
 
 - [Changelog](CHANGELOG.md)
+- [Widget and appearance settings](docs/configuration.md)
+- [Recovery and troubleshooting](docs/recovery.md)
 - [Architecture and dependencies](docs/architecture.md)
 - [Contributing](CONTRIBUTING.md)
 

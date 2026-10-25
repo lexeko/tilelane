@@ -65,10 +65,13 @@ can change it. Output pixel density affects image resolution, not layout twice.
 It stores normalized records in one `ListModel`. A generation value rejects
 stale close events. Equal records do not advance the model revision.
 
+Tasks are grouped by workspace number, then by window opening order.
+Minimized tasks keep their workspace group through a saved origin or Omarchy's
+origin tag. Moving a window to another workspace moves its task into that group.
 Window opening order comes from Hyprland's `stableId` creation counter.
 A window without that detail gets a temporary increasing order value.
 When the detail arrives, the model can correct that window's position.
-Focus, title, and minimize changes do not define task order.
+Focus, title, and minimize changes do not change the order within a group.
 
 `TaskModel.qml` creates one row per window. It updates existing rows in place.
 This preserves button instances and the task list's scroll position.
@@ -119,6 +122,8 @@ active regular workspace on their monitor before focusing them, matching
 Omarchy's dock. If that monitor is gone, it uses the focused monitor's active
 workspace. Tilelane's recovery journal tracks windows it initially moved into
 its own hidden workspace, including those later transferred to the dock.
+For these tracked windows, the saved origin takes precedence over the active
+workspace when restoring through Tilelane.
 
 If that saved workspace changes to floating mode while its window is hidden,
 Tilelane checks the workspace mode and moves dock-eligible windows into
@@ -377,6 +382,19 @@ checks every owned Text declaration for this policy.
 
 ## Files and settings
 
+The taskbar defaults to a semi-transparent background. Double-clicking unused
+bar space toggles `tilelaneTranslucent`. An existing saved choice takes
+precedence. Start keeps its opaque menu background.
+
+`TipController.qml` offers a dock move only when the enabled, always-visible
+native dock shares the bottom edge on a floating workspace outside fullscreen.
+`DockTipDetector.qml` checks this condition through the optional workspace-mode
+helper. The tip waits for a stable overlap before appearing.
+Left, Top, and Right run `omarchy dock position` followed by
+`omarchy dock autohide on`. Both commands must succeed before the controller
+saves the tip's dismissal. Errors keep the tip available for retry.
+"Later" closes the card without dismissing the tip.
+
 | Path                                                 | Use                                                |
 | ---------------------------------------------------- | -------------------------------------------------- |
 | `Quickshell.statePath("tilelane-minimized-v1.json")` | Minimize recovery journal                          |
@@ -424,6 +442,7 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 | `OmarchyCapabilities.qml`    | One startup shell command checks availability of the optional workspace-layout and native-minimize helpers with `command -v`.                                   |
 | `WorkspaceModeMonitor.qml`   | Supported hosts query candidate workspaces on changes and retry every 15 seconds while candidates exist. Inactive monitors have no watchers or retry timer.     |
 | `DockTipDetector.qml`        | Startup and relevant config changes run `omarchy plugin list` to check whether the native dock is enabled. Mode queries require a possible bottom-dock overlap. |
+| `TipController.qml`          | A chosen dock action runs `omarchy dock position` and then `omarchy dock autohide on`.                                                                          |
 | `TrayIcon.qml`               | Roam pixmap changes can run `scripts/roam-tray-badge`; it reads a size-limited D-Bus pixmap with a timeout.                                                     |
 | `WindowActions.qml`          | A window action or unload can run validated `hyprctl eval`; supported floating-workspace minimization moves to the native dock with cursor warps suppressed.    |
 | `WindowModel.qml`            | New windows can run `scripts/window-application-identities` with bounded retries.                                                                               |

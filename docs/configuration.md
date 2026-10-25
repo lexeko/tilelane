@@ -1,7 +1,15 @@
-# Widget configuration
+# Configure Tilelane
 
 Tilelane uses the widgets and settings configured through Omarchy. Changes
 apply without restarting the shell.
+
+## Appearance
+
+The taskbar is semi-transparent by default. Double-click unused taskbar space
+to switch to an opaque background or back. Tilelane saves the choice and keeps
+any choice you made before updating. Start stays opaque in both modes.
+
+The setting is `bar.tilelaneTranslucent` in `shell.json`.
 
 ## Layout
 
@@ -19,15 +27,6 @@ Order within each group follows your configuration. Tilelane supplies its own
 menu and workspace controls, so it skips Omarchy's menu and workspace widgets.
 Start contains the indicators instead of placing them in the status area.
 
-On Omarchy versions with a dock, Tilelane may show a Dock tip in the taskbar
-when the always-visible dock and Tilelane share the bottom edge of a floating
-workspace. Choose Left, Top, or Right to move the dock there and turn on
-auto-hide with one click. A successful choice also dismisses this tip
-permanently. Tilelane changes the dock only when you choose one of these
-actions. "Later" closes the card and leaves its taskbar button visible.
-"Don't show again" stores a dismissal for this tip only; future tips remain
-available.
-
 For example, move Volume before Bluetooth:
 
 ```sh
@@ -42,14 +41,8 @@ of each screen.
 Use `omarchy plugin enable` and `omarchy plugin disable` to add or remove
 optional widgets. Some configured widgets appear only when needed, such as
 Power when a battery is present or Updates when updates are available.
-Application tray icons appear in the tray drawer.
-Tilelane uses icons from the installed icon theme. Apps that supply only private
-image files or raw pixmaps show a generic application icon; their tooltips,
-menus, clicks, and scrolling still work.
-Roam uses its installed theme icon when its tray service supplies a pixmap
-without an icon name. Tilelane reads the unread dot from Roam's tray pixmap
-outside the shell and draws a red badge over that icon when messages are unread.
-Other changes in Roam's tray artwork are not displayed.
+Start uses Omarchy's native indicators. Indicators with no visible content
+take no space.
 
 Change settings through Omarchy. For example, use a 12-hour clock:
 
@@ -59,11 +52,30 @@ omarchy bar set omarchy.clock format 'h:mm AP'
 
 Third-party widgets retain their own controls and may use different styling.
 
-## Tilelane settings
+## Application tray
 
-The bar is semi-transparent by default. Double-click unused taskbar space to
-toggle between semi-transparent and the theme background. Your choice is saved
-as `bar.tilelaneTranslucent` in `shell.json`; an existing choice is preserved.
+Application tray icons appear in the tray drawer. Tilelane uses installed theme
+icons. Apps that supply only their own image files or raw images show a generic
+app icon. Their tooltips, menus, clicks, and scrolling still work.
+
+Roam uses its installed icon with a red badge when messages are unread.
+Other changes to Roam's tray artwork are not shown.
+
+## Dock overlap
+
+On Omarchy versions with a dock, a Dock tip can appear in the taskbar. It shows
+when an always-visible dock shares the bottom edge with Tilelane on a floating
+workspace, outside fullscreen mode.
+
+Choose Left, Top, or Right to move the dock to that edge and turn on auto-hide.
+A successful choice also dismisses the tip. The dock changes only when you
+choose an action. If an action fails, the card shows an error so you can retry.
+
+"Later" closes the card but leaves the Dock button available.
+"Don't show again" hides this tip and saves that choice. Other tips can still
+appear. To bring a dismissed tip back, see [saved settings](recovery.md#recover-pins-or-settings).
+
+## Saved settings
 
 Pins, identity overrides, tip dismissals, and reduced motion are stored in Omarchy's
 `shell.json`. See [settings and reduced motion](recovery.md#recover-pins-or-settings)

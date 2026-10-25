@@ -37,7 +37,7 @@ invalid, or fails to load. A runtime error may still need a restart.
 ## Manual installation
 
 Place a complete copy in `~/.config/omarchy/plugins/io.github.lexeko.tilelane`.
-Include `manifest.json`, `Bar.qml`, `qml/`, and `scripts/`.
+Include `manifest.json`, `Bar.qml`, `qml/`, `i18n/`, and `scripts/`.
 Keep the scripts' executable permissions. Do not use a symlink.
 Back up an existing installation before replacing it.
 
@@ -80,18 +80,32 @@ Its default expected height is 44 logical pixels. Set
 
 ## Recover minimized windows
 
-Tilelane moves minimized windows to `special:tilelane-minimized`.
-It writes the original workspace to a journal in Quickshell's state directory.
-The filename is `tilelane-minimized-v1.json`.
+Select Tilelane and click the minimized task to restore it. The restore path
+depends on how the window was minimized.
+
+On older Omarchy versions and tiled workspaces, Tilelane keeps minimized
+windows in `special:tilelane-minimized`. It saves their original workspace in
+`tilelane-minimized-v1.json` in Quickshell's state directory.
+
+On supported Omarchy floating workspaces, Tilelane shares `special:minimized`
+with the native dock. Either can restore those windows. Tilelane also recognizes
+windows minimized through Omarchy's titlebar. These windows return to the active
+workspace on their monitor. If that monitor is gone, they return to the focused
+monitor's active workspace. A window that Tilelane moved from its private
+workspace into the dock keeps its saved origin. Clicking its task restores it
+there instead.
+
+Switching a workspace from tiled to floating moves eligible hidden windows
+into the native dock. Other windows keep Tilelane's saved-workspace recovery.
 
 A normal bar reset queues restores for tracked windows before Tilelane unloads.
 After a hard shell failure, select Tilelane again and click the minimized task.
-The new instance reads the journal and restores the window to its saved workspace.
+The new instance reads the journal to recover windows in Tilelane's private
+workspace.
 
-A missing or invalid journal cannot supply the original workspace.
-Tilelane will not guess a tiled restore through the native minimized setter
-for a window in its private workspace. Keep a valid journal when recovering
-from a crash. Do not edit it while Tilelane is active.
+A missing or invalid journal leaves Tilelane without a restore location for
+windows in its private workspace. Keep the journal when recovering from a
+crash. Do not edit it while Tilelane is active.
 
 ## Recover pins or settings
 
@@ -105,11 +119,14 @@ Back up this file before editing it. Keep its other fields and layout entries.
 | `tilelanePins`              | Ordered array of taskbar desktop-entry IDs            |
 | `tilelaneStartPins`         | Ordered array of Start desktop-entry IDs              |
 | `tilelaneIdentityOverrides` | Object mapping window identities to desktop-entry IDs |
-| `tilelaneDismissedTips`     | Array of tips hidden with "Don't show again"          |
-| `tilelaneTranslucent`       | `true` or `false` for the bar background               |
+| `tilelaneDismissedTips`     | Array of resolved or dismissed tip IDs                |
+| `tilelaneTranslucent`       | `true` or `false` for the bar background              |
 | `reducedMotion`             | `true` or `false`                                     |
 
 To clear pins or restore dismissed tips, set the corresponding array to `[]`.
+Resetting `tilelaneDismissedTips` makes a tip available when its condition
+occurs again. It does not undo changes to the dock.
+If `tilelaneTranslucent` is missing, the bar uses the semi-transparent default.
 A missing app remains a removable taskbar pin. Invalid fields use safe defaults
 and log an error.
 Tilelane leaves the invalid data on disk until you correct it or change that
@@ -198,8 +215,8 @@ omarchy plugin remove io.github.lexeko.tilelane
 Removal deletes the installed plugin. Tilelane's fields remain on `bar` in
 `shell.json`, ready for a later install. To clear them, back up `shell.json` and
 remove `tilelaneSettingsVersion`, `tilelanePins`, `tilelaneStartPins`,
-`tilelaneIdentityOverrides`, and `tilelaneDismissedTips`. Keep shared fields
-such as `layout` and `reducedMotion`.
+`tilelaneIdentityOverrides`, `tilelaneDismissedTips`, and `tilelaneTranslucent`.
+Keep shared fields such as `layout` and `reducedMotion`.
 Old files under `~/.config/tilelane/` also remain. Archive them before reinstalling
 if you do not want their preferences imported again.
 Restore minimized windows before removing recovery data.

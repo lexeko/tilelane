@@ -3,6 +3,8 @@
 Measured on 2026-09-27 using runtime code from `f284b70`.
 The `0.1.0` release draft has the same runtime files.
 These figures describe one session, not a comparison with the stock bar.
+They have not been repeated for the current version. Newer code includes dock
+checks and Roam badge reads that were absent from this sample.
 
 ## Environment
 
@@ -30,8 +32,8 @@ CPU usage below measures the whole shell as a percentage of one CPU core.
 | Direct children at each sample | One plugin watcher and two clipboard watchers |
 
 The snapshots did not show new child processes. Five-second sampling cannot
-rule out short-lived processes between samples. Source review found no
-recurring Tilelane-owned subprocess polling. Hosted widgets keep their own
+rule out short-lived processes between samples. Source review at that revision
+found no recurring Tilelane-owned subprocess polling. Hosted widgets keep their own
 refresh schedules.
 
 ## Window lifecycle and latency
@@ -70,8 +72,11 @@ identity probes, shortcut lookup, and window actions.
 
 Floating launch can poll new clients up to 40 times after a user request.
 Terminal identification allows bounded startup retries. A window without a
-PID can request a batched detail refresh. Hover, collapse, unload, and hint
-timers manage UI state without recurring idle subprocess queries.
+PID can request a batched detail refresh. Roam tray changes can trigger a
+short badge read. On supported hosts, workspace mode checks retry every
+15 seconds while a hidden-window or dock-tip candidate exists. These checks
+stop when there are no candidates. Hover, collapse, unload, and hint timers
+manage UI state without starting processes.
 
 ## Repeat the measurements
 
