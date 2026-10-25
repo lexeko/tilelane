@@ -199,8 +199,16 @@ QtObject {
 
         if (action === "minimize") {
             if (capabilities && capabilities.nativeMinimize && TaskLogic.validAddress(address) && TaskLogic.canMinimizeToOmarchyDock(record, wayland)) {
-                Quickshell.execDetached(["omarchy-hyprland-window-minimize", address]);
-                return true;
+                const ipc = source.lastIpcObject || ({});
+                const code = TaskLogic.nativeDockMinimizeCode(address, record.workspaceId, ipc.tags);
+                if (code !== "") {
+                    try {
+                        Hyprland.dispatch(TaskLogic.withoutCursorWarp(code));
+                    } catch (error) {
+                        Quickshell.execDetached(["hyprctl", "eval", "return hl.dispatch(" + TaskLogic.withoutCursorWarp(code) + ")"]);
+                    }
+                    return true;
+                }
             }
             if (!rememberOrigin(address, record.workspaceName || String(record.workspaceId || "")))
                 return false;

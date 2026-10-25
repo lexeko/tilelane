@@ -80,11 +80,15 @@ TestCase {
         });
         verify(actions.invoke("0x123", "minimize"));
         const commands = Quickshell.detachedCommands;
-        compare(commands.length, 1);
         if (data.native) {
-            compare(commands[0], ["omarchy-hyprland-window-minimize", "0x123"]);
+            compare(commands.length, 0);
+            compare(Hyprland.dispatches.length, 1);
+            verify(Hyprland.dispatches[0].indexOf('cursor.no_warps') !== -1);
+            verify(Hyprland.dispatches[0].indexOf('workspace = "special:minimized"') !== -1);
+            verify(Hyprland.dispatches[0].indexOf('hl.dsp.focus({ workspace = "2" })') !== -1);
             compare(actions.fallbackOrigins["0x123"], undefined);
         } else {
+            compare(commands.length, 1);
             compare(commands[0][0], "hyprctl");
             verify(commands[0][2].indexOf("special:tilelane-minimized") !== -1);
             compare(actions.fallbackOrigins["0x123"], "2");

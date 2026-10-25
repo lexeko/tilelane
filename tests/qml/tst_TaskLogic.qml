@@ -146,6 +146,17 @@ TestCase {
         compare(TaskLogic.dockMigrationCode("0xabc", "name:work", []), "");
     }
 
+    function test_nativeDockMinimizePreservesOriginAndFocusesVisibleWorkspace() {
+        const code = TaskLogic.nativeDockMinimizeCode("0xabc", 3, ["omarchy-minimized-from-2", "other"]);
+        verify(code.indexOf('tonumber(window.workspace.id) ~= 3') !== -1);
+        verify(code.indexOf('"-omarchy-minimized-from-2"') !== -1);
+        verify(code.indexOf('"+omarchy-minimized-from-3"') !== -1);
+        verify(code.indexOf('workspace = "special:minimized"') !== -1);
+        verify(code.indexOf('hl.dsp.focus({ workspace = "3" })') !== -1);
+        compare(TaskLogic.nativeDockMinimizeCode("bad", 3, []), "");
+        compare(TaskLogic.nativeDockMinimizeCode("0xabc", 0, []), "");
+    }
+
     function test_originJournalIsVersionedAndSanitized() {
         const parsed = TaskLogic.parseOrigins(JSON.stringify({
             "version": 1,

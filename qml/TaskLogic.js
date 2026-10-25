@@ -168,6 +168,28 @@ function dockMigrationCode(address, workspaceId, tags) {
         + commands.join("; ") + "; hl.dispatch(hl.dsp.focus({ workspace = focus }))";
 }
 
+function nativeDockMinimizeCode(address, workspaceId, tags) {
+    var target = selector(address);
+    var workspace = String(workspaceId || "");
+    if (target === "" || !validWorkspaceId(workspace))
+        return "";
+
+    var originTag = "omarchy-minimized-from-" + workspace;
+    var windowArg = "window = " + luaString(target);
+    var commands = [];
+    var count = tags && typeof tags.length === "number" ? Math.min(tags.length, 256) : 0;
+    for (var i = 0; i < count; i++) {
+        var tag = String(tags[i] || "");
+        if (/^omarchy-minimized-from-[1-9][0-9]*$/.test(tag) && tag !== originTag)
+            commands.push("hl.dispatch(hl.dsp.window.tag({ tag = " + luaString("-" + tag) + ", " + windowArg + " }))");
+    }
+    commands.push("hl.dispatch(hl.dsp.window.tag({ tag = " + luaString("+" + originTag) + ", " + windowArg + " }))");
+    commands.push("hl.dispatch(hl.dsp.window.move({ workspace = " + luaString(omarchyMinimizedWorkspace) + ", follow = false, " + windowArg + " }))");
+    return "local window = hl.get_window(" + luaString(target) + "); "
+        + "if not window or not window.workspace or tonumber(window.workspace.id) ~= " + workspace + " then return false end; "
+        + commands.join("; ") + "; return hl.dispatch(hl.dsp.focus({ workspace = " + luaString(workspace) + " }))";
+}
+
 function activationDispatches(address, workspaceName) {
     var target = selector(address);
     if (target === "")

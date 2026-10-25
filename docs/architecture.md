@@ -424,7 +424,7 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 | `WorkspaceModeMonitor.qml`   | Supported hosts query candidate workspaces on changes and retry every 15 seconds while candidates exist. Inactive monitors have no watchers or retry timer.     |
 | `DockTipDetector.qml`        | Startup and relevant config changes run `omarchy plugin list` to check whether the native dock is enabled. Mode queries require a possible bottom-dock overlap. |
 | `TrayIcon.qml`               | Roam pixmap changes can run `scripts/roam-tray-badge`; it reads a size-limited D-Bus pixmap with a timeout.                                                     |
-| `WindowActions.qml`          | A window action or unload can run a validated `hyprctl eval`; supported floating-workspace minimization uses `omarchy-hyprland-window-minimize`.                |
+| `WindowActions.qml`          | A window action or unload can run validated `hyprctl eval`; supported floating-workspace minimization moves to the native dock with cursor warps suppressed.    |
 | `WindowModel.qml`            | New windows can run `scripts/window-application-identities` with bounded retries.                                                                               |
 | `ApplicationCatalog.qml`     | Startup and catalog changes can run `scripts/hidden-desktop-entries`.                                                                                           |
 | `ApplicationCatalog.qml`     | App launch uses `uwsm-app`, `gtk-launch`, or `scripts/launch-application`.                                                                                      |
