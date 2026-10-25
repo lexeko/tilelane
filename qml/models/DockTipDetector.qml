@@ -10,6 +10,7 @@ QtObject {
     id: root
 
     property string barPosition: "bottom"
+    property var capabilities: null
     property var shellConfig: null
     property bool dockEnabled: false
     property bool pluginRefreshPending: false
@@ -68,7 +69,8 @@ QtObject {
     }
 
     property WorkspaceModeMonitor modeMonitor: WorkspaceModeMonitor {
-        workspaceIds: root.workspaceId > 0 ? [root.workspaceId] : []
+        available: root.capabilities !== null && root.capabilities.workspaceLayout
+        workspaceIds: root.dockEnabled && root.dockPosition === "bottom" && !root.dockAutohide && root.barPosition === "bottom" && root.fullscreenMode === 0 && root.workspaceId > 0 ? [root.workspaceId] : []
     }
 
     property Process pluginProbe: Process {

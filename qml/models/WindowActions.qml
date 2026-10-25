@@ -10,6 +10,7 @@ QtObject {
     id: root
 
     required property var windowModel
+    property var capabilities: null
     property var fallbackOrigins: ({})
     property var observedOrigins: ({})
     property bool originsLoaded: false
@@ -197,7 +198,7 @@ QtObject {
         }
 
         if (action === "minimize") {
-            if (TaskLogic.validAddress(address) && TaskLogic.canMinimizeToOmarchyDock(record, wayland)) {
+            if (capabilities && capabilities.nativeMinimize && TaskLogic.validAddress(address) && TaskLogic.canMinimizeToOmarchyDock(record, wayland)) {
                 Quickshell.execDetached(["omarchy-hyprland-window-minimize", address]);
                 return true;
             }
@@ -275,6 +276,7 @@ QtObject {
     }
 
     property WorkspaceModeMonitor modeMonitor: WorkspaceModeMonitor {
+        available: root.capabilities !== null && root.capabilities.workspaceLayout
         onFloating: function (workspaceId) {
             root.migrateOwnedToDock(workspaceId);
         }

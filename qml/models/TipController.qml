@@ -9,6 +9,7 @@ QtObject {
     id: root
 
     required property var settings
+    property var capabilities: null
     property var bar: null
     property string barPosition: "bottom"
     property bool stableDockConflict: false
@@ -111,6 +112,7 @@ QtObject {
     }
 
     property DockTipDetector dockDetector: DockTipDetector {
+        capabilities: root.capabilities
         barPosition: root.barPosition
 
         onConflictChanged: {

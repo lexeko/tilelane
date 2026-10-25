@@ -108,6 +108,12 @@ function pointerStableDispatch(commands) {
     }).join("; "));
 }
 
+function guardedRaiseDispatch(target) {
+    // Raising can refocus the window under the pointer on older compositors.
+    // Keep it optional and let the following exact focus win in every path.
+    return "function() pcall(function() hl.dispatch(hl.dsp.window.alter_zorder({ mode = \"top\", window = " + luaString(target) + " })) end) end";
+}
+
 function activeWorkspaceId(monitor) {
     var id = monitor && monitor.activeWorkspace ? Number(monitor.activeWorkspace.id) : 0;
     return Number.isInteger(id) && id > 0 && id <= 2147483647 ? String(id) : "";
@@ -172,7 +178,8 @@ function activationDispatches(address, workspaceName) {
     if (workspace !== "" && workspace !== minimizedWorkspace)
         result.push("hl.dsp.focus({ workspace = " + luaString(workspace) + " })");
     result.push("hl.dsp.focus({ window = " + luaString(target) + " })");
-    result.push("hl.dsp.window.alter_zorder({ mode = \"top\", window = " + luaString(target) + " })");
+    result.push(guardedRaiseDispatch(target));
+    result.push("hl.dsp.focus({ window = " + luaString(target) + " })");
     return result;
 }
 
@@ -183,7 +190,7 @@ function restoreDispatches(address, workspaceName) {
         return [];
 
     var windowArg = "window = " + luaString(target);
-    return ["hl.dsp.window.move({ workspace = " + luaString(workspace) + ", follow = false, " + windowArg + " })", "hl.dsp.focus({ workspace = " + luaString(workspace) + " })", "hl.dsp.focus({ " + windowArg + " })", "hl.dsp.window.alter_zorder({ mode = \"top\", " + windowArg + " })"];
+    return ["hl.dsp.window.move({ workspace = " + luaString(workspace) + ", follow = false, " + windowArg + " })"].concat(activationDispatches(address, workspace));
 }
 
 function fallbackCode(action, address, workspaceName) {
@@ -192,7 +199,9 @@ function fallbackCode(action, address, workspaceName) {
         return "";
     var windowArg = "window = " + luaString(target);
     if (action === "activate")
-        return "hl.dispatch(hl.dsp.focus({ " + windowArg + " })); return hl.dispatch(hl.dsp.window.alter_zorder({ mode = \"top\", " + windowArg + " }))";
+        return activationDispatches(address, "").map(function (command) {
+            return "hl.dispatch(" + command + ")";
+        }).join("; ");
     if (action === "close")
         return "return hl.dispatch(hl.dsp.window.close({ " + windowArg + " }))";
     if (action === "minimize")

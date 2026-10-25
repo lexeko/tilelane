@@ -436,10 +436,15 @@ Item {
         id: globalWindows
     }
 
+    OmarchyCapabilities {
+        id: omarchyCapabilities
+    }
+
     WindowActions {
         id: globalActions
 
         windowModel: globalWindows
+        capabilities: omarchyCapabilities
     }
 
     TilelaneSettings {
@@ -454,6 +459,7 @@ Item {
         id: tipController
 
         settings: tilelaneSettings
+        capabilities: omarchyCapabilities
         bar: root
         barPosition: root.position
     }

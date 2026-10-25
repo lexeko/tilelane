@@ -88,9 +88,18 @@ A new window without a PID can request one batched toplevel refresh after
 
 `WindowActions.qml` validates an exact window address before acting.
 Activation and restore normally use `Hyprland.dispatch()`.
-They focus the exact window and raise it to the top of the floating stack.
+They focus the exact window, attempt to raise it to the top of the floating
+stack, then focus it again. The final focus prevents older compositors from
+leaving focus on a different window under the pointer. An unavailable or failing
+raise does not block focus. The sequence preserves the pointer position.
 Close first tries the Wayland handle. Other actions and fallback paths use
 one detached `hyprctl eval` command.
+
+Optional Omarchy helpers are discovered once per shell startup. Missing helpers
+disable their mode probes, file watchers, retry timers, and native-minimize
+route. Restart the shell after upgrading Omarchy to discover newly available
+helpers. Native dock migration and overlap tips remain enabled when their
+required helper is present.
 
 The tested Hyprland release ignored the Wayland toplevel's minimized setter.
 On Omarchy floating workspaces, Tilelane invokes Omarchy's minimize command
@@ -409,19 +418,26 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 
 ## Processes and commands
 
-| Owner                        | Trigger and work                                                                                                        |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `WindowActions.qml`          | A window action or unload can run a validated `hyprctl eval`.                                                           |
-| `WindowModel.qml`            | New windows can run `scripts/window-application-identities` with bounded retries.                                       |
-| `ApplicationCatalog.qml`     | Startup and catalog changes can run `scripts/hidden-desktop-entries`.                                                   |
-| `ApplicationCatalog.qml`     | App launch uses `uwsm-app`, `gtk-launch`, or `scripts/launch-application`.                                              |
-| `scripts/launch-application` | Can query Ctrl state, call `xdg-terminal-exec --print-id`, dispatch a floating launch, and check new clients with `jq`. |
-| `ShortcutCatalog.qml`        | Startup and a binding-file change run `omarchy menu keybindings --print`.                                               |
-| `ApplicationCatalog.qml`     | Opening a place uses the launch helper to run `uwsm-app -- nautilus --new-window`. Ctrl requests floating.              |
-| `PanelControl.qml`           | Audio right-click runs Omarchy's output mute command.                                                                   |
-| `Bar.qml` and hosted widgets | Native widget actions can run their configured commands through `Commons.Util.execDetached`.                            |
+| Owner                        | Trigger and work                                                                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OmarchyCapabilities.qml`    | One startup shell command checks availability of the optional workspace-layout and native-minimize helpers with `command -v`.                                   |
+| `WorkspaceModeMonitor.qml`   | Supported hosts query candidate workspaces on changes and retry every 15 seconds while candidates exist. Inactive monitors have no watchers or retry timer.     |
+| `DockTipDetector.qml`        | Startup and relevant config changes run `omarchy plugin list` to check whether the native dock is enabled. Mode queries require a possible bottom-dock overlap. |
+| `TrayIcon.qml`               | Roam pixmap changes can run `scripts/roam-tray-badge`; it reads a size-limited D-Bus pixmap with a timeout.                                                     |
+| `WindowActions.qml`          | A window action or unload can run a validated `hyprctl eval`; supported floating-workspace minimization uses `omarchy-hyprland-window-minimize`.                |
+| `WindowModel.qml`            | New windows can run `scripts/window-application-identities` with bounded retries.                                                                               |
+| `ApplicationCatalog.qml`     | Startup and catalog changes can run `scripts/hidden-desktop-entries`.                                                                                           |
+| `ApplicationCatalog.qml`     | App launch uses `uwsm-app`, `gtk-launch`, or `scripts/launch-application`.                                                                                      |
+| `scripts/launch-application` | Can query Ctrl state, call `xdg-terminal-exec --print-id`, dispatch a floating launch, and check new clients with `jq`.                                         |
+| `ShortcutCatalog.qml`        | Startup and a binding-file change run `omarchy menu keybindings --print`.                                                                                       |
+| `ApplicationCatalog.qml`     | Opening a place uses the launch helper to run `uwsm-app -- nautilus --new-window`. Ctrl requests floating.                                                      |
+| `PanelControl.qml`           | Audio right-click runs Omarchy's output mute command.                                                                                                           |
+| `Bar.qml` and hosted widgets | Native widget actions can run their configured commands through `Commons.Util.execDetached`.                                                                    |
 
-The three runtime helper scripts require Bash and standard system utilities.
+The four runtime helper scripts are `hidden-desktop-entries`,
+`window-application-identities`, `launch-application`, and `roam-tray-badge`.
+They require Bash and standard system utilities; launch handling also uses `jq`,
+and the bounded Roam pixmap reader uses `busctl`, `jq`, `timeout`, and `head`.
 There is no installer hook, downloaded runtime code, compiled helper, privilege
 request, or Tilelane-owned service. Hosted Omarchy widgets keep their upstream
 refresh schedules and command behavior. A process-free claim would be false.

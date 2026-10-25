@@ -42,24 +42,26 @@ TestCase {
 
     function test_activationTargetsWorkspaceThenExactWindow() {
         const commands = TaskLogic.activationDispatches("0xABC", "name:work\"room");
-        compare(commands.length, 3);
+        compare(commands.length, 4);
         compare(commands[0], "hl.dsp.focus({ workspace = \"name:work\\\"room\" })");
         compare(commands[1], "hl.dsp.focus({ window = \"address:0xABC\" })");
-        compare(commands[2], "hl.dsp.window.alter_zorder({ mode = \"top\", window = \"address:0xABC\" })");
+        compare(commands[2], TaskLogic.guardedRaiseDispatch("address:0xABC"));
+        compare(commands[3], commands[1]);
         const minimized = TaskLogic.activationDispatches("0xabc", TaskLogic.minimizedWorkspace);
-        compare(minimized.length, 2);
+        compare(minimized.length, 3);
         verify(minimized[0].indexOf("address:0xabc") !== -1);
         compare(TaskLogic.activationDispatches("not-an-address", "2").length, 0);
     }
 
     function test_restoreTargetsWindowWithoutChangingLayout() {
         const commands = TaskLogic.restoreDispatches("0xABC", "name:work\"room");
-        compare(commands.length, 4);
+        compare(commands.length, 5);
         verify(commands[0].indexOf("follow = false") !== -1);
         verify(commands[0].indexOf("name:work\\\"room") !== -1);
         compare(commands[1], "hl.dsp.focus({ workspace = \"name:work\\\"room\" })");
         compare(commands[2], "hl.dsp.focus({ window = \"address:0xABC\" })");
-        compare(commands[3], "hl.dsp.window.alter_zorder({ mode = \"top\", window = \"address:0xABC\" })");
+        compare(commands[3], TaskLogic.guardedRaiseDispatch("address:0xABC"));
+        compare(commands[4], commands[2]);
         verify(commands.join(" ").indexOf("hl.dsp.layout") === -1);
         compare(TaskLogic.restoreDispatches("bad", "2").length, 0);
         compare(TaskLogic.restoreDispatches("0xabc", TaskLogic.minimizedWorkspace).length, 0);

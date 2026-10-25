@@ -8,6 +8,8 @@ QtObject {
     id: root
 
     property var workspaceIds: []
+    property bool available: false
+    readonly property bool active: available && workspaceIds.length > 0
     property var pendingIds: []
     property int checkingId: 0
     property int generation: 0
@@ -27,19 +29,28 @@ QtObject {
 
     function refresh() {
         generation++;
+        if (!active) {
+            pendingIds = [];
+            modes = ({});
+            return;
+        }
         // Keep the last known mode during the probe so the tip does not blink
         // every time the retry timer checks the same workspace.
-        const next = pendingIds.slice(0);
+        const next = [];
+        const retained = ({});
         for (const id of workspaceIds) {
             if (next.indexOf(id) === -1)
                 next.push(id);
+            if (modes[String(id)] !== undefined)
+                retained[String(id)] = modes[String(id)];
         }
+        modes = retained;
         pendingIds = next;
         runNext();
     }
 
     function runNext() {
-        if (modeProbe.running || pendingIds.length === 0)
+        if (!active || modeProbe.running || pendingIds.length === 0)
             return;
         const next = pendingIds.slice(0);
         checkingId = next.shift();
@@ -50,6 +61,8 @@ QtObject {
     }
 
     function directoryChanged() {
+        if (!active)
+            return;
         // A new mode file needs a new FileView. A watcher created before that
         // file existed cannot follow later writes to it.
         watchGeneration++;
@@ -59,23 +72,24 @@ QtObject {
     }
 
     onWorkspaceIdsChanged: refresh()
+    onActiveChanged: refresh()
 
     property FileView directoryWatch: FileView {
-        path: root.modesDir
-        watchChanges: root.workspaceIds.length > 0
+        path: root.active ? root.modesDir : ""
+        watchChanges: root.active
         printErrors: false
         onFileChanged: root.directoryChanged()
     }
 
     property FileView defaultFileWatch: FileView {
-        path: root.defaultWatchPath
-        watchChanges: root.workspaceIds.length > 0 && path !== ""
+        path: root.active ? root.defaultWatchPath : ""
+        watchChanges: root.active && path !== ""
         printErrors: false
         onFileChanged: root.refresh()
     }
 
     property Instantiator workspaceFileWatches: Instantiator {
-        model: root.workspaceIds.map(id => String(id) + ":" + root.watchGeneration)
+        model: root.active ? root.workspaceIds.map(id => String(id) + ":" + root.watchGeneration) : []
 
         delegate: FileView {
             required property string modelData
@@ -88,18 +102,18 @@ QtObject {
     }
 
     // Directory watches can go quiet after rapid changes. This runs only
-    // while a Tilelane-owned window could move into Omarchy's dock.
+    // while a supported host has a dock-tip or hidden-window candidate.
     property Timer retry: Timer {
         interval: 15000
         repeat: true
-        running: root.workspaceIds.length > 0
+        running: root.active
         onTriggered: root.refresh()
     }
 
     property Process modeProbe: Process {
         stdout: StdioCollector {
             onStreamFinished: {
-                if (root.checkingGeneration !== root.generation)
+                if (!root.active || root.checkingGeneration !== root.generation)
                     return;
                 const mode = text.trim();
                 const next = Object.assign({}, root.modes);
