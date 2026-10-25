@@ -2,6 +2,10 @@
 set -uo pipefail
 
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ "${1:-}" != "--coredump-guarded" ]]; then
+  exec python3 "$repo_dir/tests/coredump_guard.py" -- "$repo_dir/scripts/check" --coredump-guarded "$@"
+fi
+shift
 omarchy_root="${OMARCHY_PATH:-/usr/share/omarchy}"
 failures=0
 qmlformat_bin="qmlformat"
@@ -346,6 +350,8 @@ run_check "QML formatting" check_qml_format
 run_check "production QML lint" check_qml_lint
 run_check "QML unit tests" check_qml_tests
 run_check "tip action persistence" bash "$repo_dir/tests/test-tip-controller.sh" -o -,txt
+run_check "core-dump guard regression" python3 -B "$repo_dir/tests/test-coredump-guard.py"
+run_check "isolated native image provider" bash "$repo_dir/tests/test-native-provider.sh"
 run_check "tray image source boundary" env QT_QPA_PLATFORM=offscreen QSG_RHI_BACKEND=software bash "$repo_dir/tests/test-tray-icons.sh" -o -,txt
 run_check "Roam unread badge extraction" node "$repo_dir/tests/test-roam-tray-badge.cjs"
 run_check "adaptive task sizing" node "$repo_dir/tests/test-task-sizing.cjs"
@@ -376,10 +382,10 @@ run_check "bounded terminal identity retry" check_terminal_identity_retry_policy
 run_check "floating application launch policy" check_floating_launch_policy
 run_check "actionable bar hint policy" check_bar_hint_policy
 run_check "floating application launch helper" "$repo_dir/tests/test-launch-application.sh"
-run_check "shell script syntax" bash -n "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/roam-tray-badge" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-plugin-translations.sh" "$repo_dir/tests/test-omarchy-capabilities.sh" "$repo_dir/tests/test-tip-controller.sh" "$repo_dir/tests/test-widget-manifest.sh" "$repo_dir/tests/test-hosted-lifecycle.sh" "$repo_dir/tests/test-window-model.sh" "$repo_dir/tests/test-tray-icons.sh"
+run_check "shell script syntax" bash -n "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/roam-tray-badge" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-plugin-translations.sh" "$repo_dir/tests/test-omarchy-capabilities.sh" "$repo_dir/tests/test-tip-controller.sh" "$repo_dir/tests/test-widget-manifest.sh" "$repo_dir/tests/test-hosted-lifecycle.sh" "$repo_dir/tests/test-window-model.sh" "$repo_dir/tests/test-tray-icons.sh" "$repo_dir/tests/test-native-provider.sh"
 
 if command -v shellcheck >/dev/null 2>&1; then
-  run_check "shell scripts" shellcheck "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/roam-tray-badge" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-plugin-translations.sh" "$repo_dir/tests/test-omarchy-capabilities.sh" "$repo_dir/tests/test-tip-controller.sh" "$repo_dir/tests/test-widget-manifest.sh" "$repo_dir/tests/test-hosted-lifecycle.sh" "$repo_dir/tests/test-window-model.sh" "$repo_dir/tests/test-tray-icons.sh"
+  run_check "shell scripts" shellcheck "$repo_dir/scripts/check" "$repo_dir/scripts/hidden-desktop-entries" "$repo_dir/scripts/launch-application" "$repo_dir/scripts/roam-tray-badge" "$repo_dir/scripts/smoke" "$repo_dir/scripts/window-application-identities" "$repo_dir/tests/test-launch-application.sh" "$repo_dir/tests/test-minimize-lifecycle.sh" "$repo_dir/tests/test-places-watch.sh" "$repo_dir/tests/test-settings.sh" "$repo_dir/tests/test-plugin-translations.sh" "$repo_dir/tests/test-omarchy-capabilities.sh" "$repo_dir/tests/test-tip-controller.sh" "$repo_dir/tests/test-widget-manifest.sh" "$repo_dir/tests/test-hosted-lifecycle.sh" "$repo_dir/tests/test-window-model.sh" "$repo_dir/tests/test-tray-icons.sh" "$repo_dir/tests/test-native-provider.sh"
 else
   printf '[skip] shellcheck is not installed; repository scripts were not shell-linted\n'
 fi
@@ -389,4 +395,4 @@ if ((failures > 0)); then
   exit 1
 fi
 
-printf '[result] all available checks passed\n'
+printf '[result] all functional checks passed; awaiting core-dump check\n'

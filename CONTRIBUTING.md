@@ -25,6 +25,26 @@ omarchy plugin validate .
 
 The checks use Qt's QML tools, Quickshell, and Node.js with its built-in modules.
 Lua also enables the pointer regression tests. No npm packages are required.
+Python 3 and readable systemd journal records are required for the core-dump
+guard. It records a cursor before the suite, waits three seconds after it,
+and fails on new core-dump reports for the current user, including auxiliary
+processes. Concurrent unrelated crashes also fail the check and need review;
+this is a bounded observation window, not a guarantee against later crashes.
+A journal access or parsing failure cannot produce a passing result.
+
+The native image-provider test additionally uses `dbus-run-session`, `dbus-send`,
+and ImageMagick. Its private bus has no activatable service directories. It
+asserts that desktop portal activation is unavailable, then checks five benign
+images through the real Quickshell provider. To run it separately with crash
+checking:
+
+```sh
+python3 tests/coredump_guard.py -- bash tests/test-native-provider.sh
+```
+
+Use the same wrapper around other standalone rendering or live-test commands
+when checking for auxiliary-process crashes.
+
 The tray source tests build a temporary Qt Quick Test provider with `g++`,
 `pkg-config`, and Qt development tools (`qt6-base` and `qt6-declarative` on Arch).
 This provider records image requests and loads only benign fixtures; it is not
