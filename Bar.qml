@@ -32,7 +32,8 @@ Item {
     // panels survive a stock/custom-bar transition without assuming internals.
     readonly property color foreground: Commons.Color.bar.text
     readonly property color barForeground: foreground
-    readonly property color background: Commons.Color.bar.background
+    readonly property bool semiTransparent: tilelaneSettings.values.tilelaneTranslucent
+    readonly property color background: semiTransparent ? Commons.Util.alpha(Commons.Color.bar.background, Math.min(Commons.Color.bar.background.a, 0.7)) : Commons.Color.bar.background
     readonly property color urgent: Commons.Color.bar.active
     readonly property color accentColor: Commons.Color.accent
     readonly property color statusHoverFill: Commons.Style.hoverFillFor(Commons.Color.bar.text, Commons.Color.accent, Commons.Color.urgent)
@@ -59,6 +60,10 @@ Item {
     property alias windowModel: globalWindows
     property alias workspaceModel: globalWorkspaces
     property alias nativeIpcRegistry: nativeIpc
+
+    function toggleBackgroundTransparency() {
+        return tilelaneSettings.setValue("tilelaneTranslucent", !semiTransparent);
+    }
 
     NativeIpcRegistry {
         id: nativeIpc
@@ -772,9 +777,9 @@ Item {
         id: barWindow
 
         implicitHeight: root.barHeight
-        color: Commons.Color.bar.background
+        color: root.background
         exclusionMode: ExclusionMode.Auto
-        surfaceFormat.opaque: Commons.Color.bar.background.a >= 1
+        surfaceFormat.opaque: false
         WlrLayershell.namespace: "tilelane-bar"
         WlrLayershell.layer: WlrLayer.Top
 
@@ -825,9 +830,10 @@ Item {
             minimizedOrigins: globalActions.fallbackOrigins
         }
 
-        Rectangle {
+        MouseArea {
             anchors.fill: parent
-            color: Commons.Color.bar.background
+            acceptedButtons: Qt.LeftButton
+            onDoubleClicked: root.toggleBackgroundTransparency()
         }
 
         StartMenu {

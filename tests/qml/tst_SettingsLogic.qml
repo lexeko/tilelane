@@ -109,5 +109,20 @@ TestCase {
         compare(invalid.errors.length, 1);
     }
 
+    function test_translucentBarPreference() {
+        compare(SettingsLogic.read({}).tilelaneTranslucent, false);
+        compare(SettingsLogic.field("tilelaneTranslucent", true), true);
+        compare(SettingsLogic.read({
+            tilelaneTranslucent: true
+        }).tilelaneTranslucent, true);
+        const invalid = SettingsLogic.read({
+            tilelaneTranslucent: "yes",
+            reducedMotion: true
+        });
+        compare(invalid.tilelaneTranslucent, false);
+        compare(invalid.reducedMotion, true);
+        compare(invalid.errors.length, 1);
+    }
+
     name: "SettingsLogic"
 }

@@ -51,6 +51,8 @@ function field(key, value) {
         return overrides(value);
     if (key === "tilelaneDismissedTips")
         return dismissedTips(value);
+    if (key === "tilelaneTranslucent" && typeof value === "boolean")
+        return value;
     if (key === "reducedMotion" && typeof value === "boolean")
         return value;
     throw new Error("invalid setting: " + key);
@@ -58,8 +60,8 @@ function field(key, value) {
 
 function read(bar) {
     const source = isObject(bar) ? bar : {};
-    const result = { tilelanePins: [], tilelaneStartPins: [], tilelaneIdentityOverrides: {}, tilelaneDismissedTips: [], reducedMotion: false, errors: [] };
-    const keys = ["tilelanePins", "tilelaneStartPins", "tilelaneIdentityOverrides", "tilelaneDismissedTips", "reducedMotion"];
+    const result = { tilelanePins: [], tilelaneStartPins: [], tilelaneIdentityOverrides: {}, tilelaneDismissedTips: [], tilelaneTranslucent: false, reducedMotion: false, errors: [] };
+    const keys = ["tilelanePins", "tilelaneStartPins", "tilelaneIdentityOverrides", "tilelaneDismissedTips", "tilelaneTranslucent", "reducedMotion"];
     for (let index = 0; index < keys.length; index++) {
         const key = keys[index];
         if (source[key] === undefined)
@@ -100,6 +102,8 @@ function initialize(bar, legacy) {
         bar.tilelaneIdentityOverrides = legacy.overrides;
     if (bar.tilelaneDismissedTips === undefined)
         bar.tilelaneDismissedTips = [];
+    if (bar.tilelaneTranslucent === undefined)
+        bar.tilelaneTranslucent = false;
     if (bar.reducedMotion === undefined)
         bar.reducedMotion = legacy.reducedMotion;
     bar.tilelaneSettingsVersion = 1;
