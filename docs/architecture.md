@@ -182,6 +182,17 @@ It reads Omarchy's launcher hide list and freedesktop visibility fields.
 Opening Start filters the cached index. It does not rescan desktop files.
 Start snapshots its pin order for that opening.
 
+Start refreshes its icon index when opened. It uses Omarchy's shared app
+library when the host provides it. Hosts that restrict this API to menu plugins
+leave it absent for Tilelane's bar. In that case, `scripts/application-icons`
+indexes app/device icons and pixmaps in user and XDG data directories. The
+catalog uses those file paths when Qt's cached theme lookup misses an icon.
+After desktop entries change, the catalog also requests three refreshes, one
+second apart. This covers icons installed after the desktop entry and scans
+that were already running. The retries stop after the third request. Start,
+task buttons, and pins share the refreshed icon sources. Existing themed icons
+keep their theme lookup.
+
 Normal launch uses `uwsm-app -- gtk-launch` with a resolved desktop-file ID.
 Floating launch uses the same command through Hyprland's per-launch float
 option. The helper quotes the ID for both shell and Lua syntax. It does not
@@ -446,6 +457,7 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 | `TrayIcon.qml`               | Roam pixmap changes can run `scripts/roam-tray-badge`; it reads a size-limited D-Bus pixmap with a timeout.                                                     |
 | `WindowActions.qml`          | A window action or unload can run validated `hyprctl eval`; supported floating-workspace minimization moves to the native dock with cursor warps suppressed.    |
 | `WindowModel.qml`            | New windows can run `scripts/window-application-identities` with bounded retries.                                                                               |
+| `ApplicationCatalog.qml`     | Startup, app-list changes, and opening Start can run `scripts/application-icons` when the host has no app-library refresh API.                                  |
 | `ApplicationCatalog.qml`     | Startup and catalog changes can run `scripts/hidden-desktop-entries`.                                                                                           |
 | `ApplicationCatalog.qml`     | App launch uses `uwsm-app`, `gtk-launch`, or `scripts/launch-application`.                                                                                      |
 | `scripts/launch-application` | Can query Ctrl state, call `xdg-terminal-exec --print-id`, dispatch a floating launch, and check new clients with `jq`.                                         |
@@ -454,7 +466,7 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 | `PanelControl.qml`           | Audio right-click runs Omarchy's output mute command.                                                                                                           |
 | `Bar.qml` and hosted widgets | Native widget actions can run their configured commands through `Commons.Util.execDetached`.                                                                    |
 
-The four runtime helper scripts are `hidden-desktop-entries`,
+The five runtime helper scripts are `application-icons`, `hidden-desktop-entries`,
 `window-application-identities`, `launch-application`, and `roam-tray-badge`.
 They require Bash and standard system utilities; launch handling also uses `jq`,
 and the bounded Roam pixmap reader uses `busctl`, `jq`, `timeout`, and `head`.

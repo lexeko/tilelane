@@ -210,9 +210,10 @@ PanelWindow {
     onOpenChanged: {
         focusPrimed = false;
         focusAcquired = open && windowActive;
-        if (open)
+        if (open) {
+            applicationCatalog.refreshIcons();
             beginFocusPrime();
-        else
+        } else
             focusPrimeTimer.stop();
     }
 

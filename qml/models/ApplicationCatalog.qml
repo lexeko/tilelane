@@ -18,6 +18,10 @@ QtObject {
     property var applicationIndex: []
     property var configuredHiddenEntryIds: ({})
     property var desktopHiddenEntryIds: ({})
+    property int iconRefreshesRemaining: 0
+    property var iconIndex: ({})
+    property bool iconRefreshPending: false
+    readonly property string iconScannerPath: decodeURIComponent(String(Qt.resolvedUrl("../../scripts/application-icons")).replace(/^file:\/\//, ""))
     readonly property string hiddenScannerPath: decodeURIComponent(String(Qt.resolvedUrl("../../scripts/hidden-desktop-entries")).replace(/^file:\/\//, ""))
     readonly property string launchHelperPath: decodeURIComponent(String(Qt.resolvedUrl("../../scripts/launch-application")).replace(/^file:\/\//, ""))
 
@@ -67,13 +71,52 @@ QtObject {
 
     function iconSource(iconName) {
         const value = String(iconName || "");
-        if (appLibrary && typeof appLibrary.iconSource === "function")
-            return appLibrary.iconSource(value);
+        if (appLibrary && typeof appLibrary.iconSource === "function") {
+            const provided = appLibrary.iconSource(value);
+            if (provided)
+                return provided;
+        }
         if (value.indexOf("file://") === 0 || value.indexOf("image://") === 0)
             return value;
         if (value.charAt(0) === "/")
             return "file://" + value.split("/").map(encodeURIComponent).join("/");
-        return Quickshell.iconPath(value || "application-x-executable", true);
+        const themed = Quickshell.iconPath(value || "application-x-executable", true);
+        if (themed !== "")
+            return themed;
+        const found = iconIndex[value];
+        if (typeof found === "string" && found)
+            return "file://" + found.split("/").map(encodeURIComponent).join("/");
+        return Quickshell.iconPath("application-x-executable", true);
+    }
+
+    function refreshIcons() {
+        if (appLibrary && typeof appLibrary.refreshIcons === "function") {
+            appLibrary.refreshIcons();
+        } else if (iconScanner.running) {
+            iconRefreshPending = true;
+        } else {
+            iconScanner.running = true;
+        }
+    }
+
+    function loadIconIndex(text) {
+        const next = ({});
+        const paths = String(text || "").split("\n");
+        for (let index = 0; index < paths.length; index++) {
+            const path = paths[index];
+            const file = path.slice(path.lastIndexOf("/") + 1);
+            const name = file.slice(0, file.lastIndexOf("."));
+            if (name && !Object.prototype.hasOwnProperty.call(next, name))
+                next[name] = path;
+        }
+        iconIndex = next;
+    }
+
+    function scheduleIconRefresh() {
+        // Packages can place icons after their desktop entries. Retry briefly
+        // after the list settles, including if the host already has a scan busy.
+        iconRefreshesRemaining = 3;
+        iconRefreshRetry.restart();
     }
 
     function launchRequest(desktopId) {
@@ -174,6 +217,7 @@ QtObject {
             root.reindex();
             root.revision++;
             root.hiddenScanDebounce.restart();
+            root.scheduleIconRefresh();
         }
     }
 
@@ -200,8 +244,33 @@ QtObject {
             root.desktopHideScanner.running = true
     }
 
+    property Timer iconRefreshRetry: Timer {
+        interval: 1000
+        repeat: true
+        onTriggered: {
+            root.iconRefreshesRemaining--;
+            if (root.iconRefreshesRemaining <= 0)
+                stop();
+            root.refreshIcons();
+        }
+    }
+
+    property Process iconScanner: Process {
+        command: ["bash", root.iconScannerPath]
+        stdout: StdioCollector {
+            onStreamFinished: root.loadIconIndex(text)
+        }
+        onExited: {
+            if (root.iconRefreshPending) {
+                root.iconRefreshPending = false;
+                root.refreshIcons();
+            }
+        }
+    }
+
     Component.onCompleted: {
         reindex();
         desktopHideScanner.running = true;
+        refreshIcons();
     }
 }
