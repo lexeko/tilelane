@@ -81,6 +81,7 @@ scan_directory() {
     seen_ids[$id]=1
     is_hidden "$file" && printf '%s\n' "$id"
   done < <(find "$directory" -type f -name '*.desktop' -print0 2>/dev/null | sort -z)
+  return 0
 }
 
 data_home="${XDG_DATA_HOME:-$HOME/.local/share}"

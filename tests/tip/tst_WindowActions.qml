@@ -32,6 +32,8 @@ TestCase {
     function init() {
         Quickshell.detachedCommands = [];
         Hyprland.dispatches = [];
+        Hyprland.dispatchFails = false;
+        model.initialized = true;
         Hyprland.monitors = {
             values: [
                 {
@@ -56,6 +58,196 @@ TestCase {
                 tags: []
             }
         };
+    }
+
+    function test_savedOriginsDiscardRestoredAndClosedWindows_data() {
+        return [
+            {
+                tag: "restored",
+                record: {
+                    workspaceName: "7",
+                    workspaceId: 7,
+                    minimized: false
+                }
+            },
+            {
+                tag: "closed",
+                record: null
+            }
+        ];
+    }
+
+    function test_savedOriginsDiscardRestoredAndClosedWindows(data) {
+        model.record = data.record;
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        actions.loadOrigins('{"version":1,"origins":{"0x123":"2"}}');
+        compare(actions.fallbackOrigins["0x123"], undefined);
+        actions.restoreOwnedWindows();
+        compare(Quickshell.detachedCommands.length, 0);
+        // Reusing a closed window's address must not inherit its old origin.
+        model.record = {
+            workspaceName: "7",
+            workspaceId: 7,
+            minimized: false
+        };
+        model.revision++;
+        actions.restoreOwnedWindows();
+        compare(Quickshell.detachedCommands.length, 0);
+    }
+
+    function test_savedHiddenOriginsWaitForModelInitialization_data() {
+        return [
+            {
+                tag: "tilelane",
+                workspace: "special:tilelane-minimized"
+            },
+            {
+                tag: "dock",
+                workspace: "special:minimized"
+            }
+        ];
+    }
+
+    function test_savedHiddenOriginsWaitForModelInitialization(data) {
+        model.initialized = false;
+        model.record = null;
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        actions.loadOrigins('{"version":1,"origins":{"0x123":"2"}}');
+        compare(actions.fallbackOrigins["0x123"], "2");
+        model.record = {
+            workspaceName: data.workspace,
+            minimized: true
+        };
+        model.initialized = true;
+        compare(actions.fallbackOrigins["0x123"], "2");
+        compare(actions.observedOrigins["0x123"], true);
+        model.record = {
+            workspaceName: "7",
+            minimized: false
+        };
+        model.revision++;
+        compare(actions.fallbackOrigins["0x123"], undefined);
+    }
+
+    function test_savedOriginWaitsForWorkspaceDetails() {
+        model.record = {
+            workspaceName: "",
+            minimized: false
+        };
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        actions.loadOrigins('{"version":1,"origins":{"0x123":"2"}}');
+        compare(actions.fallbackOrigins["0x123"], "2");
+        model.record = {
+            workspaceName: "special:tilelane-minimized",
+            minimized: true
+        };
+        model.revision++;
+        compare(actions.fallbackOrigins["0x123"], "2");
+        compare(actions.observedOrigins["0x123"], true);
+        actions.fallbackOrigins = ({});
+    }
+
+    function test_currentMinimizeSurvivesJournalReadAndOrdinaryUpdates() {
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        verify(actions.rememberOrigin("0x123", "3"));
+        actions.loadOrigins('{"version":1,"origins":{"0x123":"2"}}');
+        model.revision++;
+        compare(actions.fallbackOrigins["0x123"], "3");
+        compare(actions.observedOrigins["0x123"], false);
+        model.record = {
+            workspaceName: "special:tilelane-minimized",
+            minimized: true
+        };
+        model.revision++;
+        compare(actions.observedOrigins["0x123"], true);
+        model.record = {
+            workspaceName: "3",
+            minimized: false
+        };
+        model.revision++;
+        compare(actions.fallbackOrigins["0x123"], undefined);
+    }
+
+    function test_closedPendingMinimizeLosesItsOrigin() {
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        actions.loadOrigins("");
+        verify(actions.rememberOrigin("0x123", "2"));
+        model.record = null;
+        model.revision++;
+        compare(actions.fallbackOrigins["0x123"], undefined);
+    }
+
+    function test_unloadRestoresOnlyOwnedHiddenWindows_data() {
+        return [
+            {
+                tag: "normal",
+                workspace: "7",
+                minimized: false,
+                expected: 0
+            },
+            {
+                tag: "other-special",
+                workspace: "special:scratchpad",
+                minimized: false,
+                expected: 0
+            },
+            {
+                tag: "native-flag-only",
+                workspace: "7",
+                minimized: true,
+                expected: 0
+            },
+            {
+                tag: "tilelane",
+                workspace: "special:tilelane-minimized",
+                minimized: true,
+                expected: 1
+            },
+            {
+                tag: "dock",
+                workspace: "special:minimized",
+                minimized: true,
+                expected: 1
+            }
+        ];
+    }
+
+    function test_unloadRestoresOnlyOwnedHiddenWindows(data) {
+        model.record = {
+            workspaceName: data.workspace,
+            minimized: data.minimized
+        };
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        // Exercise the unload guard independently of startup reconciliation.
+        actions.fallbackOrigins = {
+            "0x123": "2"
+        };
+        actions.restoreOwnedWindows();
+        const commands = Quickshell.detachedCommands;
+        compare(commands.length, data.expected);
+        if (commands.length) {
+            verify(commands[0][2].indexOf('workspace = "2"') !== -1);
+            verify(commands[0][2].indexOf('hl.get_window') !== -1);
+            verify(commands[0][2].indexOf('hl.dsp.focus') === -1);
+            verify(commands[0][2].indexOf('alter_zorder') === -1);
+        }
+    }
+
+    function test_restoreDispatchFailureStillActivatesTheWindow() {
+        model.record = {
+            workspaceName: "special:tilelane-minimized",
+            minimized: true
+        };
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        actions.loadOrigins('{"version":1,"origins":{"0x123":"2"}}');
+        Hyprland.dispatchFails = true;
+        verify(actions.invoke("0x123", "restore"));
+        compare(Quickshell.detachedCommands.length, 1);
+        const code = Quickshell.detachedCommands[0][2];
+        verify(code.indexOf('hl.dsp.focus({ workspace = "2" })') !== -1);
+        verify(code.indexOf('hl.dsp.focus({ window = "address:0x123" })') !== -1);
+        verify(code.indexOf('cursor.no_warps') !== -1);
+        actions.fallbackOrigins = ({});
     }
 
     function test_nativeMinimizeRequiresAvailableHelper_data() {

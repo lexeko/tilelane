@@ -3,6 +3,10 @@
 var minimizedWorkspace = "special:tilelane-minimized";
 var omarchyMinimizedWorkspace = "special:minimized";
 
+function isMinimizedWorkspace(name) {
+    return name === minimizedWorkspace || name === omarchyMinimizedWorkspace;
+}
+
 function primaryAction(active, minimized) {
     if (minimized === true)
         return "restore";
@@ -228,8 +232,15 @@ function fallbackCode(action, address, workspaceName) {
         return "return hl.dispatch(hl.dsp.window.close({ " + windowArg + " }))";
     if (action === "minimize")
         return "return hl.dispatch(hl.dsp.window.move({ workspace = " + luaString(minimizedWorkspace) + ", follow = false, " + windowArg + " }))";
-    if (action === "restore" && String(workspaceName || "") !== "")
-        return "return hl.dispatch(hl.dsp.window.move({ workspace = " + luaString(workspaceName) + ", follow = false, " + windowArg + " }))";
+    if (action === "restore")
+        return restoreDispatches(address, workspaceName).map(function (command) {
+            return "hl.dispatch(" + command + ")";
+        }).join("; ");
+    if (action === "recover" && String(workspaceName || "") !== "" && !isMinimizedWorkspace(workspaceName))
+        return "local window = hl.get_window(" + luaString(target) + "); "
+            + "if not window or not window.workspace or (window.workspace.name ~= " + luaString(minimizedWorkspace)
+            + " and window.workspace.name ~= " + luaString(omarchyMinimizedWorkspace) + ") then return false end; "
+            + "return hl.dispatch(hl.dsp.window.move({ workspace = " + luaString(workspaceName) + ", follow = false, " + windowArg + " }))";
     if (action === "maximize")
         return "return hl.dispatch(hl.dsp.window.fullscreen({ mode = \"maximized\", " + windowArg + " }))";
     if (action === "float")

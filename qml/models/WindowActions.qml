@@ -243,12 +243,15 @@ QtObject {
         let seenChanged = false;
         for (const address in next) {
             const record = windowModel.recordFor(address);
-            const confirmedMinimized = record && (record.minimized || record.workspaceName === TaskLogic.minimizedWorkspace);
+            const confirmedMinimized = record && TaskLogic.isMinimizedWorkspace(record.workspaceName);
             if (confirmedMinimized && seen[address] !== true) {
                 seen[address] = true;
                 seenChanged = true;
             }
-            if ((record && seen[address] === true && !record.minimized && record.workspaceName !== TaskLogic.minimizedWorkspace) || (!record && seen[address] === true)) {
+            // Only this session's unconfirmed move has a false marker. Saved
+            // entries must match a hidden window once its details are ready.
+            const pending = seen[address] === false;
+            if (!record || (!pending && record.workspaceName && !confirmedMinimized)) {
                 delete next[address];
                 delete seen[address];
                 changed = true;
@@ -266,8 +269,8 @@ QtObject {
     function restoreOwnedWindows() {
         for (const address in fallbackOrigins) {
             const record = windowModel.recordFor(address);
-            if (record)
-                fallback("restore", address, fallbackOrigins[address]);
+            if (record && TaskLogic.isMinimizedWorkspace(record.workspaceName))
+                fallback("recover", address, fallbackOrigins[address]);
         }
         fallbackOrigins = ({});
     }

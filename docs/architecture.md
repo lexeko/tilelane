@@ -112,9 +112,11 @@ Tilelane can restore it. On older Omarchy versions,
 tiled workspaces, and windows the dock cannot display, Tilelane moves minimized
 windows to `special:tilelane-minimized`. Its recovery journal records the
 original workspace before that move.
-The model must observe the hidden workspace before a later normal-workspace
-update can clear that record. This avoids losing the origin during an
-asynchronous minimize.
+A minimize requested in the current session keeps its origin until the model
+observes the hidden workspace. This avoids losing the origin during the move.
+After a restart, saved entries for closed or already-restored windows are
+discarded once the model is initialized. Records without workspace details
+wait for those details before reconciliation.
 
 Omarchy's floating-workspace titlebar also minimizes to `special:minimized`.
 Tilelane recognizes those windows as minimized tasks and restores them to the
@@ -134,15 +136,18 @@ active workspace changes; a slow retry covers missed file notifications.
 
 Restoring a window from `special:tilelane-minimized` returns it to its saved workspace.
 Neither restore path changes the workspace layout or forces floating mode.
+The detached restore fallback also focuses the saved workspace and exact window.
 Pointer-preserving dispatches save
 Hyprland's cursor-warp settings, suppress warping for the action, and restore
 the settings even when the dispatch fails.
 
 The journal uses `Quickshell.statePath("tilelane-minimized-v1.json")`.
 It contains a version, window addresses, and workspace names. It contains no
-titles. File writes are atomic. Normal component destruction queues restores
-for tracked windows. After a hard shell failure, the next instance reads the
-journal and can restore them.
+titles. File writes are atomic. Normal component destruction queues silent
+restores only for tracked windows still in either minimized workspace. Each
+queued command checks the workspace again before moving the window and leaves
+focus unchanged. After a hard shell failure, the next instance reads the journal
+and can restore hidden windows.
 
 ## Workspace switching
 
@@ -179,6 +184,8 @@ to three retries at 350 ms intervals. Probing then stops.
 
 The catalog filters hidden desktop entries before building the Start index.
 It reads Omarchy's launcher hide list and freedesktop visibility fields.
+Hide-list edits reload the file and update the index. The desktop-entry scan
+checks user and system directories in order, preserving user overrides.
 Opening Start filters the cached index. It does not rescan desktop files.
 Start snapshots its pin order for that opening.
 

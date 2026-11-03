@@ -4,6 +4,11 @@
 
 - Refresh newly installed app icons in Start and the taskbar without restarting
   the shell.
+- Keep already-restored windows on their current workspace when Tilelane reloads
+  or is disabled.
+- Respect hidden apps across user and system directories, and apply launcher
+  hide-list changes without restarting the shell.
+- Focus restored windows when the normal restore needs a fallback.
 
 ## 0.3.0
 

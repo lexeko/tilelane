@@ -8,8 +8,11 @@ QtObject {
             values: []
         })
     property var dispatches: []
+    property bool dispatchFails: false
 
     function dispatch(command) {
+        if (dispatchFails)
+            throw new Error("simulated native dispatch failure");
         dispatches = dispatches.concat([command]);
     }
     property var toplevels: ({

@@ -76,6 +76,13 @@ They cover opening order, state updates, stale close events, and source cleanup.
 A separate test sends Hyprland events through local test sockets. It checks
 floating-state refreshes, rapid toggles, and windows closed before a refresh.
 
+The action tests cover saved minimize origins after a restart, pending moves,
+closed windows, and silent unload recovery. The pointer tests execute the
+generated Lua for restore fallbacks and recovery guards. Hidden-app checks run
+the scanner across temporary user and system directories. A headless production
+catalog checks hide-list edits, file replacement, deletion, and recreation.
+These regressions are included in `./scripts/check`.
+
 Documentation-only changes need a link and factual review, not UI tests.
 
 ## Reference
