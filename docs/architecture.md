@@ -473,16 +473,26 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 | `PanelControl.qml`           | Audio right-click runs Omarchy's output mute command.                                                                                                           |
 | `Bar.qml` and hosted widgets | Native widget actions can run their configured commands through `Commons.Util.execDetached`.                                                                    |
 
+Weather refreshes after logind reports wake-up and when a network connection
+returns. One shared `WeatherRefreshController` monitors `PrepareForSleep` with
+`dbus-monitor --system` while weather widgets are loaded. It waits for a connected
+network device, coalesces events for two seconds, then calls each monitor's
+native weather refresh method without opening its panel. Omarchy retains its
+normal refresh interval and request retries. No other widget is refreshed by
+this controller. A disconnected event monitor retries after 30 seconds.
+
 The five runtime helper scripts are `application-icons`, `hidden-desktop-entries`,
 `window-application-identities`, `launch-application`, and `roam-tray-badge`.
 They require Bash and standard system utilities; launch handling also uses `jq`,
 and the bounded Roam pixmap reader uses `busctl`, `jq`, `timeout`, and `head`.
 There is no installer hook, downloaded runtime code, compiled helper, privilege
 request, or Tilelane-owned service. Hosted Omarchy widgets keep their upstream
-refresh schedules and command behavior. A process-free claim would be false.
+refresh schedules and command behavior, with the weather wake/reconnect trigger
+described above. A process-free claim would be false.
 
 A resident helper would need a specific capability, measurements, and a
-packaging review. The current implementation does not require one.
+packaging review. The weather event listener is a read-only system-bus monitor;
+it is stopped when weather is removed.
 
 ## Diagnostics
 

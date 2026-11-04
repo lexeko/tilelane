@@ -498,6 +498,10 @@ Item {
         id: branding
     }
 
+    WeatherRefreshController {
+        bar: root
+    }
+
     IpcHandler {
         target: "omarchy.indicators"
 

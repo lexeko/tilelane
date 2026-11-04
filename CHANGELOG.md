@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Refresh weather after waking from sleep or reconnecting to the network.
 - Refresh newly installed app icons in Start and the taskbar without restarting
   the shell.
 - Keep already-restored windows on their current workspace when Tilelane reloads
