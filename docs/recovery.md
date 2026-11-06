@@ -83,7 +83,7 @@ Its default expected height is 44 logical pixels. Set
 Select Tilelane and click the minimized task to restore it. The restore path
 depends on how the window was minimized.
 
-On older Omarchy versions and tiled workspaces, Tilelane keeps minimized
+On tiled workspaces, Tilelane keeps minimized
 windows in `special:tilelane-minimized`. It saves their original workspace in
 `tilelane-minimized-v1.json` in Quickshell's state directory.
 

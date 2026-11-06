@@ -59,10 +59,11 @@ After installing and selecting Tilelane, run `./scripts/smoke`.
 For input or window behavior, also test the affected action in the live bar.
 Tray rendering changes need the [shader rendering tests](qml/shaders/README.md).
 
-Changes to Omarchy integration need live checks on both 4.0.6 and 4.5 RC.
-The suite tests missing helpers and translation components with fixtures.
-Those tests do not replace a run on each desktop version. Check minimize,
-restore, focus, pointer position, and any affected native widgets.
+Changes to Omarchy integration need live checks on Omarchy 4.5 or newer.
+Check each affected monitor, including switching from a bar on an unfocused
+monitor. Check minimize, restore, focus, pointer position, and any affected
+native widgets. The suite also tests missing helpers and translation components
+with fixtures. These fixtures do not establish support for older Omarchy releases.
 
 For widget integration, `tests/fixtures/dynamic-widget` provides a plugin with
 a custom entry point, configurable label, and native panel. Install a copy in

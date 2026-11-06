@@ -367,6 +367,7 @@ run_check "new application icons" bash "$repo_dir/tests/test-application-icons.s
 run_check "hosted widget lifecycle" bash "$repo_dir/tests/test-hosted-lifecycle.sh"
 run_check "native widget manifest loading" bash "$repo_dir/tests/test-widget-manifest.sh"
 run_check "optional Omarchy helper capabilities" bash "$repo_dir/tests/test-omarchy-capabilities.sh"
+run_check "per-monitor workspace integration" node "$repo_dir/tests/test-workspaces.cjs"
 run_check "optional native translations" bash "$repo_dir/tests/test-plugin-translations.sh"
 if command -v node >/dev/null 2>&1 && command -v lua >/dev/null 2>&1; then
   run_check "task pointer preservation" node "$repo_dir/tests/test-task-pointer.cjs"

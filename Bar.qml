@@ -671,6 +671,8 @@ Item {
                 "present": true,
                 "monitorName": switcher.monitorName,
                 "activeWorkspaceId": switcher.activeWorkspaceId,
+                "workspaceIds": switcher.workspaceIds,
+                "workspaceLabels": switcher.workspaceIds.map(id => globalWorkspaces.labelForId(id)),
                 "text": switcher.activeWorkspaceText,
                 "hint": switcher.hintText
             } : {
@@ -680,6 +682,14 @@ Item {
 
         function workspaceAction(id: string): string {
             return globalWorkspaces.activate(Number(id)) ? "queued" : "unsupported";
+        }
+
+        function workspaceSelect(screenName: string, id: string): string {
+            const switcher = root.workspaceSwitcherFor(screenName);
+            if (!switcher || !globalWorkspaces.activate(Number(id), screenName))
+                return "unsupported";
+            switcher.close();
+            return "queued";
         }
 
         function workspaceToggle(screenName: string): string {

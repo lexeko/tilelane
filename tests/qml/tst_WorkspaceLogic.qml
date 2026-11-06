@@ -20,10 +20,114 @@ TestCase {
                 "id": 11
             }
         ];
-        compare(WorkspaceLogic.workspaceIds(values, 5), [1, 2, 3, 4, 5, 8]);
+        compare(WorkspaceLogic.workspaceIds(values, 5), [1, 2, 3, 4, 5, 8, 11]);
         compare(WorkspaceLogic.validId("7"), 7);
         compare(WorkspaceLogic.validId(0), 0);
         compare(WorkspaceLogic.validId("bad"), 0);
+        compare(WorkspaceLogic.validId(11), 11);
+        compare(WorkspaceLogic.validId(2.5), 0);
+        compare(WorkspaceLogic.validId(Infinity), 0);
+        compare(WorkspaceLogic.validId(2147483648), 0);
+    }
+
+    function test_monitorListsUseTheirOwnBlock() {
+        const values = [
+            {
+                id: 1,
+                monitor: {
+                    name: "eDP-1"
+                }
+            },
+            {
+                id: 12,
+                monitor: {
+                    name: "DP-1"
+                }
+            },
+            {
+                id: 18,
+                monitor: {
+                    name: "DP-1"
+                }
+            },
+            {
+                id: 20,
+                monitor: {
+                    name: "DP-1"
+                }
+            },
+            {
+                id: 27,
+                monitor: {
+                    name: "DP-2"
+                }
+            },
+            {
+                id: -99,
+                monitor: {
+                    name: "DP-1"
+                }
+            }
+        ];
+        compare(WorkspaceLogic.monitorWorkspaceIds(values, 5, 0, "eDP-1"), [1, 2, 3, 4, 5]);
+        compare(WorkspaceLogic.monitorWorkspaceIds(values, 5, 1, "DP-1"), [11, 12, 13, 14, 15, 18, 20]);
+        compare(WorkspaceLogic.monitorWorkspaceIds(values, 5, 2, "DP-2"), [21, 22, 23, 24, 25, 27]);
+        compare(WorkspaceLogic.monitorWorkspaceIds(values, 5, 1, ""), []);
+        compare(WorkspaceLogic.records(values, 12, 5).map(record => record.id), [1, 2, 3, 4, 5, 12, 18, 20, 27]);
+    }
+
+    function test_labelsKeepGlobalIdsSeparate() {
+        compare([1, 10, 11, 12, 20, 21, 30].map(WorkspaceLogic.label), ["1", "10", "1", "2", "10", "1", "10"]);
+        compare(WorkspaceLogic.label(0), "");
+        compare(WorkspaceLogic.label(-99), "");
+    }
+
+    function test_savedBlocksSurviveGuestWorkspacesAndConnectorChanges() {
+        const blocks = WorkspaceLogic.parseBlocks("0\teDP-1\tLaptop\n2\tDP-7\tExternal\ninvalid\tDP-2\tBad\n-1\tDP-3\tBad\n1.5\tDP-4\tBad\n9999999999\tDP-5\tBad\n1\t\tMissing\n");
+        compare(blocks, {
+            "eDP-1": 0,
+            "DP-7": 2
+        });
+        const values = [
+            {
+                id: 31,
+                active: true,
+                monitor: {
+                    name: "DP-7"
+                }
+            }
+        ];
+        compare(WorkspaceLogic.monitorBlock(blocks, values, "DP-7"), 2);
+        compare(WorkspaceLogic.monitorWorkspaceIds(values, 5, 2, "DP-7"), [21, 22, 23, 24, 25, 31]);
+        compare(WorkspaceLogic.monitorBlock({}, values, "DP-7"), 3);
+        compare(WorkspaceLogic.monitorBlock({}, [], "DP-7"), 0);
+        compare(WorkspaceLogic.parseBlocks(""), {});
+    }
+
+    function test_unpluggedWorkspacesAreListedOnlyOnTheirCurrentMonitor() {
+        const guest = {
+            id: 23,
+            active: true,
+            monitor: {
+                name: "DP-1"
+            }
+        };
+        compare(WorkspaceLogic.monitorWorkspaceIds([guest], 5, 1, "DP-1"), [11, 12, 13, 14, 15, 23]);
+        guest.monitor = {
+            name: "DP-2"
+        };
+        compare(WorkspaceLogic.monitorWorkspaceIds([guest], 5, 1, "DP-1"), [11, 12, 13, 14, 15]);
+        compare(WorkspaceLogic.monitorWorkspaceIds([guest], 5, 2, "DP-2"), [21, 22, 23, 24, 25]);
+    }
+
+    function test_ownWorkspaceActivationUsesMonitorAwareOmarchyHelper() {
+        compare(WorkspaceLogic.focusCommand(11, 1, "DP-1"), 'o.workspaces.focus(1, "DP-1")');
+        compare(WorkspaceLogic.focusCommand(20, 1, "DP-1"), 'o.workspaces.focus(10, "DP-1")');
+        compare(WorkspaceLogic.focusCommand(2, 0, "eDP-1"), 'o.workspaces.focus(2, "eDP-1")');
+        compare(WorkspaceLogic.focusCommand(23, 1, "DP-1"), 'hl.dsp.focus({ workspace = "23" })');
+        compare(WorkspaceLogic.focusCommand(11, 1, 'DP-"1'), 'o.workspaces.focus(1, "DP-\\"1")');
+        compare(WorkspaceLogic.focusCommand(-1, 1, "DP-1"), "");
+        compare(WorkspaceLogic.focusCommand(11, 1, ""), "");
     }
 
     function test_recordsPreserveEventBackedState() {

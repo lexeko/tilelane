@@ -23,7 +23,7 @@ The contract comes from the installed `shell/README.md`, `shell.qml`, and
 `services/PluginRegistry.qml` under `/usr/share/omarchy`.
 Those packaged files are read-only references for this project.
 
-See the [requirements](../README.md#requirements) for tested versions.
+Requires Omarchy 4.5 or newer. See the [requirements](../README.md#requirements).
 Window-model integration tests exercise the production model.
 
 Tip text uses `PluginTranslations`, which loads the running shell's
@@ -108,8 +108,8 @@ The tested Hyprland release ignored the Wayland toplevel's minimized setter.
 On Omarchy floating workspaces with the native minimize helper available,
 Tilelane uses the same tagged dock move and workspace focus with cursor warps
 suppressed. The window moves to `special:minimized`, so either the dock or
-Tilelane can restore it. On older Omarchy versions,
-tiled workspaces, and windows the dock cannot display, Tilelane moves minimized
+Tilelane can restore it. On tiled workspaces and for windows the dock cannot
+display, Tilelane moves minimized
 windows to `special:tilelane-minimized`. Its recovery journal records the
 original workspace before that move.
 A minimize requested in the current session keeps its origin until the model
@@ -166,7 +166,20 @@ hint disappears when only one screen remains.
 
 Workspace actions use `Hyprland.dispatch()` with validated Lua commands.
 The tested Quickshell workspace helper emitted an older command grammar that
-Hyprland rejected. Tilelane accepts numbered targets from 1 through 10.
+Hyprland rejected. The shared model watches Omarchy's saved connector-to-block
+assignments in `$XDG_STATE_HOME/omarchy/monitor-workspaces` (defaulting to
+`~/.local/state/omarchy/monitor-workspaces`). Each monitor owns ten global IDs:
+1–10, 11–20, and so on. The button and fan label these as 1–10, keeping global
+IDs for model lookup and dispatch. Each fan includes its own first five slots,
+other existing slots in its block, and guest workspaces currently hosted there.
+Saved blocks take precedence over the active workspace, which may be a guest.
+Until the state file is available, the monitor's active workspace supplies the
+block. File changes and compositor events update this state without polling.
+
+For the monitor's own slots, actions call `o.workspaces.focus(slot, monitor)`
+to create or reclaim the workspace on that monitor, including when another
+monitor has focus. Guest workspaces use a direct global-ID focus command.
+Targets must belong to the requesting monitor's current list.
 Live workspace signals confirm the resulting state.
 
 ## App identity and launch

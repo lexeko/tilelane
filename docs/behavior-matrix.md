@@ -23,7 +23,7 @@ The table describes coverage, not the result of a new test run.
 | App identity     | Uses desktop entries, saved overrides, and terminal or web-app matching.                                   | Identity fixtures, including ambiguous matches.                              |
 | Pins             | Keeps taskbar and Start pins separate. Taskbar pins stay outside the scrolling task list.                  | Pin, Start order, settings, and overflow tests.                              |
 | Launch           | Opens apps normally or floating with Ctrl+Click, Ctrl+Enter in Start, or Open floating.                    | Launch helper, quoting, and bounded client-query tests.                      |
-| Workspaces       | Opens the numbered workspace fan on click or after a 200 ms hover.                                         | Workspace state and selection tests; live monitor checks.                    |
+| Workspaces       | Shows local workspace numbers and opens each monitor's own fan on click or after a 200 ms hover.           | Workspace state and selection tests; live monitor checks.                    |
 | Start search     | Filters the cached app list and respects Omarchy's hidden entries.                                         | Search, selection, and hidden-entry checks.                                  |
 | Places           | Shows standard Files locations and follows bookmark names and order.                                       | Parsing and file-watcher tests, including empty files and legacy fallback.   |
 | Tray actions     | Supports left, right, and middle clicks plus scrolling.                                                    | Control tests; live D-Bus menus and edge clicks.                             |

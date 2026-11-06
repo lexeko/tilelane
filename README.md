@@ -13,9 +13,10 @@ A bottom taskbar and Start menu for Omarchy.
 
 ## Requirements
 
-Tested on Omarchy 4.0.6 and 4.5.0 RC1. Tilelane runs inside Omarchy's shell.
-It uses the native dock and tip translations when available. They are not
-required on 4.0.6. Places uses Files to open folders.
+Requires Omarchy 4.5 or newer. Tilelane runs inside Omarchy's shell.
+Omarchy 4.0.x is no longer supported by the current development version.
+Tilelane 0.3.0 was the last release tested on Omarchy 4.0.6.
+Places uses Files to open folders.
 See the [runtime dependencies](docs/architecture.md#processes-and-commands).
 
 ## Install
@@ -37,10 +38,14 @@ For an installation without Git, see [manual installation](docs/recovery.md#manu
 - In Start, Ctrl+Enter also launches the selected app as a floating window.
 - Window context menus show the configured Omarchy shortcuts for their actions.
 
+Each monitor has its own workspace switcher, numbered 1–10. For example,
+workspace 11 on the second monitor appears as 1. Selecting it switches that
+monitor, even when another monitor has keyboard focus.
+
 Places follows your bookmarks in Files. Names, order, and bookmark changes
 update automatically.
 
-On Omarchy 4.5 RC, Tilelane also restores windows minimized through Omarchy's
+Tilelane also restores windows minimized through Omarchy's
 titlebar or dock. If the dock overlaps the taskbar, a Dock tip lets you move it
 to another edge and turn on auto-hide.
 

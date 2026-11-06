@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Require Omarchy 4.5 or newer. Tilelane 0.3.0 was the last release tested on 4.0.6.
+- Show workspace numbers 1–10 on each monitor and switch within that monitor's
+  own workspaces. Include workspaces temporarily hosted after a monitor disconnect.
+
 - Show the same update availability on every monitor.
 - Refresh weather after waking from sleep or reconnecting to the network.
 - Refresh newly installed app icons in Start and the taskbar without restarting

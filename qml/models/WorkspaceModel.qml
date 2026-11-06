@@ -1,7 +1,9 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import "../WorkspaceLogic.js" as WorkspaceLogic
 
 Item {
@@ -10,6 +12,7 @@ Item {
     property alias model: workspaces
     property int defaultCount: 5
     property int revision: 0
+    property var blocks: ({})
     readonly property int focusedId: Hyprland.focusedWorkspace ? Number(Hyprland.focusedWorkspace.id || 0) : 0
 
     function sourceValues() {
@@ -18,6 +21,18 @@ Item {
 
     function activeIdForMonitor(monitorName) {
         return WorkspaceLogic.activeIdForMonitor(sourceValues(), monitorName);
+    }
+
+    function blockForMonitor(monitorName) {
+        return WorkspaceLogic.monitorBlock(blocks, sourceValues(), monitorName);
+    }
+
+    function idsForMonitor(monitorName) {
+        return WorkspaceLogic.monitorWorkspaceIds(sourceValues(), defaultCount, blockForMonitor(monitorName), monitorName);
+    }
+
+    function labelForId(id) {
+        return WorkspaceLogic.label(id);
     }
 
     function indexForId(id) {
@@ -58,16 +73,13 @@ Item {
             revision++;
     }
 
-    function activate(id) {
+    function activate(id, monitorName) {
         const target = WorkspaceLogic.validId(id);
-        if (target === 0)
+        const monitor = monitorName || (Hyprland.focusedMonitor ? Hyprland.focusedMonitor.name : "");
+        if (target === 0 || idsForMonitor(monitor).indexOf(target) === -1)
             return false;
         try {
-            // Hyprland 0.56's dispatcher accepts typed Lua expressions. The
-            // Quickshell workspace activate() helper still emits the retired
-            // `workspace N` grammar, so use the same direct compositor socket
-            // with a validated numeric target instead.
-            Hyprland.dispatch('hl.dsp.focus({ workspace = "' + target + '" })');
+            Hyprland.dispatch(WorkspaceLogic.focusCommand(target, blockForMonitor(monitor), monitor));
             return true;
         } catch (error) {
             console.warn("Tilelane could not activate workspace " + target + ": " + error);
@@ -78,6 +90,15 @@ Item {
     visible: false
     onFocusedIdChanged: rebuild()
     Component.onCompleted: rebuild()
+
+    FileView {
+        path: (Quickshell.env("XDG_STATE_HOME") || Quickshell.env("HOME") + "/.local/state") + "/omarchy/monitor-workspaces"
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: root.blocks = WorkspaceLogic.parseBlocks(text())
+        onLoadFailed: root.blocks = ({})
+    }
 
     ListModel {
         id: workspaces
@@ -102,7 +123,7 @@ Item {
             // A workspace move emits intermediate focus events before the
             // final monitor assignments. Quickshell can retain that earlier
             // active workspace, so refresh once after the move event burst.
-            if (event.name === "moveworkspace" || event.name === "moveworkspacev2")
+            if (["moveworkspace", "moveworkspacev2", "monitoradded", "monitoraddedv2", "monitorremoved", "monitorremovedv2", "configreloaded"].indexOf(event.name) !== -1)
                 monitorRefresh.restart();
         }
     }

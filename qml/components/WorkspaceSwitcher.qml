@@ -22,12 +22,12 @@ Item {
         workspaceModel.revision;
         return workspaceModel.activeIdForMonitor(monitorName);
     }
-    readonly property string activeWorkspaceText: activeWorkspaceId > 0 ? String(activeWorkspaceId) : ""
+    readonly property string activeWorkspaceText: workspaceModel.labelForId(activeWorkspaceId)
     readonly property bool tooltipHovered: buttonMouse.containsMouse
     readonly property string hintText: HintLogic.workspace(bar ? bar.shortcut("Switch to workspace 1") : "", Quickshell.screens.length, bar ? [bar.shortcut("Move workspace to left monitor"), bar.shortcut("Move workspace to right monitor"), bar.shortcut("Move workspace to up monitor"), bar.shortcut("Move workspace to down monitor")] : [])
     readonly property var workspaceIds: {
         workspaceModel.revision;
-        return workspaceModel.ids();
+        return workspaceModel.idsForMonitor(monitorName);
     }
     readonly property real bladeScale: 0.75
     readonly property real bladeHeight: px(190) * bladeScale
@@ -170,7 +170,7 @@ Item {
     }
 
     function activate(id) {
-        if (workspaceModel.activate(id))
+        if (workspaceModel.activate(id, monitorName))
             close();
     }
 
@@ -433,7 +433,7 @@ Item {
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: Math.max(1, parent.width - root.px(6) * root.bladeScale)
                         y: root.px(12) * root.bladeScale
-                        text: String(blade.modelData)
+                        text: root.workspaceModel.labelForId(blade.modelData)
                         textFormat: Text.PlainText
                         horizontalAlignment: Text.AlignHCenter
                         color: blade.urgent ? Commons.Color.urgent : root.bladeText(blade.focused, blade.hovered, blade.occupied)
