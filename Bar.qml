@@ -8,6 +8,7 @@ import Quickshell.Services.SystemTray
 import Quickshell.Wayland
 import "qml/BarGeometry.js" as BarGeometry
 import "qml/PanelRouting.js" as PanelRouting
+import "qml/StatusWidgetLogic.js" as StatusWidgetLogic
 import "qml/components"
 import "qml/models"
 import qs.Commons as Commons
@@ -60,6 +61,20 @@ Item {
     property alias windowModel: globalWindows
     property alias workspaceModel: globalWorkspaces
     property alias nativeIpcRegistry: nativeIpc
+    readonly property alias systemUpdateHost: sharedSystemUpdate
+
+    // The native checker uses a shared package database. Run one native
+    // instance and render its result on every monitor to avoid lock races.
+    HostedBarWidget {
+        id: sharedSystemUpdate
+        moduleName: "omarchy.system-update"
+        registry: StatusWidgetLogic.records(root.barConfig, root.barWidgetRegistry ? root.barWidgetRegistry.widgets : {}).some(entry => entry.widgetId === "omarchy.system-update") ? root.barWidgetRegistry : null
+        bar: root
+        settings: root.barWidgetSettings("omarchy.system-update")
+        fallbackEntryPoint: "SystemUpdate.qml"
+        showVisual: true
+        opacity: 0
+    }
 
     function toggleBackgroundTransparency() {
         return tilelaneSettings.setValue("tilelaneTranslucent", !semiTransparent);

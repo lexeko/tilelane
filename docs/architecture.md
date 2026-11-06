@@ -254,6 +254,12 @@ The clock keeps a 76-scaled-pixel minimum. These layout sizes are independent
 of icon rendering; the 18-scaled-pixel gaps between status groups remain wider
 than the spacing within a group.
 
+The system-update widget has one shared native host in `Bar.qml`.
+Each monitor renders its glyph and forwards clicks to that host. Its native
+timer, update check, IPC refresh/clear, and launch action run once. This avoids
+concurrent checks against the same package database producing different icons
+on different monitors. Other native widgets keep their per-monitor hosts.
+
 `StatusWidgetModel.qml` joins configured widgets into the right-hand status
 area. From left to right, it places the left/right section controls, the center
 section's information widgets, and the clock in separate groups. It preserves

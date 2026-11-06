@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Show the same update availability on every monitor.
 - Refresh weather after waking from sleep or reconnecting to the network.
 - Refresh newly installed app icons in Start and the taskbar without restarting
   the shell.

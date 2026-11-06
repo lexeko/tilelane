@@ -120,6 +120,7 @@ Item {
         id: nativeComponent
         NativeWidget {
             moduleName: root.widgetId
+            sharedHost: root.widgetId === "omarchy.system-update" && root.bar && "systemUpdateHost" in root.bar ? root.bar.systemUpdateHost : null
             registry: root.registry
             settings: root.settings
             bar: root.bar
