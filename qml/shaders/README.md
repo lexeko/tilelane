@@ -17,7 +17,7 @@ render shaders:
 
 ```sh
 QT_QPA_PLATFORM=wayland QSG_RHI_BACKEND=opengl \
-  python3 tests/coredump_guard.py -- bash tests/test-tray-icons.sh --render
+  node tests/coredump-guard.cjs -- bash tests/test-tray-icons.sh --render
 ```
 
 The wrapper also checks for new user core dumps during the test run.
