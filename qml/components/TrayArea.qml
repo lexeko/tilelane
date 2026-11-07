@@ -253,7 +253,7 @@ Item {
                         anchors.centerIn: parent
                         source: trayItem.modelData.icon
                         trayItemId: String(trayItem.modelData.id || "")
-                        iconSize: root.px(20) * 0.67
+                        iconSize: BarGeometry.statusIconSize(Commons.Style.bar.iconSize, root.uiScale, Commons.Style.fontScale, Commons.Style.barScaleWithFont)
                         foreground: Commons.Color.bar.text
                     }
 

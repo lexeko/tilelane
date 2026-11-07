@@ -8,6 +8,8 @@ Rectangle {
 
     property var bar: null
     property real uiScale: 1
+    readonly property real statusIconSize: bar && typeof bar.statusIconSize === "number" ? bar.statusIconSize : 12 * uiScale
+    readonly property real statusIconCanvas: bar && typeof bar.statusIconCanvas === "number" ? bar.statusIconCanvas : 16 * uiScale
     property real rightHitPadding: 0
     property string hintText: ""
     property string accessibleName: hintText

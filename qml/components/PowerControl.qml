@@ -85,6 +85,8 @@ StatusControl {
             color: Commons.Color.bar.text
             fontFamily: Commons.Style.font.family
             uiScale: root.uiScale
+            opticalSize: root.statusIconCanvas
+            opticalPaintedSize: root.statusIconSize
         }
     }
 }

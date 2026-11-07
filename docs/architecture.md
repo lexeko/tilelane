@@ -324,35 +324,32 @@ falling back to the registry display name without a per-plugin label list.
 Pointer clicks do not assign keyboard focus. Native components retain their
 own mouse and wheel handlers; the generic host does not replace their internal
 controls or promise to override styling drawn by the plugin itself.
-Status glyphs use `OpticalStatusGlyph.qml` with two explicit sizing contracts.
-Related state symbols default to a fixed 13-scaled-pixel font in a
-16-scaled-pixel canvas, following Omarchy's bar defaults. Horizontal placement
-uses painted bounds; the font baseline stays fixed. Added sound waves can grow
-wider without shrinking the speaker body. Panel, battery, and standard native
-icon buttons use this behavior.
+Status glyphs use `OpticalStatusGlyph.qml` to fit and center their painted
+bounds. The shared target comes from Omarchy's `Style.bar.iconSize`; the canvas
+comes from `Style.bar.iconCanvas`. At the default font size these are 12 and
+16 logical pixels. Tilelane applies its combined spacing/font scale once,
+accounting for the font scale already present in Omarchy's tokens. Theme
+changes update the target without a restart.
 
-Standalone pictograms use `opticalSizing: true`. `NativeStatusItem` selects
-this for its icon presentation, including weather. The painted shape fits a
-14-scaled-pixel square with a one-pixel inset and is centered in the canvas.
-This compensates for glyphs with smaller outlines inside the font. The
-renderer does not inspect widget IDs. Weather rendering checks compare its
-painted extent with a neighboring fixed-font icon, not just with its own
-sizing formula.
+Panel, battery, weather, and single-glyph native buttons use the same painted
+size. A glyph's shape and aspect ratio remain intact as its state changes.
+The component also retains an explicit fixed-font mode for callers that need
+a stable baseline, but taskbar status icons use painted bounds by default.
+Rendering checks cover state variants, weather, actual native custom artwork,
+and a row at multiple scales.
 
-Use the shared component for new status glyphs and select the contract based
-on whether the shapes share a stable base symbol. Do not replace one policy
-globally to fix a single icon. Rendering checks must include actual native
-glyphs, weather conditions, volume transitions, and a full-row visual comparison.
+`NativeWidget.qml` recognizes a single native `BarIconButton` with one text
+glyph and no custom `iconComponent`. It renders that glyph at the shared size
+while preserving native input handlers, state, tooltip, color, and action.
+This also handles the update indicator without special sizing or polling.
+For native custom icons using `BarIconContent`, Tilelane scales its reported
+painted bounds to the same target. Omarchy 4.5 already normalizes those bounds;
+there is no Dropbox-specific enlargement. Slots and hit areas keep their size.
+Compound widgets and text labels retain their native presentation.
 
-`NativeWidget.qml` automatically recognizes a single native `BarIconButton`
-with one text glyph and no custom `iconComponent`. It renders that glyph with
-the shared size while preserving the native input handlers, state, tooltip,
-color, and action. This also handles the update indicator without special
-sizing or polling code. Compound widgets, text labels, custom icon components,
-and application tray images keep their native presentation. Their artwork can
-contain intentional padding that font metrics cannot measure. Dropbox's native
-custom icon is a narrow exception: Tilelane scales its painted image to fill
-the widget's optical canvas without changing the slot or input area.
+Application tray images use the same target size and preserve aspect ratio.
+Their internal transparent padding remains part of the artwork. Theme-source
+validation and symbolic-color handling are unchanged.
 
 Other native visuals retain their intrinsic size when they fit the full bar
 height; only taller widgets scale down proportionally. Their height includes

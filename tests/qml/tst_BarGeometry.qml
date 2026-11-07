@@ -3,6 +3,14 @@ import QtQuick
 import QtTest
 
 TestCase {
+    function test_statusIconSizeUsesThemeTokenWithoutDoubleScaling() {
+        compare(BarGeometry.statusIconSize(12, 1, 1, true), 12);
+        compare(BarGeometry.statusIconSize(18, 1.5, 1.5, true), 18);
+        compare(BarGeometry.statusIconSize(18, 2.25, 1.5, true), 27);
+        compare(BarGeometry.statusIconSize(12, 1.5, 2, false), 18);
+        compare(BarGeometry.statusIconSize(10, 1, 1, true), 10);
+    }
+
     function test_defaultBarHeight() {
         compare(BarGeometry.barScale(1, true, 1), 1);
         compare(BarGeometry.barHeight(1), 44);

@@ -28,6 +28,8 @@ Item {
     readonly property real barScale: BarGeometry.barScale(Commons.Style.spacingScale, Commons.Style.barScaleWithFont, Commons.Style.fontScale)
     readonly property real barHeight: BarGeometry.barHeight(barScale)
     readonly property real sectionGap: Math.round(12 * barScale)
+    readonly property real statusIconSize: BarGeometry.statusIconSize(Commons.Style.bar.iconSize, barScale, Commons.Style.fontScale, Commons.Style.barScaleWithFont)
+    readonly property real statusIconCanvas: BarGeometry.statusIconSize(Commons.Style.bar.iconCanvas, barScale, Commons.Style.fontScale, Commons.Style.barScaleWithFont)
     // Public bar surface consumed by host panels and future hosted widgets.
     // Keeping these scalar bindings available also lets persistent first-party
     // panels survive a stock/custom-bar transition without assuming internals.

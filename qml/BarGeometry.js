@@ -19,6 +19,13 @@ function barHeight(scale) {
   return baseHeight * sanePositive(scale, 1)
 }
 
+// Omarchy's bar tokens already include its font scale. Apply Tilelane's
+// combined UI scale once, preserving the theme's chosen icon size.
+function statusIconSize(nativeSize, scale, fontScale, scaleWithFont) {
+  var nativeScale = scaleWithFont === false ? 1 : sanePositive(fontScale, 1)
+  return sanePositive(nativeSize, 12) * sanePositive(scale, 1) / nativeScale
+}
+
 function statusCompact(screenWidth, scale) {
   var width = Number(screenWidth)
   var safeScale = sanePositive(scale, 1)

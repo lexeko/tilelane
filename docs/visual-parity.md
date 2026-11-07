@@ -24,6 +24,10 @@ Omarchy's spacing and font scale. Output scale changes physical rendering.
 | Start card       | At most 736 by 648, constrained to the screen                                            |
 | Start rows       | App rows 42, place rows 38, app icons 28                                                 |
 
+Tray and status icons share Omarchy's painted icon size (12 logical pixels by
+default), inside its icon canvas (16 by default). Theme sizing and Tilelane's
+UI scale apply across glyphs, native custom artwork, and application tray images.
+
 The tray and workspace fan wait 200 ms before opening on hover.
 Workspace blades use opaque fills. The shared body font sizes task labels,
 the workspace number, and clock text.

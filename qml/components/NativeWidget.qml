@@ -17,8 +17,8 @@ StatusControl {
     readonly property real availableHeight: bar && bar.barHeight > 0 ? bar.barHeight : height
     readonly property real contentScale: Math.min(1, availableHeight / Math.max(1, root.nativeHost.implicitHeight))
     readonly property var nativeHintTarget: root.nativeHost.findPressTarget(root.nativeHost.hostItem, 0)
-    readonly property var dropboxIconContent: {
-        if (moduleName !== "omarchy.dropbox" || !nativeHintTarget || !nativeHintTarget.iconComponent)
+    readonly property var nativeIconContent: {
+        if (!nativeHintTarget || !nativeHintTarget.iconComponent)
             return null;
         const objects = root.nativeHost.nativeObjects;
         for (let index = 0; index < objects.length; index++) {
@@ -77,13 +77,13 @@ StatusControl {
         showVisual: true
     }
 
-    // The native Dropbox artwork is smaller than its optical canvas. Enlarge
-    // only the painted icon while leaving the widget slot and hit area intact.
+    // Native custom icons already fit their painted bounds in Omarchy 4.5.
+    // Match the shared target without app-specific enlargement or slot changes.
     Binding {
-        target: root.dropboxIconContent
+        target: root.nativeIconContent
         property: "scale"
-        value: root.dropboxIconContent && root.nativeHintTarget ? Math.min(1.5, Math.max(1, root.nativeHintTarget.opticalSize / Math.max(1, root.dropboxIconContent.paintedWidth))) : 1
-        when: root.dropboxIconContent !== null
+        value: root.nativeIconContent ? root.statusIconSize / (Math.max(1, root.nativeIconContent.paintedWidth, root.nativeIconContent.paintedHeight) * root.contentScale) : 1
+        when: root.nativeIconContent !== null
         restoreMode: Binding.RestoreBindingOrValue
     }
 
@@ -92,6 +92,8 @@ StatusControl {
         anchors.centerIn: parent
         anchors.alignWhenCentered: false
         uiScale: root.uiScale
+        opticalSize: root.statusIconCanvas
+        opticalPaintedSize: root.statusIconSize
         opticalSizing: root.normalizeGlyph
         text: root.normalizeGlyph ? root.nativeHintTarget.text : ""
         fontFamily: root.normalizeGlyph ? root.nativeHintTarget.fontFamily : "monospace"

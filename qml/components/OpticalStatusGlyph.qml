@@ -9,12 +9,10 @@ Item {
     property color color: "white"
     property string fontFamily: "monospace"
     property real uiScale: 1
-    // Standalone pictograms need optical sizing; related state glyphs must
-    // retain one font scale so added detail does not shrink the base symbol.
-    property bool opticalSizing: false
-    readonly property real opticalSize: 16 * uiScale
-    readonly property real opticalInset: 1.5 * uiScale
-    property real opticalPaintedSize: opticalSize - 2 * opticalInset
+    property bool opticalSizing: true
+    property real opticalSize: 16 * uiScale
+    property real opticalPaintedSize: 12 * uiScale
+    readonly property real opticalInset: (opticalSize - opticalPaintedSize) / 2
     readonly property int renderedFontSize: opticalSizing ? 64 : Math.max(1, Math.round(13 * uiScale))
     readonly property rect paintedBounds: glyphMetrics.tightBoundingRect
     readonly property real fitScale: opticalSizing ? opticalPaintedSize / Math.max(1, paintedBounds.width, paintedBounds.height) : 1
