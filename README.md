@@ -14,7 +14,7 @@ A bottom taskbar and Start menu for Omarchy.
 ## Requirements
 
 Requires Omarchy 4.5 or newer. Tilelane runs inside Omarchy's shell.
-Omarchy 4.0.x is no longer supported by the current development version.
+This version does not support Omarchy 4.0.x.
 Tilelane 0.3.0 was the last release tested on Omarchy 4.0.6.
 Places uses Files to open folders.
 See the [runtime dependencies](docs/architecture.md#processes-and-commands).

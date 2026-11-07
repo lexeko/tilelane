@@ -1,14 +1,12 @@
 # Changelog
 
-## Unreleased
-
-- Keep tray and status icons evenly sized with Omarchy 4.5, including Dropbox,
-  Tailscale, battery, and weather icons. Follow theme icon sizing.
+## 0.4.0
 
 - Require Omarchy 4.5 or newer. Tilelane 0.3.0 was the last release tested on 4.0.6.
 - Show workspace numbers 1–10 on each monitor and switch within that monitor's
   own workspaces. Include workspaces temporarily hosted after a monitor disconnect.
-
+- Keep tray and status icons evenly sized, including Dropbox, Tailscale,
+  battery, and weather. Follow Omarchy's theme icon sizing.
 - Show the same update availability on every monitor.
 - Refresh weather after waking from sleep or reconnecting to the network.
 - Refresh newly installed app icons in Start and the taskbar without restarting
