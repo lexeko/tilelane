@@ -120,8 +120,22 @@ async function main() {
     await delay(150);
     assert.equal((await state()).count, 0, 'Refresh resurrected the closed window');
     assert.equal(refreshCount(), baseline + 1, 'Refresh continued while idle');
+    // A retained record can outlive the native tracker. The raw compositor
+    // close must still remove it, without requiring a snapshot or timer.
+    await run('quickshell', ['ipc', '--pid', String(shell.pid),
+      'call', 'test.windows', 'retainClosedRecord'], { env, timeout: 3000 });
+    assert.equal((await state()).count, 1);
+    emit('closewindow>>bbb');
+    await delay(80);
+    assert.equal((await state()).count, 1, 'Unrelated close removed a retained window');
+    emit('closewindow>>aaa');
+    await waitFor(async () => (await state()).count === 0, 'Raw close retained a stale window');
+    emit('closewindow>>aaa');
+    await delay(80);
+    assert.equal((await state()).count, 0, 'Duplicate close changed the model');
+    assert.equal(refreshCount(), baseline + 1, 'Close started snapshot polling');
     assert(!/TypeError|ReferenceError|Binding loop/.test(log), log);
-    console.log('window refresh: pass (float/tile, event burst, close race, idle)');
+    console.log('window refresh: pass (float/tile, event burst, close race, retained record, idle)');
   } catch (error) {
     console.error(log);
     console.error('Compositor requests:', requests);

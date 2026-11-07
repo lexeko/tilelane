@@ -16,6 +16,7 @@
 - Respect hidden apps across user and system directories, and apply launcher
   hide-list changes without restarting the shell.
 - Focus restored windows when the normal restore needs a fallback.
+- Remove closed windows from the taskbar even if their native close signal is missed.
 
 ## 0.3.0
 

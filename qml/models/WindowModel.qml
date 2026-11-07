@@ -85,6 +85,18 @@ Item {
             tracker.closeRecord();
     }
 
+    function closeAddress(address) {
+        const key = WindowState.normalizeAddress(address);
+        for (let index = 0; index < trackers.count; index++) {
+            const tracker = trackers.objectAt(index);
+            if (tracker && tracker.registeredAddress === key)
+                closeTracker(tracker);
+        }
+        const record = recordFor(key);
+        if (record)
+            remove(key, record.generation, toplevelFor(key));
+    }
+
     function upsert(raw, source) {
         const address = WindowState.normalizeAddress(raw.address);
         if (address === "")
@@ -140,12 +152,18 @@ Item {
         target: Hyprland
 
         function onRawEvent(event) {
+            // The compositor close is authoritative even when the native
+            // handle or delegate teardown misses its corresponding signal.
+            if (event.name === "closewindow")
+                root.closeAddress(event.data);
             if (event.name === "changefloatingmode" && !windowDetailsRefresh.running)
                 windowDetailsRefresh.start();
         }
     }
 
     Instantiator {
+        id: trackers
+
         model: Hyprland.toplevels
 
         delegate: Item {

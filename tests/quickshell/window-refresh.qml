@@ -17,5 +17,13 @@ ShellRoot {
                 record: windows.recordFor("0xaaa")
             });
         }
+
+        function retainClosedRecord(): void {
+            windows.upsert({
+                address: "0xaaa",
+                generation: 100,
+                title: "Retained after native teardown"
+            }, null);
+        }
     }
 }
