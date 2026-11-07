@@ -3,7 +3,7 @@ set -uo pipefail
 
 repo_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 if [[ "${1:-}" != "--coredump-guarded" ]]; then
-  exec python3 "$repo_dir/tests/coredump_guard.py" -- "$repo_dir/scripts/check" --coredump-guarded "$@"
+  exec node "$repo_dir/tests/coredump-guard.cjs" -- "$repo_dir/scripts/check" --coredump-guarded "$@"
 fi
 shift
 omarchy_root="${OMARCHY_PATH:-/usr/share/omarchy}"
@@ -350,7 +350,7 @@ run_check "QML formatting" check_qml_format
 run_check "production QML lint" check_qml_lint
 run_check "QML unit tests" check_qml_tests
 run_check "tip action persistence" bash "$repo_dir/tests/test-tip-controller.sh" -o -,txt
-run_check "core-dump guard regression" python3 -B "$repo_dir/tests/test-coredump-guard.py"
+run_check "core-dump guard regression" node "$repo_dir/tests/test-coredump-guard.cjs"
 run_check "isolated native image provider" bash "$repo_dir/tests/test-native-provider.sh"
 run_check "tray image source boundary" env QT_QPA_PLATFORM=offscreen QSG_RHI_BACKEND=software bash "$repo_dir/tests/test-tray-icons.sh" -o -,txt
 run_check "Roam unread badge extraction" node "$repo_dir/tests/test-roam-tray-badge.cjs"

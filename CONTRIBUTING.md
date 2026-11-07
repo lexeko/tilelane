@@ -28,7 +28,9 @@ omarchy plugin validate .
 
 The checks use Qt's QML tools, Quickshell, and Node.js with its built-in modules.
 Lua enables the pointer regression tests. No npm packages are required.
-Python 3 and access to the systemd journal are required for crash checking.
+Keep test drivers in the existing languages. Get owner approval before adding
+a language or interpreter dependency. Python is not required.
+Access to the systemd journal is required for crash checking.
 The suite checks for new core dumps from your user, including helper processes.
 It observes the run and waits three seconds after it ends. A crash in an
 unrelated app also fails the check and needs investigation. Failure to read or
@@ -41,7 +43,7 @@ images through the real Quickshell provider. To run it separately with crash
 checking:
 
 ```sh
-python3 tests/coredump_guard.py -- bash tests/test-native-provider.sh
+node tests/coredump-guard.cjs -- bash tests/test-native-provider.sh
 ```
 
 Use the same wrapper around other standalone rendering or live-test commands
