@@ -395,7 +395,13 @@ Numbered shortcuts count visible panels in horizontal order.
 
 Shortcut labels come from `omarchy menu keybindings --print`. The catalog reads
 them at startup and refreshes when the watched user bindings change. Labels
-match existing command descriptions. Tilelane does not write keybindings.
+match existing command descriptions. Tilelane does not edit `~/.config/hypr/bindings.lua`.
+When `tilelaneSuperStart` is enabled, `SuperStartController.qml` registers a
+runtime Hyprland release-only binding on `SUPER + Super_L` and `SUPER + Super_R`
+that dispatches a `GlobalShortcut` (`tilelane:start.toggle`) into the shell
+without spawning a process per keypress. Disabling the option or unloading
+Tilelane disables only Tilelane's keybind handles so any user bindings on those
+keys stay intact.
 
 `BarMouseArea.qml` extends each control's clickable area to the bottom edge.
 It clips horizontal click bounds to the visible task or tray viewport.
@@ -416,9 +422,11 @@ checks every owned Text declaration for this policy.
 
 ## Files and settings
 
-The taskbar defaults to a semi-transparent background. Double-clicking unused
-bar space toggles `tilelaneTranslucent`. An existing saved choice takes
-precedence. Start keeps its opaque menu background.
+The taskbar defaults to a semi-transparent background. Right-clicking Start opens
+a quick options menu to toggle `tilelaneSuperStart` (off by default) and
+`tilelaneTranslucent` (on by default). Double-clicking unused bar space also
+toggles `tilelaneTranslucent`. An existing saved choice takes precedence. Start
+keeps its opaque menu background.
 
 `TipController.qml` offers a dock move only when the enabled, always-visible
 native dock shares the bottom edge on a floating workspace outside fullscreen.
@@ -438,7 +446,7 @@ saves the tip's dismissal. Errors keep the tip available for retry.
 `XDG_CONFIG_HOME` defaults to `~/.config`.
 Tilelane uses inline fields on the `bar` entry: `tilelanePins`,
 `tilelaneStartPins`, `tilelaneIdentityOverrides`, `tilelaneDismissedTips`,
-`tilelaneTranslucent`, and `reducedMotion`. Dismissed tip IDs are independent,
+`tilelaneTranslucent`, `tilelaneSuperStart`, and `reducedMotion`. Dismissed tip IDs are independent,
 so a later tip can still appear.
 `tilelaneSettingsVersion: 1` records initialization. The injected `barConfig`
 snapshot supplies current values. Saves use the scoped
@@ -479,6 +487,7 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 | `TipController.qml`          | A chosen dock action runs `omarchy dock position` and then `omarchy dock autohide on`.                                                                          |
 | `TrayIcon.qml`               | Roam pixmap changes can run `scripts/roam-tray-badge`; it reads a size-limited D-Bus pixmap with a timeout.                                                     |
 | `WindowActions.qml`          | A window action or unload can run validated `hyprctl eval`; supported floating-workspace minimization moves to the native dock with cursor warps suppressed.    |
+| `SuperStartController.qml`   | Startup, setting toggles, Hyprland config reloads while enabled, and unload run `hyprctl eval` to enable or disable Tilelane's runtime Super release handles.   |
 | `WindowModel.qml`            | New windows can run `scripts/window-application-identities` with bounded retries.                                                                               |
 | `ApplicationCatalog.qml`     | Startup, app-list changes, and opening Start can run `scripts/application-icons` when the host has no app-library refresh API.                                  |
 | `ApplicationCatalog.qml`     | Startup and catalog changes can run `scripts/hidden-desktop-entries`.                                                                                           |

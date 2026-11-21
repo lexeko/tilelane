@@ -3,13 +3,20 @@
 Tilelane uses the widgets and settings configured through Omarchy. Changes
 apply without restarting the shell.
 
-## Appearance
+## Start options and appearance
 
-The taskbar is semi-transparent by default. Double-click unused taskbar space
-to switch to an opaque background or back. Tilelane saves the choice and keeps
-any choice you made before updating. Start stays opaque in both modes.
+Right-click Start to toggle two saved options:
 
-The setting is `bar.tilelaneTranslucent` in `shell.json`.
+- **Open Start with Super** (off by default): Tapping Super opens or closes
+  Start on the focused monitor without conflicting with Omarchy's Super
+  keybindings. Turning it off or switching away from Tilelane disables the
+  runtime binding without changing your Hyprland config files.
+- **Semi-transparent taskbar** (on by default): Switches the taskbar between
+  semi-transparent and opaque. You can also double-click unused taskbar space to
+  toggle it. Start stays opaque in both modes.
+
+The settings are `bar.tilelaneSuperStart` and `bar.tilelaneTranslucent` in
+`shell.json`.
 
 ## Layout
 

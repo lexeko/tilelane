@@ -9,6 +9,7 @@ import Quickshell.Wayland
 import "qml/BarGeometry.js" as BarGeometry
 import "qml/PanelRouting.js" as PanelRouting
 import "qml/StatusWidgetLogic.js" as StatusWidgetLogic
+import "qml/SuperStartLogic.js" as SuperStartLogic
 import "qml/components"
 import "qml/models"
 import qs.Commons as Commons
@@ -36,6 +37,7 @@ Item {
     readonly property color foreground: Commons.Color.bar.text
     readonly property color barForeground: foreground
     readonly property bool semiTransparent: tilelaneSettings.values.tilelaneTranslucent
+    readonly property bool superStartEnabled: tilelaneSettings.values.tilelaneSuperStart
     readonly property color background: semiTransparent ? Commons.Util.alpha(Commons.Color.bar.background, Math.min(Commons.Color.bar.background.a, 0.7)) : Commons.Color.bar.background
     readonly property color urgent: Commons.Color.bar.active
     readonly property color accentColor: Commons.Color.accent
@@ -51,6 +53,7 @@ Item {
     readonly property bool foregroundAnimationEnabled: !reducedMotion
     property var activePopout: null
     property var startMenus: []
+    property var startContextMenus: []
     property var workspaceSwitchers: []
     property var statusViews: []
     property var taskLanes: []
@@ -82,12 +85,17 @@ Item {
         return tilelaneSettings.setValue("tilelaneTranslucent", !semiTransparent);
     }
 
+    function toggleSuperStart() {
+        return tilelaneSettings.setValue("tilelaneSuperStart", !superStartEnabled);
+    }
+
     NativeIpcRegistry {
         id: nativeIpc
         preferredScreenName: Hyprland.focusedMonitor ? String(Hyprland.focusedMonitor.name || "") : ""
     }
 
     Component.onDestruction: {
+        superStart.shutdown();
         nativeIpc.shutdown();
         const hosts = widgetHosts.slice();
         for (let index = 0; index < hosts.length; index++) {
@@ -373,6 +381,59 @@ Item {
         return null;
     }
 
+    function toggleFocusedStartMenu() {
+        const snapshot = startMenus.map(function (menu) {
+            return menu ? {
+                open: menu.open === true,
+                screenName: String(menu.targetScreen ? menu.targetScreen.name || "" : "")
+            } : null;
+        });
+        const focusedName = Hyprland.focusedMonitor ? String(Hyprland.focusedMonitor.name || "") : "";
+        const decision = SuperStartLogic.pickStartMenuToggle(snapshot, focusedName);
+        if (decision.action === "close") {
+            for (let index = 0; index < decision.indices.length; index++) {
+                const menu = startMenus[decision.indices[index]];
+                if (menu)
+                    menu.close();
+            }
+            return false;
+        }
+        if (decision.action === "open" && decision.index >= 0 && decision.index < startMenus.length) {
+            const target = startMenus[decision.index];
+            if (target) {
+                target.show();
+                return target.open;
+            }
+        }
+        return false;
+    }
+
+    function registerStartContextMenu(menu) {
+        const next = startContextMenus.slice(0);
+        if (next.indexOf(menu) === -1)
+            next.push(menu);
+        startContextMenus = next;
+    }
+
+    function unregisterStartContextMenu(menu) {
+        const next = startContextMenus.slice(0);
+        const index = next.indexOf(menu);
+        if (index !== -1)
+            next.splice(index, 1);
+        startContextMenus = next;
+    }
+
+    function startContextMenuFor(screenName) {
+        const expected = String(screenName || "");
+        for (let index = 0; index < startContextMenus.length; index++) {
+            const menu = startContextMenus[index];
+            const menuScreen = menu && menu.anchorWindow && menu.anchorWindow.screen ? String(menu.anchorWindow.screen.name || "") : "";
+            if (menu && (expected === "" || menuScreen === expected))
+                return menu;
+        }
+        return null;
+    }
+
     function registerWorkspaceSwitcher(switcher) {
         const next = workspaceSwitchers.slice(0);
         if (next.indexOf(switcher) === -1)
@@ -519,6 +580,13 @@ Item {
         bar: root
     }
 
+    SuperStartController {
+        id: superStart
+
+        enabled: root.superStartEnabled
+        onTriggered: root.toggleFocusedStartMenu()
+    }
+
     IpcHandler {
         target: "omarchy.indicators"
 
@@ -650,6 +718,32 @@ Item {
             return tilelaneSettings.setValue("reducedMotion", enabled === "true") ? "updated" : "unchanged";
         }
 
+        function superStartState(): string {
+            return JSON.stringify({
+                "enabled": root.superStartEnabled,
+                "stored": tilelaneSettings.values.tilelaneSuperStart
+            });
+        }
+
+        function superStartSet(enabled: string): string {
+            if (enabled !== "true" && enabled !== "false")
+                return "unsupported";
+            return tilelaneSettings.setValue("tilelaneSuperStart", enabled === "true") ? "updated" : "unchanged";
+        }
+
+        function translucentState(): string {
+            return JSON.stringify({
+                "enabled": root.semiTransparent,
+                "stored": tilelaneSettings.values.tilelaneTranslucent
+            });
+        }
+
+        function translucentSet(enabled: string): string {
+            if (enabled !== "true" && enabled !== "false")
+                return "unsupported";
+            return tilelaneSettings.setValue("tilelaneTranslucent", enabled === "true") ? "updated" : "unchanged";
+        }
+
         function workspaceState(): string {
             const records = [];
             for (let index = 0; index < globalWorkspaces.model.count; index++) {
@@ -721,6 +815,33 @@ Item {
                 return "not-found";
             menu.toggle();
             return menu.open ? "opened" : "closed";
+        }
+
+        function startToggleFocused(): string {
+            return root.toggleFocusedStartMenu() ? "opened" : "closed";
+        }
+
+        function startContextMenuToggle(screenName: string): string {
+            const menu = root.startContextMenuFor(screenName);
+            if (!menu)
+                return "not-found";
+            menu.open = !menu.open;
+            return menu.open ? "opened" : "closed";
+        }
+
+        function startContextMenuState(screenName: string): string {
+            const menu = root.startContextMenuFor(screenName);
+            if (!menu)
+                return JSON.stringify({
+                    "present": false
+                });
+            return JSON.stringify({
+                "present": true,
+                "open": menu.open,
+                "screen": String(menu.anchorWindow && menu.anchorWindow.screen ? menu.anchorWindow.screen.name || "" : ""),
+                "superStart": menu.superStartEnabled,
+                "semiTransparent": menu.semiTransparent
+            });
         }
 
         function startState(screenName: string): string {
@@ -828,6 +949,7 @@ Item {
 
         Component.onCompleted: {
             root.registerStartMenu(startMenu);
+            root.registerStartContextMenu(startContextMenu);
             root.registerWorkspaceSwitcher(workspaceSwitcher);
             root.registerStatusView(rightStatus);
             root.registerTaskLane(taskLane);
@@ -835,6 +957,7 @@ Item {
         }
         Component.onDestruction: {
             root.unregisterStartMenu(startMenu);
+            root.unregisterStartContextMenu(startContextMenu);
             root.unregisterWorkspaceSwitcher(workspaceSwitcher);
             root.unregisterStatusView(rightStatus);
             root.unregisterTaskLane(taskLane);
@@ -885,6 +1008,17 @@ Item {
             barHeight: root.barHeight
         }
 
+        StartContextMenu {
+            id: startContextMenu
+
+            anchorItem: startButton
+            bar: root
+            superStartEnabled: root.superStartEnabled
+            semiTransparent: root.semiTransparent
+            onSuperStartToggled: root.toggleSuperStart()
+            onSemiTransparentToggled: root.toggleBackgroundTransparency()
+        }
+
         StartButton {
             id: startButton
 
@@ -895,8 +1029,10 @@ Item {
             artwork: branding.artwork
             bar: root
             menuOpen: startMenu.open
+            contextMenuOpen: startContextMenu.open
             uiScale: root.barScale
             onClicked: startMenu.toggle()
+            onContextMenuRequested: startContextMenu.open = !startContextMenu.open
         }
 
         WorkspaceSwitcher {

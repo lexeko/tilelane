@@ -32,8 +32,10 @@ For an installation without Git, see [manual installation](docs/recovery.md#manu
 
 - Start pins and taskbar pins are independent. Right-click a taskbar pin to
   reorder it.
-- The taskbar is semi-transparent by default. Double-click empty taskbar space
-  to switch to an opaque background or back. Tilelane saves your choice.
+- Right-click Start to toggle opening Start with the Super key or switch the
+  taskbar between semi-transparent and opaque.
+- The taskbar is semi-transparent by default. You can also double-click empty
+  taskbar space to toggle it. Tilelane saves your choice.
 - Hold Ctrl while clicking an app launcher or a place to open a floating window.
 - In Start, Ctrl+Enter also launches the selected app as a floating window.
 - Window context menus show the configured Omarchy shortcuts for their actions.

@@ -121,12 +121,14 @@ Back up this file before editing it. Keep its other fields and layout entries.
 | `tilelaneIdentityOverrides` | Object mapping window identities to desktop-entry IDs |
 | `tilelaneDismissedTips`     | Array of resolved or dismissed tip IDs                |
 | `tilelaneTranslucent`       | `true` or `false` for the bar background              |
+| `tilelaneSuperStart`        | `true` or `false` to open Start with the Super key    |
 | `reducedMotion`             | `true` or `false`                                     |
 
 To clear pins or restore dismissed tips, set the corresponding array to `[]`.
 Resetting `tilelaneDismissedTips` makes a tip available when its condition
 occurs again. It does not undo changes to the dock.
 If `tilelaneTranslucent` is missing, the bar uses the semi-transparent default.
+If `tilelaneSuperStart` is missing, Super-key activation stays off.
 A missing app remains a removable taskbar pin. Invalid fields use safe defaults
 and log an error.
 Tilelane leaves the invalid data on disk until you correct it or change that
@@ -215,7 +217,8 @@ omarchy plugin remove io.github.lexeko.tilelane
 Removal deletes the installed plugin. Tilelane's fields remain on `bar` in
 `shell.json`, ready for a later install. To clear them, back up `shell.json` and
 remove `tilelaneSettingsVersion`, `tilelanePins`, `tilelaneStartPins`,
-`tilelaneIdentityOverrides`, `tilelaneDismissedTips`, and `tilelaneTranslucent`.
+`tilelaneIdentityOverrides`, `tilelaneDismissedTips`, `tilelaneTranslucent`, and
+`tilelaneSuperStart`.
 Keep shared fields such as `layout` and `reducedMotion`.
 Old files under `~/.config/tilelane/` also remain. Archive them before reinstalling
 if you do not want their preferences imported again.

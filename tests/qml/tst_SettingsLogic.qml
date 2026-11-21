@@ -45,6 +45,7 @@ TestCase {
         compare(bar.tilelaneIdentityOverrides.terminal, "editor");
         verify(bar.reducedMotion);
         verify(bar.tilelaneTranslucent);
+        verify(!bar.tilelaneSuperStart);
         compare(bar.layout.left[0].id, "clock");
         compare(bar.position, "top");
         verify(!SettingsLogic.initialize(bar, {
@@ -58,6 +59,7 @@ TestCase {
         const bar = {
             "reducedMotion": false,
             "tilelaneTranslucent": false,
+            "tilelaneSuperStart": true,
             "tilelanePins": ["browser"],
             "tilelaneIdentityOverrides": {}
         };
@@ -69,6 +71,7 @@ TestCase {
         }));
         verify(!bar.reducedMotion);
         verify(!bar.tilelaneTranslucent);
+        verify(bar.tilelaneSuperStart);
         compare(bar.tilelanePins, ["browser"]);
         compare(Object.keys(bar.tilelaneIdentityOverrides).length, 0);
     }
@@ -127,6 +130,25 @@ TestCase {
         });
         compare(invalid.tilelaneTranslucent, true);
         compare(invalid.reducedMotion, true);
+        compare(invalid.errors.length, 1);
+    }
+
+    function test_superStartPreference() {
+        compare(SettingsLogic.read({}).tilelaneSuperStart, false);
+        compare(SettingsLogic.field("tilelaneSuperStart", true), true);
+        compare(SettingsLogic.field("tilelaneSuperStart", false), false);
+        compare(SettingsLogic.read({
+            tilelaneSuperStart: true
+        }).tilelaneSuperStart, true);
+        compare(SettingsLogic.read({
+            tilelaneSuperStart: false
+        }).tilelaneSuperStart, false);
+        const invalid = SettingsLogic.read({
+            tilelaneSuperStart: "yes",
+            tilelaneTranslucent: false
+        });
+        compare(invalid.tilelaneSuperStart, false);
+        compare(invalid.tilelaneTranslucent, false);
         compare(invalid.errors.length, 1);
     }
 
