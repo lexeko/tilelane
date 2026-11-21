@@ -358,8 +358,8 @@ would also shrink their content.
 
 `HostedBarWidget.qml` loads widget implementations from the injected registry
 and supplies `bar`, `moduleName`, and per-instance `settings`. Agents,
-Bluetooth, Network, Audio, Displays, and Power load on demand and unload
-250 ms after closing. Visual widgets such as the clock and Dropbox have
+Bluetooth, Network, Audio, Displays, Power, and Weather load on demand and
+unload 250 ms after closing. Visual widgets such as the clock and Dropbox have
 persistent hosts. Their own panels may have further loaders.
 
 Hosted widget trees are observed when nested loaders and visual children change.
@@ -500,7 +500,8 @@ The shortcut catalog watches `~/.config/hypr/bindings.lua`.
 
 Weather refreshes after logind reports wake-up and when a network connection
 returns. One shared `WeatherRefreshController` monitors `PrepareForSleep` with
-`dbus-monitor --system` while weather widgets are loaded. It waits for a connected
+`dbus-monitor --system` while weather widgets are loaded, and stays idle while
+Weather is unloaded on demand. It waits for a connected
 network device, coalesces events for two seconds, then calls each monitor's
 native weather refresh method without opening its panel. Omarchy retains its
 normal refresh interval and request retries. No other widget is refreshed by

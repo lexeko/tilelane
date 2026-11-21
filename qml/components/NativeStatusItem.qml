@@ -16,14 +16,17 @@ StatusControl {
     property var settings: ({})
     property string fallbackEntryPoint: ""
     property var statusOwner: null
+    // Temporary workaround: keep Omarchy's native weather panel unloaded while
+    // closed until upstream bounds forecast response buffering.
+    readonly property bool lazyWeather: moduleName === "omarchy.weather"
+    readonly property string weatherIdleGlyph: "\ue302"
     readonly property string statusText: {
-        if (!statusOwner)
-            return "";
         if (presentation === "text")
-            return String(statusOwner.inputLabel || statusOwner.layoutLabel || "");
-        return String(statusOwner.label || "");
+            return statusOwner ? String(statusOwner.inputLabel || statusOwner.layoutLabel || "") : "";
+        const live = statusOwner ? String(statusOwner.label || "") : "";
+        return lazyWeather ? (live || weatherIdleGlyph) : live;
     }
-    readonly property bool statusVisible: nativeHost.available && statusText !== "" && (root.moduleName !== "omarchy.keyboard-layout" || statusOwner.multipleLayouts === true || statusOwner.multipleInputs === true)
+    readonly property bool statusVisible: lazyWeather ? nativeHost.hasLoadSource : nativeHost.available && statusText !== "" && (root.moduleName !== "omarchy.keyboard-layout" || statusOwner.multipleLayouts === true || statusOwner.multipleInputs === true)
     hintText: {
         if (root.moduleName === "omarchy.keyboard-layout")
             return "Language: " + root.statusText;
@@ -42,6 +45,21 @@ StatusControl {
     }
 
     activation: function (button) {
+        if (root.lazyWeather) {
+            if (button === Qt.RightButton && root.bar && typeof root.bar.run === "function") {
+                root.bar.run("omarchy-notification-send \"$(omarchy-weather-status)\"");
+                return true;
+            }
+            if (button === Qt.MiddleButton) {
+                const weatherItem = nativeHost.hostItem;
+                if (weatherItem && typeof weatherItem.refresh === "function") {
+                    weatherItem.refresh();
+                    return true;
+                }
+                return false;
+            }
+            return nativeHost.trigger(button);
+        }
         const item = nativeHost.hostItem;
         if (!item)
             return false;
@@ -53,16 +71,6 @@ StatusControl {
                 return true;
             }
             return false;
-        }
-        if (root.moduleName === "omarchy.weather") {
-            if (button === Qt.MiddleButton && typeof item.refresh === "function") {
-                item.refresh();
-                return true;
-            }
-            if (button === Qt.RightButton && root.bar && typeof root.bar.run === "function") {
-                root.bar.run("omarchy-notification-send \"$(omarchy-weather-status)\"");
-                return true;
-            }
         }
         return nativeHost.trigger(button);
     }
@@ -84,7 +92,8 @@ StatusControl {
         bar: root.bar
         settings: root.settings
         fallbackEntryPoint: root.fallbackEntryPoint
-        alignPanelToHost: root.moduleName === "omarchy.weather"
+        lazy: root.lazyWeather
+        alignPanelToHost: root.lazyWeather
         onNativeObjectsChangedForHost: root.updateStatusOwner()
     }
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0
+
+- Add a Start right-click menu with options to open Start by tapping Super
+  (off by default) and toggle the semi-transparent taskbar background (on by
+  default).
+- Load Omarchy's weather panel on demand when clicked or summoned, and unload
+  it after closing, while keeping a weather icon visible on the bar.
+- Show Omarchy 4.5 input-method labels in the keyboard layout widget and update
+  the clock every second when its format includes seconds.
+- Follow symlinked desktop directories and `.desktop`-suffixed hide-list
+  entries, prefer higher-resolution app icons, and pass `--` to `gtk-launch`.
+- Normalize window addresses in window actions, stop pending identity probes
+  when windows close, cap Roam tray badge reads, and keep the workspace fan
+  from reopening while collapsing.
+
 ## 0.4.0
 
 - Require Omarchy 4.5 or newer. Tilelane 0.3.0 was the last release tested on 4.0.6.

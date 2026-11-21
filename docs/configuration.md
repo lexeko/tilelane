@@ -48,6 +48,8 @@ of each screen.
 Use `omarchy plugin enable` and `omarchy plugin disable` to add or remove
 optional widgets. Some configured widgets appear only when needed, such as
 Power when a battery is present or Updates when updates are available.
+Weather keeps an icon on the bar and loads its native panel only while open;
+right-click shows a weather status notification without opening the panel.
 Start uses Omarchy's native indicators. Indicators with no visible content
 take no space.
 
