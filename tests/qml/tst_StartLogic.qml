@@ -36,6 +36,10 @@ TestCase {
         const index = StartLogic.indexEntries(entries, hidden);
         compare(index.length, 1);
         compare(index[0].name, "Code Editor");
+
+        const preserved = StartLogic.idSet("org.telegram.desktop\n", true);
+        verify(preserved["org.telegram.desktop"] === true);
+        verify(preserved["org.telegram"] === undefined);
     }
 
     function test_desktopFileIdRestoresQuickshellSuffix() {

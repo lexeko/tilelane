@@ -106,6 +106,16 @@ async function main() {
       assert.equal(refreshCount(), baseline + 1, 'Expected one refresh per change');
       baseline++;
     }
+    clients[0].fullscreen = 1;
+    emit('fullscreen>>1');
+    await waitFor(async () => (await state()).record?.maximized === true, 'Maximized state stayed stale');
+    assert.equal(refreshCount(), baseline + 1, 'Expected one refresh for fullscreen event');
+    baseline++;
+    clients[0].tags = ['omarchy-floating-workspace'];
+    emit('movewindowv2>>aaa,2,2');
+    await waitFor(async () => (await state()).record?.omarchyFloatingWorkspace === true, 'Workspace tag stayed stale');
+    assert.equal(refreshCount(), baseline + 1, 'Expected one refresh for movewindowv2 event');
+    baseline++;
     clients[0].floating = true;
     emit('changefloatingmode>>aaa,1\nchangefloatingmode>>aaa,0\nchangefloatingmode>>aaa,1');
     await waitFor(async () => (await state()).record?.floating === true,

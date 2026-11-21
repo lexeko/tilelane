@@ -54,9 +54,11 @@ for item in "${items[@]}"; do
     | jq -r '.data // empty') || continue
   [[ $id == "$target" ]] || continue
 
+  max_bytes=2097152
   pixels=$(timeout 2s busctl --user --json=short get-property \
     "$service" "$path" org.kde.StatusNotifierItem IconPixmap 2>/dev/null \
-    | head -c 131072) || continue
-  classify <<<"$pixels"
+    | head -c "$((max_bytes + 1))") || true
+  [[ -n "$pixels" && ${#pixels} -le $max_bytes ]] || continue
+  classify <<<"$pixels" 2>/dev/null || continue
   exit
 done

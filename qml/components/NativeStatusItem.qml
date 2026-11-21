@@ -20,10 +20,10 @@ StatusControl {
         if (!statusOwner)
             return "";
         if (presentation === "text")
-            return String(statusOwner.layoutLabel || "");
+            return String(statusOwner.inputLabel || statusOwner.layoutLabel || "");
         return String(statusOwner.label || "");
     }
-    readonly property bool statusVisible: nativeHost.available && statusText !== "" && (root.moduleName !== "omarchy.keyboard-layout" || statusOwner.multipleLayouts === true)
+    readonly property bool statusVisible: nativeHost.available && statusText !== "" && (root.moduleName !== "omarchy.keyboard-layout" || statusOwner.multipleLayouts === true || statusOwner.multipleInputs === true)
     hintText: {
         if (root.moduleName === "omarchy.keyboard-layout")
             return "Language: " + root.statusText;
@@ -45,9 +45,14 @@ StatusControl {
         const item = nativeHost.hostItem;
         if (!item)
             return false;
-        if (root.moduleName === "omarchy.keyboard-layout" && typeof item.cycleLayout === "function") {
-            item.cycleLayout();
-            return true;
+        if (root.moduleName === "omarchy.keyboard-layout") {
+            if (nativeHost.trigger(button))
+                return true;
+            if (typeof item.cycleLayout === "function") {
+                item.cycleLayout();
+                return true;
+            }
+            return false;
         }
         if (root.moduleName === "omarchy.weather") {
             if (button === Qt.MiddleButton && typeof item.refresh === "function") {

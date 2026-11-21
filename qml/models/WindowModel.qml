@@ -156,7 +156,7 @@ Item {
             // handle or delegate teardown misses its corresponding signal.
             if (event.name === "closewindow")
                 root.closeAddress(event.data);
-            if (event.name === "changefloatingmode" && !windowDetailsRefresh.running)
+            if (["changefloatingmode", "fullscreen", "movewindow", "movewindowv2", "configreloaded"].indexOf(event.name) !== -1 && !windowDetailsRefresh.running)
                 windowDetailsRefresh.start();
         }
     }
@@ -181,6 +181,8 @@ Item {
             readonly property int maxIdentityProbeAttempts: 4
 
             function applyPrograms(text) {
+                if (closing)
+                    return;
                 const result = WindowState.parseTerminalProbe(text);
                 terminalPrograms = result.programs;
                 sync();
@@ -203,6 +205,8 @@ Item {
                     return;
 
                 closing = true;
+                identityProbeDelay.stop();
+                identityProbe.running = false;
                 root.remove(registeredAddress, generation, modelData);
             }
 

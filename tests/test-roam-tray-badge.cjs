@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const helper = path.join(__dirname, '../scripts/roam-tray-badge');
@@ -43,4 +45,46 @@ const invalidId = spawnSync(helper, ['Roam_status_icon_1_extra'], { encoding: 'u
 assert.equal(invalidId.status, 0, invalidId.stderr);
 assert.equal(invalidId.stdout, '');
 
-process.stdout.write('9 Roam badge cases passed\n');
+function runWithFakeBusctl(payloadText) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tilelane-roam-badge-'));
+    try {
+        const payloadPath = path.join(dir, 'pixmap.json');
+        fs.writeFileSync(payloadPath, payloadText);
+        const busctlPath = path.join(dir, 'busctl');
+        fs.writeFileSync(busctlPath, `#!/usr/bin/env bash
+set -euo pipefail
+case "\${*: -1}" in
+  RegisteredStatusNotifierItems) printf '{"type":"as","data":[":1.42/StatusNotifierItem"]}\\n' ;;
+  Id) printf '{"type":"s","data":"Roam_status_icon_1"}\\n' ;;
+  IconPixmap) cat "${payloadPath}" ;;
+esac
+`, { mode: 0o755 });
+        return spawnSync(helper, ['Roam_status_icon_1'], {
+            encoding: 'utf8',
+            env: { ...process.env, PATH: `${dir}:${process.env.PATH}` }
+        });
+    } finally {
+        fs.rmSync(dir, { recursive: true, force: true });
+    }
+}
+
+// Multi-size SNI IconPixmap payload exceeding 128 KiB JSON (e.g. 128px + 48px).
+const multiSize = {
+    type: 'a(iiay)',
+    data: [
+        [128, 128, Array(128 * 128 * 4).fill(0)],
+        image({ dot: { x: 34, y: 8, color: red } }).data[0]
+    ]
+};
+const multiJson = JSON.stringify(multiSize);
+assert.ok(multiJson.length > 131072, 'Expected multi-size payload > 128 KiB');
+const multiResult = runWithFakeBusctl(multiJson);
+assert.equal(multiResult.status, 0, multiResult.stderr);
+assert.equal(multiResult.stdout.trim(), '1');
+
+// Oversized payload (> 2 MiB) is skipped cleanly without failing.
+const oversized = runWithFakeBusctl('x'.repeat(2097152 + 64));
+assert.equal(oversized.status, 0, oversized.stderr);
+assert.equal(oversized.stdout.trim(), '');
+
+process.stdout.write('11 Roam badge cases passed\n');

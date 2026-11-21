@@ -39,7 +39,8 @@ QtObject {
         if (!entry)
             return true;
         const id = String(entry.id || "");
-        return entry.noDisplay === true || configuredHiddenEntryIds[id] === true || desktopHiddenEntryIds[id] === true;
+        const normalized = StartLogic.normalizedDesktopId(id);
+        return entry.noDisplay === true || configuredHiddenEntryIds[id] === true || configuredHiddenEntryIds[normalized] === true || desktopHiddenEntryIds[id] === true;
     }
 
     function identityEntries() {
@@ -99,15 +100,31 @@ QtObject {
         }
     }
 
+    function iconRank(path) {
+        const lower = path.toLowerCase();
+        if (lower.endsWith(".svg"))
+            return 1000000;
+        const base = lower.endsWith(".png") ? 10000 : 0;
+        const sizeMatch = lower.match(/\/([0-9]+)x[0-9]+\//);
+        return base + (sizeMatch ? Number(sizeMatch[1]) : 0);
+    }
+
     function loadIconIndex(text) {
         const next = ({});
+        const ranks = ({});
         const paths = String(text || "").split("\n");
         for (let index = 0; index < paths.length; index++) {
             const path = paths[index];
             const file = path.slice(path.lastIndexOf("/") + 1);
-            const name = file.slice(0, file.lastIndexOf("."));
-            if (name && !Object.prototype.hasOwnProperty.call(next, name))
+            const dot = file.lastIndexOf(".");
+            const name = dot > 0 ? file.slice(0, dot) : "";
+            if (!name)
+                continue;
+            const rank = iconRank(path);
+            if (!Object.prototype.hasOwnProperty.call(next, name) || rank > ranks[name]) {
                 next[name] = path;
+                ranks[name] = rank;
+            }
         }
         iconIndex = next;
     }
@@ -151,7 +168,7 @@ QtObject {
         if (floating === true)
             return launchWithHelper(request, "floating", true);
         try {
-            Quickshell.execDetached(["uwsm-app", "--", "gtk-launch", request.fileId]);
+            Quickshell.execDetached(["uwsm-app", "--", "gtk-launch", "--", request.fileId]);
             return true;
         } catch (error) {
             return false;
@@ -199,7 +216,7 @@ QtObject {
     }
 
     function loadDesktopHides(text) {
-        desktopHiddenEntryIds = StartLogic.idSet(text);
+        desktopHiddenEntryIds = StartLogic.idSet(text, true);
         reindex();
         revision++;
     }

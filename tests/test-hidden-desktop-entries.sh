@@ -38,7 +38,10 @@ entry "$test_dir/system-a/applications/gnome-only.desktop" 'OnlyShowIn=GNOME;'
 entry "$test_dir/system-a/applications/z-visible.desktop" ''
 entry "$test_dir/system-b/applications/not-hyprland.desktop" 'NotShowIn=GNOME;Hyprland;'
 entry "$test_dir/system-b/applications/allowed.desktop" 'OnlyShowIn=omarchy;'
-entry "$test_dir/home/.nix-profile/share/applications/nix-hidden.desktop" 'NoDisplay=true'
+mkdir -p "$test_dir/store"
+entry "$test_dir/store/nix-hidden.desktop" 'NoDisplay = true'
+ln -s "$test_dir/store/nix-hidden.desktop" "$test_dir/home/.nix-profile/share/applications/nix-hidden.desktop"
+ln -s "$test_dir/store/missing.desktop" "$test_dir/home/.nix-profile/share/applications/dangling.desktop"
 expect $'gnome-only\nnix-hidden\nnot-hyprland'
 
 # User entries override system entries in both directions.

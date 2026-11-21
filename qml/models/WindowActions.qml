@@ -75,7 +75,7 @@ QtObject {
     }
 
     function rememberOrigin(address, workspaceName) {
-        const normalized = String(address || "").toLowerCase();
+        const normalized = TaskLogic.normalizeAddress(address);
         const workspace = String(workspaceName || "");
         if (!TaskLogic.validAddress(normalized) || workspace === "" || workspace === TaskLogic.minimizedWorkspace)
             return false;
@@ -96,15 +96,16 @@ QtObject {
     }
 
     function forgetOrigin(address) {
-        if (fallbackOrigins[address] === undefined)
+        const normalized = TaskLogic.normalizeAddress(address);
+        if (fallbackOrigins[normalized] === undefined)
             return;
 
         const next = copyOrigins();
-        delete next[address];
+        delete next[normalized];
         fallbackOrigins = next;
         const seen = ({});
         for (const key in observedOrigins) {
-            if (key !== address)
+            if (key !== normalized)
                 seen[key] = observedOrigins[key];
         }
         observedOrigins = seen;
@@ -171,15 +172,16 @@ QtObject {
         const source = windowModel.toplevelFor(address);
         if (!record || !source)
             return false;
+        const targetAddress = TaskLogic.normalizeAddress(record.address || address);
 
         if (action === "activate" && record.minimized)
             action = "restore";
         if (action === "activate")
-            return activateExact(address, record.workspaceName || String(record.workspaceId || ""));
+            return activateExact(targetAddress, record.workspaceName || String(record.workspaceId || ""));
 
         if (action === "restore" && record.workspaceName === TaskLogic.omarchyMinimizedWorkspace) {
-            const workspace = fallbackOrigins[address] || TaskLogic.restoreWorkspaceForMonitor(record.monitorName, Hyprland.monitors.values, Hyprland.focusedMonitor);
-            return workspace !== "" && restoreExact(address, workspace);
+            const workspace = fallbackOrigins[targetAddress] || TaskLogic.restoreWorkspaceForMonitor(record.monitorName, Hyprland.monitors.values, Hyprland.focusedMonitor);
+            return workspace !== "" && restoreExact(targetAddress, workspace);
         }
 
         const wayland = source.wayland || null;
@@ -188,9 +190,9 @@ QtObject {
                 wayland.close();
                 return true;
             }
-            if (action === "restore" && fallbackOrigins[address] === undefined && record.workspaceName !== TaskLogic.minimizedWorkspace && wayland) {
+            if (action === "restore" && fallbackOrigins[targetAddress] === undefined && record.workspaceName !== TaskLogic.minimizedWorkspace && wayland) {
                 wayland.minimized = false;
-                return activateExact(address, record.workspaceName || String(record.workspaceId || ""));
+                return activateExact(targetAddress, record.workspaceName || String(record.workspaceId || ""));
             }
         } catch (error) {
             // A handle may disappear between the click and this call. The
@@ -198,9 +200,9 @@ QtObject {
         }
 
         if (action === "minimize") {
-            if (capabilities && capabilities.nativeMinimize && TaskLogic.validAddress(address) && TaskLogic.canMinimizeToOmarchyDock(record, wayland)) {
+            if (capabilities && capabilities.nativeMinimize && TaskLogic.validAddress(targetAddress) && TaskLogic.canMinimizeToOmarchyDock(record, wayland)) {
                 const ipc = source.lastIpcObject || ({});
-                const code = TaskLogic.nativeDockMinimizeCode(address, record.workspaceId, ipc.tags);
+                const code = TaskLogic.nativeDockMinimizeCode(targetAddress, record.workspaceId, ipc.tags);
                 if (code !== "") {
                     try {
                         Hyprland.dispatch(TaskLogic.withoutCursorWarp(code));
@@ -210,18 +212,18 @@ QtObject {
                     return true;
                 }
             }
-            if (!rememberOrigin(address, record.workspaceName || String(record.workspaceId || "")))
+            if (!rememberOrigin(targetAddress, record.workspaceName || String(record.workspaceId || "")))
                 return false;
-            const queued = fallback("minimize", address, "");
+            const queued = fallback("minimize", targetAddress, "");
             if (!queued)
-                forgetOrigin(address);
+                forgetOrigin(targetAddress);
             return queued;
         }
         if (action === "restore") {
-            const origin = fallbackOrigins[address];
-            return origin !== undefined && restoreExact(address, origin);
+            const origin = fallbackOrigins[targetAddress];
+            return origin !== undefined && restoreExact(targetAddress, origin);
         }
-        return fallback(action, address, "");
+        return fallback(action, targetAddress, "");
     }
 
     function toggle(address) {

@@ -1,5 +1,10 @@
 .pragma library
 
+function needsSeconds(format) {
+    // Strip quoted literals so text like 'Sat' is not mistaken for a seconds token.
+    return /s/.test(String(format || "").replace(/'[^']*'?/g, ""));
+}
+
 function formatDateTime(date, format) {
     // ISO weeks belong to the year containing their Thursday. Use UTC for
     // date arithmetic so daylight-saving changes cannot shift the week.

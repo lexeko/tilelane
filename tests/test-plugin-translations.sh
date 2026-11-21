@@ -27,7 +27,7 @@ await_state() {
   return 1
 }
 
-for scenario in missing broken native; do
+for scenario in missing "missing space # dir" broken native; do
   case_dir="$test_dir/$scenario"
   mkdir -p "$case_dir/qml/models" "$case_dir/i18n" "$case_dir/Commons"
   cp "$repo_dir/qml/models/PluginTranslations.qml" "$case_dir/qml/models/"

@@ -157,6 +157,7 @@ Item {
         openTimer.stop();
         collapseTimer.stop();
         expanded = false;
+        fanHovered = false;
         hoveredWorkspace = 0;
         if (bar)
             bar.releasePopout(root);
@@ -251,7 +252,7 @@ Item {
             cursorShape: Qt.PointingHandCursor
             onEntered: {
                 collapseTimer.stop();
-                if (!root.expanded)
+                if (!root.expanded && !(root.bar && root.bar.activePopout && root.bar.activePopout !== root))
                     openTimer.restart();
             }
             onExited: {
@@ -326,11 +327,11 @@ Item {
             visible: root.openProgress > 0.01
 
             HoverHandler {
+                enabled: root.expanded
                 onHoveredChanged: {
                     root.fanHovered = hovered;
                     if (hovered) {
                         collapseTimer.stop();
-                        root.open();
                     } else {
                         collapseTimer.restart();
                     }

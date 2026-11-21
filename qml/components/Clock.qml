@@ -16,6 +16,9 @@ StatusControl {
     property var nativeSettings: ({})
     property string screenName: ""
     property string format: "h:mm AP"
+    readonly property string activeFormat: nativeHost.hostItem && typeof nativeHost.hostItem.activeFormat === "string" && nativeHost.hostItem.activeFormat !== "" ? nativeHost.hostItem.activeFormat : format
+    readonly property bool showsSeconds: ClockLogic.needsSeconds(activeFormat)
+    readonly property string nativeDisplayText: nativeHost.hostItem && typeof nativeHost.hostItem.displayText === "string" ? nativeHost.hostItem.displayText : ""
     readonly property string displayText: clockText.text
     hintText: Qt.formatDateTime(clock.date, "dddd, MMMM d, yyyy, h:mm AP")
 
@@ -38,7 +41,7 @@ StatusControl {
     SystemClock {
         id: clock
 
-        precision: SystemClock.Minutes
+        precision: root.showsSeconds ? SystemClock.Seconds : SystemClock.Minutes
     }
 
     HostedBarWidget {
@@ -59,7 +62,7 @@ StatusControl {
         id: clockText
 
         anchors.centerIn: parent
-        text: ClockLogic.formatDateTime(clock.date, root.format)
+        text: root.nativeDisplayText !== "" ? root.nativeDisplayText : ClockLogic.formatDateTime(clock.date, root.activeFormat)
         textFormat: Text.PlainText
         color: Commons.Color.bar.text
         font.family: Commons.Style.font.family

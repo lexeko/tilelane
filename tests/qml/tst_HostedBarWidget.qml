@@ -273,4 +273,18 @@ TestCase {
         compare(visibleControl.lastButton, Qt.RightButton);
         compare(host.hostItem.pressCount, 1);
     }
+
+    function test_fallbackSourceEncodesSpecialPathCharacters() {
+        registry.widgets = ({
+                "test.widget": {
+                    "component": null,
+                    "metadata": {
+                        "sourceDir": "/tmp/dir with space/hash #1"
+                    }
+                }
+            });
+        host.fallbackEntryPoint = "Widget.qml";
+        compare(host.fallbackSource, "file:///tmp/dir%20with%20space/hash%20%231/Widget.qml");
+        host.fallbackEntryPoint = "";
+    }
 }

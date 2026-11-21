@@ -70,4 +70,14 @@ TestCase {
         });
         compare(sample(grabImage(testCase), 0.75, 0.25), Qt.rgba(242 / 255, 60 / 255, 52 / 255, 1));
     }
+
+    function test_translucentForegroundIsPremultiplied() {
+        icon.source = "image://icon/badge-symbolic";
+        background.color = "black";
+        icon.foreground = Qt.rgba(1, 1, 1, 0.5);
+        tryVerify(function () {
+            const neutral = sample(grabImage(testCase), 0.25, 0.25);
+            return Math.abs(neutral.r - 0.5) < 0.03 && Math.abs(neutral.g - 0.5) < 0.03 && Math.abs(neutral.b - 0.5) < 0.03;
+        });
+    }
 }

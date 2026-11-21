@@ -15,10 +15,12 @@ TestCase {
         property var record: ({})
         property var source: ({})
         function recordFor(address) {
-            return address === "0x123" ? record : null;
+            const normalized = String(address || "").toLowerCase();
+            return normalized === "0x123" || normalized === "123" ? record : null;
         }
         function toplevelFor(address) {
-            return address === "0x123" ? source : null;
+            const normalized = String(address || "").toLowerCase();
+            return normalized === "0x123" || normalized === "123" ? source : null;
         }
     }
 
@@ -339,5 +341,33 @@ TestCase {
             compare(Hyprland.dispatches.length, 0);
         }
         actions.fallbackOrigins = ({});
+    }
+
+    function test_nonNormalizedAddressesMinimizeAndRestoreConsistently() {
+        const actions = createTemporaryObject(actionsComponent, testCase);
+        actions.loadOrigins("");
+        model.record = {
+            address: "0x123",
+            workspaceName: "2",
+            workspaceId: 2,
+            minimized: false,
+            omarchyFloatingWorkspace: false
+        };
+        verify(actions.invoke("0x123".toUpperCase(), "minimize"));
+        compare(actions.fallbackOrigins["0x123"], "2");
+        model.record = {
+            address: "0x123",
+            workspaceName: "special:tilelane-minimized",
+            workspaceId: -1,
+            minimized: true,
+            omarchyFloatingWorkspace: false
+        };
+        verify(actions.invoke("0x123".toUpperCase(), "restore"));
+        verify(actions.invoke("123", "restore"));
+        compare(Hyprland.dispatches.length, 2);
+        verify(Hyprland.dispatches[0].indexOf("address:0x123") !== -1);
+        verify(Hyprland.dispatches[1].indexOf("address:0x123") !== -1);
+        actions.forgetOrigin("0x123".toUpperCase());
+        compare(actions.fallbackOrigins["0x123"], undefined);
     }
 }

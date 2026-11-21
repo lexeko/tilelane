@@ -32,7 +32,7 @@ Item {
         const path = fallbackEntryPoint || manifestEntryPoint;
         if (!entry || entry.component || sourceDir === "" || path === "")
             return "";
-        return "file://" + sourceDir + "/" + path;
+        return "file://" + (sourceDir + "/" + path).split("/").map(encodeURIComponent).join("/");
     }
     readonly property bool hasLoadSource: !!entry && (!!entry.component || fallbackSource !== "")
     readonly property var hostItem: registryLoader.item || fallbackLoader.item

@@ -133,7 +133,7 @@ Item {
                     anchors.centerIn: parent
                     scale: slot.visualScale
                     transformOrigin: Item.Center
-                    source: root.metadata.sourceDir ? "file://" + root.metadata.sourceDir + "/../indicators/" + slot.indicatorId + ".qml" : ""
+                    source: root.metadata.sourceDir ? "file://" + (root.metadata.sourceDir + "/../indicators/" + slot.indicatorId + ".qml").split("/").map(encodeURIComponent).join("/") : ""
                     onLoaded: {
                         const target = item;
                         if ("bar" in target)

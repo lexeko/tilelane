@@ -50,4 +50,14 @@ TestCase {
         for (const format of ["h:mm AP", "dddd HH:mm", "yyyy-MM-dd HH:mm"])
             compare(ClockLogic.formatDateTime(date, format), Qt.formatDateTime(date, format));
     }
+
+    function test_secondsDetectionIgnoresQuotedLiterals() {
+        verify(ClockLogic.needsSeconds("dddd HH:mm:ss"));
+        verify(ClockLogic.needsSeconds("dddd h:mm:ss AP"));
+        verify(ClockLogic.needsSeconds("HH:mm:s"));
+        verify(!ClockLogic.needsSeconds("dddd HH:mm"));
+        verify(!ClockLogic.needsSeconds("h:mm AP"));
+        verify(!ClockLogic.needsSeconds("'sec' HH:mm"));
+        verify(!ClockLogic.needsSeconds(""));
+    }
 }

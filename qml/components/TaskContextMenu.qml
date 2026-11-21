@@ -21,7 +21,8 @@ Ui.KeyboardPanel {
     property var pinnedApplications: null
     property int currentIndex: 0
     readonly property int pinRevision: pinnedApplications ? pinnedApplications.revision : 0
-    readonly property var menuItems: buildItems(pinRevision)
+    readonly property int catalogRevision: applicationCatalog ? applicationCatalog.revision + applicationCatalog.indexRevision : 0
+    readonly property var menuItems: buildItems(pinRevision, catalogRevision)
 
     contentWidth: Commons.Style.space(292)
     contentHeight: menuColumn.implicitHeight + Commons.Style.space(16)
@@ -29,7 +30,7 @@ Ui.KeyboardPanel {
     gap: Commons.Style.space(7)
     focusTarget: menuFocus
 
-    function buildItems(revision) {
+    function buildItems(revision, catalogRev) {
         const items = [];
         if (launcherOnly) {
             items.push({

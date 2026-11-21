@@ -50,6 +50,10 @@ is_hidden() {
     [[ "$in_entry" == true && "$line" == *=* ]] || continue
     key="${line%%=*}"
     value="${line#*=}"
+    key="${key#"${key%%[![:space:]]*}"}"
+    key="${key%"${key##*[![:space:]]}"}"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
     case "$key" in
       Hidden | NoDisplay)
         [[ "${value,,}" == true ]] && hidden=true
@@ -80,7 +84,7 @@ scan_directory() {
     [[ -n "$id" && -z "${seen_ids[$id]+present}" ]] || continue
     seen_ids[$id]=1
     is_hidden "$file" && printf '%s\n' "$id"
-  done < <(find "$directory" -type f -name '*.desktop' -print0 2>/dev/null | sort -z)
+  done < <(find -L "$directory" -type f -name '*.desktop' -print0 2>/dev/null | sort -z)
   return 0
 }
 

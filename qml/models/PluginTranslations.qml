@@ -34,7 +34,7 @@ QtObject {
     }
 
     property FileView englishFile: FileView {
-        path: root.usingNative || String(root.directory) === "" ? "" : String(root.directory).replace(/^file:\/\//, "").replace(/\/+$/, "") + "/en.json"
+        path: root.usingNative || String(root.directory) === "" ? "" : decodeURIComponent(String(root.directory).replace(/^file:\/\//, "")).replace(/\/+$/, "") + "/en.json"
         watchChanges: true
         printErrors: false
         blockLoading: true

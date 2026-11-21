@@ -65,10 +65,14 @@ fail() {
 
 reset_case
 bash "$repo_dir/scripts/launch-application" auto 0 "App With Space.desktop" ExampleApp ""
-grep -F $'uwsm-app\t--\tgtk-launch\tApp With Space.desktop' "$TILELANE_TEST_LOG" >/dev/null || fail "ordinary pointer launch changed"
+grep -F $'uwsm-app\t--\tgtk-launch\t--\tApp With Space.desktop' "$TILELANE_TEST_LOG" >/dev/null || fail "ordinary pointer launch changed"
 if grep -F $'hyprctl\teval' "$TILELANE_TEST_LOG" >/dev/null; then
   fail "ordinary pointer launch requested floating"
 fi
+
+reset_case
+bash "$repo_dir/scripts/launch-application" normal 0 "-dash-app.desktop" DashApp ""
+grep -F $'uwsm-app\t--\tgtk-launch\t--\t-dash-app.desktop' "$TILELANE_TEST_LOG" >/dev/null || fail "leading-dash desktop ID was not separated with --"
 
 reset_case
 export TILELANE_TEST_CONTROL=true

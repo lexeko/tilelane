@@ -52,7 +52,7 @@ if [[ "$mode" == "normal" ]]; then
   if [[ -n "$place_uri" ]]; then
     exec uwsm-app -- nautilus --new-window -- "$place_uri"
   fi
-  exec uwsm-app -- gtk-launch "$desktop_file_id"
+  exec uwsm-app -- gtk-launch -- "$desktop_file_id"
 fi
 
 if [[ "$run_in_terminal" == "1" ]] && command -v xdg-terminal-exec >/dev/null 2>&1; then
@@ -80,7 +80,7 @@ if command -v jq >/dev/null 2>&1; then
   before_addresses="$(jq -ce '[.[] | .address? // empty]' <<<"$before_json" 2>/dev/null || true)"
 fi
 
-command="exec uwsm-app -- gtk-launch $(shell_quote "$desktop_file_id")"
+command="exec uwsm-app -- gtk-launch -- $(shell_quote "$desktop_file_id")"
 if [[ -n "$place_uri" ]]; then
   command="exec uwsm-app -- nautilus --new-window -- $(shell_quote "$place_uri")"
 fi

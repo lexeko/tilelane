@@ -43,6 +43,15 @@ function validAddress(address) {
     return /^0x[0-9a-f]{1,16}$/i.test(String(address || ""));
 }
 
+function normalizeAddress(value) {
+    var address = String(value || "").trim();
+    if (/^0x[0-9a-f]+$/i.test(address))
+        return "0x" + address.slice(2).toLowerCase();
+    if (/^[0-9a-f]+$/i.test(address))
+        return "0x" + address.toLowerCase();
+    return address;
+}
+
 function validWorkspaceId(value) {
     var id = String(value || "");
     return /^[1-9][0-9]*$/.test(id) && Number(id) <= 2147483647;

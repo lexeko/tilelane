@@ -28,11 +28,12 @@ function desktopFileId(value) {
     return id === "" ? "" : id + ".desktop";
 }
 
-function idSet(text) {
+function idSet(text, preserveSuffix) {
     const result = ({});
     const lines = String(text || "").split(/\r?\n/);
     for (let index = 0; index < lines.length; index++) {
-        const id = normalizedDesktopId(lines[index]);
+        const raw = String(lines[index] || "").trim();
+        const id = preserveSuffix === true ? raw : normalizedDesktopId(raw);
         if (id && id.charAt(0) !== "#")
             result[id] = true;
     }
