@@ -16,8 +16,12 @@ StatusControl {
     property var settings: ({})
     property string fallbackEntryPoint: ""
     property var statusOwner: null
+    property bool weatherLabelFallbackApplied: false
+    property bool applyingWeatherFallback: false
     // Temporary workaround: keep Omarchy's native weather panel unloaded while
-    // closed until upstream bounds forecast response buffering.
+    // closed until upstream bounds forecast response buffering, and backfill
+    // the panel's condition glyph from wttr.in when Open-Meteo fails so the
+    // hero view does not show a leading em dash next to the temperature.
     readonly property bool lazyWeather: moduleName === "omarchy.weather"
     readonly property string weatherIdleGlyph: "\ue302"
     readonly property string statusText: {
@@ -33,10 +37,38 @@ StatusControl {
         return "Weather";
     }
 
+    function syncWeatherFallbackLabel() {
+        const owner = root.statusOwner;
+        if (!root.lazyWeather || !owner)
+            return;
+        const current = "current" in owner ? owner.current : null;
+        if (!current)
+            return;
+        if (current.openMeteoWeatherCode !== undefined && current.openMeteoWeatherCode !== null)
+            return;
+        if (String(owner.label || "") !== "" && !root.weatherLabelFallbackApplied)
+            return;
+        if (current.weatherCode === undefined || current.weatherCode === null || typeof owner.iconForCode !== "function")
+            return;
+        const fallbackIcon = String(owner.iconForCode(current.weatherCode, false) || "");
+        if (fallbackIcon === "" || String(owner.label || "") === fallbackIcon)
+            return;
+        root.applyingWeatherFallback = true;
+        owner.label = fallbackIcon;
+        root.applyingWeatherFallback = false;
+        root.weatherLabelFallbackApplied = true;
+    }
+
     function updateStatusOwner() {
         statusOwner = presentation === "text" ? nativeHost.hostItem : nativeHost.nativeObjects.find(object => object && object.moduleName === root.moduleName && "label" in object) || null;
     }
 
+    onStatusOwnerChanged: {
+        weatherLabelFallbackApplied = false;
+        applyingWeatherFallback = false;
+        if (lazyWeather && statusOwner)
+            Qt.callLater(root.syncWeatherFallbackLabel);
+    }
     onPresentationChanged: updateStatusOwner()
     onModuleNameChanged: updateStatusOwner()
 
@@ -95,6 +127,20 @@ StatusControl {
         lazy: root.lazyWeather
         alignPanelToHost: root.lazyWeather
         onNativeObjectsChangedForHost: root.updateStatusOwner()
+    }
+
+    Connections {
+        target: root.lazyWeather ? root.statusOwner : null
+        ignoreUnknownSignals: true
+
+        function onCurrentChanged() {
+            Qt.callLater(root.syncWeatherFallbackLabel);
+        }
+
+        function onLabelChanged() {
+            if (!root.applyingWeatherFallback)
+                root.weatherLabelFallbackApplied = false;
+        }
     }
 
     Text {

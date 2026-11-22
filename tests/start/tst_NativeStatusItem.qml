@@ -79,6 +79,34 @@ TestCase {
     }
 
     Component {
+        id: fakeWeatherFallbackWidget
+
+        Item {
+            property string moduleName: "omarchy.weather"
+            property string label: ""
+            property var current: null
+            property bool opened: false
+
+            function open() {
+                opened = true;
+            }
+            function close() {
+                opened = false;
+            }
+            function togglePanel() {
+                opened = !opened;
+            }
+            function iconForCode(code, night) {
+                if (String(code) === "122")
+                    return "\ue33d";
+                if (String(code) === "113")
+                    return night ? "\ue32b" : "\ue30d";
+                return "\ue33d";
+            }
+        }
+    }
+
+    Component {
         id: fakeKeyboardWidget
 
         Item {
@@ -166,6 +194,44 @@ TestCase {
         }, 1000);
         compare(item.statusText, "\ue302");
         verify(item.visible);
+    }
+
+    function test_weatherBackfillsMissingConditionLabelFromWttrCode() {
+        widgetRegistry.widgets = ({
+                "omarchy.weather": {
+                    "component": fakeWeatherFallbackWidget,
+                    "metadata": ({})
+                }
+            });
+        const item = createTemporaryObject(weatherStatusFactory, testCase);
+        verify(item.activate(Qt.LeftButton));
+        tryCompare(item, "opened", true);
+        tryVerify(function () {
+            return !!item.statusOwner;
+        });
+        compare(item.statusOwner.label, "");
+
+        // When wttr.in populates current without Open-Meteo setting label, backfill it.
+        item.statusOwner.current = ({
+                "weatherCode": "122"
+            });
+        tryCompare(item.statusOwner, "label", "\ue33d");
+        compare(item.statusText, "\ue33d");
+
+        // Subsequent wttr.in updates refresh the fallback glyph while Open-Meteo stays absent.
+        item.statusOwner.current = ({
+                "weatherCode": "113"
+            });
+        tryCompare(item.statusOwner, "label", "\ue30d");
+
+        // Once Open-Meteo provides a day/night-aware label, Tilelane does not overwrite it.
+        item.statusOwner.label = "\ue32b";
+        item.statusOwner.current = ({
+                "openMeteoWeatherCode": 0,
+                "weatherCode": "113"
+            });
+        wait(0);
+        compare(item.statusOwner.label, "\ue32b");
     }
 
     function test_keyboardLayoutStaysPersistent() {
