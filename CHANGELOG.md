@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+- Show the current weather condition icon in Omarchy's weather popup when
+  forecast data arrives without an Open-Meteo icon, avoiding a leading em dash
+  next to the temperature.
+
 ## 0.5.0
 
 - Add a Start right-click menu with options to open Start by tapping Super
