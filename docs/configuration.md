@@ -27,7 +27,7 @@ enabled.
 Omarchy's layout sections map to Tilelane's status area in this order:
 
 1. Widgets from `left`, followed by widgets from `right`.
-2. Widgets from `center`.
+2. Widgets from `centerBegin`, `center`, and `centerEnd`, in that order.
 3. The clock, regardless of its configured section.
 
 Order within each group follows your configuration. Tilelane supplies its own

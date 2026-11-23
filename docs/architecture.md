@@ -275,8 +275,9 @@ on different monitors. Other native widgets keep their per-monitor hosts.
 
 `StatusWidgetModel.qml` joins configured widgets into the right-hand status
 area. From left to right, it places the left/right section controls, the center
-section's information widgets, and the clock in separate groups. It preserves
-configured item order within each group and keeps the clock at the right edge.
+sections' information widgets (`centerBegin`, `center`, and `centerEnd`), and
+the clock in separate groups. It preserves configured item order within each
+group and keeps the clock at the right edge.
 Spacing follows these display groups rather than the source sections.
 It includes only entries present in the injected `barWidgetRegistry`. The
 standard menu, workspace, and indicator entries are excluded because Tilelane

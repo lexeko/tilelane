@@ -318,21 +318,7 @@ Item {
     }
 
     function barWidgetSettings(id) {
-        const layout = barConfig && barConfig.layout ? barConfig.layout : ({});
-        const sections = ["left", "center", "right"];
-        for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
-            const entries = layout[sections[sectionIndex]] || [];
-            for (let entryIndex = 0; entryIndex < entries.length; entryIndex++) {
-                const entry = entries[entryIndex];
-                if (entry && String(entry.id || entry) === id)
-                    return typeof entry === "object" ? entry : {
-                        "id": id
-                    };
-            }
-        }
-        return {
-            "id": id
-        };
+        return StatusWidgetLogic.widgetSettings(barConfig, id);
     }
 
     function toggleHostPanel(id, screenName, button) {

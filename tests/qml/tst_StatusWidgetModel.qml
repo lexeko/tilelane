@@ -125,6 +125,155 @@ TestCase {
         compare(widgets.model.get(5).groupName, "clock");
     }
 
+    function test_stockOmarchyLayoutLoadsCenterEndAndKeepsClockLast() {
+        registry.widgets = {
+            "omarchy.menu": {},
+            "omarchy.workspaces": {},
+            "omarchy.indicators": {},
+            "omarchy.clock": {},
+            "omarchy.elsewhen": {},
+            "omarchy.weather": {},
+            "omarchy.system-update": {},
+            "omarchy.tray": {},
+            "omarchy.keyboard-layout": {},
+            "omarchy.agents": {},
+            "omarchy.bluetooth": {},
+            "omarchy.network": {},
+            "omarchy.audio": {},
+            "omarchy.monitor": {},
+            "omarchy.power": {}
+        };
+        widgets.config = {
+            layout: {
+                left: [
+                    {
+                        id: "omarchy.menu"
+                    },
+                    {
+                        id: "omarchy.workspaces"
+                    }
+                ],
+                centerBegin: [
+                    {
+                        id: "omarchy.indicators",
+                        items: ["Dnd", "NightLight"]
+                    }
+                ],
+                center: [
+                    {
+                        id: "omarchy.clock",
+                        format: "dddd HH:mm"
+                    }
+                ],
+                centerEnd: [
+                    {
+                        id: "omarchy.elsewhen",
+                        cities: ["Tokyo"]
+                    },
+                    {
+                        id: "omarchy.weather"
+                    },
+                    {
+                        id: "omarchy.system-update",
+                        interval: 900
+                    }
+                ],
+                right: [
+                    {
+                        id: "omarchy.tray"
+                    },
+                    {
+                        id: "omarchy.keyboard-layout"
+                    },
+                    {
+                        id: "omarchy.agents"
+                    },
+                    {
+                        id: "omarchy.bluetooth"
+                    },
+                    {
+                        id: "omarchy.network"
+                    },
+                    {
+                        id: "omarchy.audio"
+                    },
+                    {
+                        id: "omarchy.monitor"
+                    },
+                    {
+                        id: "omarchy.power"
+                    }
+                ]
+            }
+        };
+        compare(ids(), ["omarchy.tray", "omarchy.keyboard-layout", "omarchy.agents", "omarchy.bluetooth", "omarchy.network", "omarchy.audio", "omarchy.monitor", "omarchy.power", "omarchy.elsewhen", "omarchy.weather", "omarchy.system-update", "omarchy.clock"]);
+        compare(widgets.model.get(0).groupName, "controls");
+        compare(widgets.model.get(7).groupName, "controls");
+        compare(widgets.model.get(8).groupName, "information");
+        compare(widgets.model.get(9).groupName, "information");
+        compare(widgets.model.get(10).groupName, "information");
+        compare(widgets.model.get(11).groupName, "clock");
+        compare(JSON.parse(widgets.model.get(8).settingsJson).cities, ["Tokyo"]);
+        compare(JSON.parse(widgets.model.get(11).settingsJson).format, "dddd HH:mm");
+        compare(Logic.widgetSettings(widgets.config, "omarchy.indicators").items, ["Dnd", "NightLight"]);
+        compare(Logic.widgetSettings(widgets.config, "omarchy.system-update").interval, 900);
+    }
+
+    function test_centerSectionsOrderDeduplicateAndPreserveInstances() {
+        registry.widgets = {
+            "omarchy.clock": {},
+            "omarchy.indicators": {},
+            "test.begin": {
+                metadata: {
+                    defaults: {
+                        label: "BeginDefault"
+                    }
+                }
+            },
+            "test.middle": {
+                metadata: {}
+            },
+            "test.end": {
+                metadata: {}
+            },
+            "omarchy.tray": {}
+        };
+        widgets.config = {
+            layout: {
+                centerBegin: ["omarchy.indicators",
+                    {
+                        id: "test.begin",
+                        label: "BeginCustom"
+                    }
+                ],
+                center: ["omarchy.clock", "test.middle"],
+                centerEnd: ["test.begin", "test.end"],
+                right: ["omarchy.tray"]
+            }
+        };
+        compare(ids(), ["omarchy.tray", "test.begin", "test.middle", "test.end", "omarchy.clock"]);
+        compare(widgets.model.get(0).groupName, "controls");
+        compare(widgets.model.get(1).groupName, "information");
+        compare(widgets.model.get(2).groupName, "information");
+        compare(widgets.model.get(3).groupName, "information");
+        compare(widgets.model.get(4).groupName, "clock");
+        compare(JSON.parse(widgets.model.get(1).settingsJson).label, "BeginCustom");
+
+        const beginDelegate = delegates.itemAt(1);
+        beginDelegate.panelOpen = true;
+        widgets.config = {
+            layout: {
+                centerBegin: ["omarchy.indicators"],
+                center: ["omarchy.clock", "test.middle"],
+                centerEnd: ["test.end", "test.begin"],
+                right: ["omarchy.tray"]
+            }
+        };
+        compare(ids(), ["omarchy.tray", "test.middle", "test.end", "test.begin", "omarchy.clock"]);
+        compare(delegates.itemAt(3), beginDelegate);
+        verify(beginDelegate.panelOpen);
+    }
+
     function test_registryInstallDisableAndConfigRemoval() {
         widgets.config = {
             layout: {

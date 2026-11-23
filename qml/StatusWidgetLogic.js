@@ -1,5 +1,8 @@
 .pragma library
 
+var layoutSections = ["left", "centerBegin", "center", "centerEnd", "right"];
+var informationSections = ["centerBegin", "center", "centerEnd"];
+
 function presentation(id) {
     if (["omarchy.agents", "omarchy.bluetooth", "omarchy.network", "omarchy.audio", "omarchy.monitor"].indexOf(id) !== -1)
         return "panel";
@@ -11,15 +14,35 @@ function presentation(id) {
     return "native";
 }
 
+function entryId(entry) {
+    return typeof entry === "string" ? entry : entry && typeof entry.id === "string" ? entry.id : "";
+}
+
+function widgetSettings(config, id) {
+    var target = typeof id === "string" ? id : "";
+    if (!target)
+        return {id: ""};
+    var layout = config && config.layout ? config.layout : {};
+    for (var sectionIndex = 0; sectionIndex < layoutSections.length; sectionIndex++) {
+        var entries = Array.isArray(layout[layoutSections[sectionIndex]]) ? layout[layoutSections[sectionIndex]] : [];
+        for (var entryIndex = 0; entryIndex < entries.length; entryIndex++) {
+            var entry = entries[entryIndex];
+            if (entryId(entry) === target)
+                return entry && typeof entry === "object" ? entry : {id: target};
+        }
+    }
+    return {id: target};
+}
+
 function records(config, registry) {
     var layout = config && config.layout ? config.layout : {};
     var widgets = registry || {};
     var result = [];
     var occurrences = {};
-    ["left", "center", "right"].forEach(function (section) {
+    layoutSections.forEach(function (section) {
         var entries = Array.isArray(layout[section]) ? layout[section] : [];
         entries.forEach(function (entry) {
-            var id = typeof entry === "string" ? entry : entry && typeof entry.id === "string" ? entry.id : "";
+            var id = entryId(entry);
             // Tilelane supplies these surfaces itself, including the Start
             // menu's indicators. Do not instantiate duplicate native widgets.
             if (!id || ["omarchy.menu", "omarchy.workspaces", "omarchy.indicators"].indexOf(id) !== -1 || !widgets[id])
@@ -34,7 +57,7 @@ function records(config, registry) {
                 key: id + ":" + occurrence,
                 widgetId: id,
                 section: section,
-                groupName: id === "omarchy.clock" ? "clock" : section === "center" ? "information" : "controls",
+                groupName: id === "omarchy.clock" ? "clock" : informationSections.indexOf(section) !== -1 ? "information" : "controls",
                 presentation: presentation(id),
                 settingsJson: JSON.stringify(settings)
             });
