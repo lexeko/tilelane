@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2
+
+- Load widgets configured in Omarchy 4.5's `centerBegin` and `centerEnd`
+  sections, including Weather, Elsewhen, and System Update in the stock layout,
+  and read widget settings from those sections.
+
 ## 0.5.1
 
 - Show the current weather condition icon in Omarchy's weather popup when
